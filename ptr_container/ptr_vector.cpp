@@ -1,8 +1,19 @@
 #include <iostream>
 #include <typeinfo>
 #include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/bind.hpp>
+
 using namespace std;
 using namespace boost;
+
+void two(int n,string& x) {
+	for(int i=0;i<n;i++)
+		cout<< x << endl;
+}
+
+void twoSwap(string& x,int n) {
+	cout<< n << " "<< x << endl;
+}
 
 int main()
 {
@@ -16,5 +27,16 @@ int main()
 	for(auto a : vec){
 		cout<<a<<endl;
 	}
+
+	for_each( vec.begin()
+		, vec.end()
+		, bind(two,2,_1)
+		);
+
+	for_each( vec.begin()
+		, vec.end()
+		, bind(twoSwap,_1, 2)
+		);
+	
 	vec.clear();
 }
