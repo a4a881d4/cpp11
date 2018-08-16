@@ -1,10 +1,13 @@
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 template <typename T>
 struct Say
 {
 	Say(){};
-	operator()(T&& x){
+	void operator()(T&& x){
 		cout << "say: " << x << endl;
 
 	};
@@ -12,6 +15,6 @@ struct Say
 
 int main()
 {
-	Say<string> s;
-	s("OK");
+	Say<string> say;
+	say("ok");
 }

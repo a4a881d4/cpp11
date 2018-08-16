@@ -1,7 +1,8 @@
 all:work/ptr_vector \
 	work/fib \
 	work/qcldpc \
-	work/say
+	work/say \
+	work/ast
 
 CPPFLAG = -std=c++1z
 
@@ -22,5 +23,8 @@ work/qcldpc:meta/QCLDPC.cpp
 work/say:functor/say.cpp
 	g++ $(CPPFLAG) -o $@ $^
 		
+work/ast:functor/ast.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
 clean:
 	rm work/* -f
