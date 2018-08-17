@@ -10,24 +10,26 @@ using namespace boost;
 class Func {
 	public:
 		void* m_args;
-		string& m_funcName;
-		Func(string fn):m_funcName(fn){};
-		void fake_do() {
-			cout << "fake call " << m_funcName << endl;
+		Func(string&& fn):m_name(fn){};
+		void fake_do(string&& pre) {
+			cout << pre << "fake call " << m_name << endl;
 
 		};
-
+	private:
+		string& m_name;
+		
 
 };
 
 struct VMV {
-	VMV(){};
+	string& m_name;
+	VMV(string&& name):m_name(name){};
 	void bind(Func& f, ptr_vector<VMV>& args ){
 		m_f = &f;
 		m_args = &args; 
 	};
-	void fake_do(){
-		m_f->fake_do();
+	void fake_do(string&& pre){
+		m_f->fake_do(pre+m_name+"->");
 	}
 private:
 	ptr_vector<VMV> *m_args = nullptr;
@@ -42,7 +44,7 @@ int main()
 	};
 	Func f("fft");
 	ptr_vector<VMV> a;
-	VMV fo;
+	VMV fo("ffto");
 	fo.bind(f,a);
-	fo.fake_do();
+	fo.fake_do("main->");
 }
