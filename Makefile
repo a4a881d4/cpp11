@@ -2,7 +2,9 @@ all:work/ptr_vector \
 	work/fib \
 	work/qcldpc \
 	work/say \
-	work/ast
+	work/ast \
+	work/uuid
+
 
 CPPFLAG = -std=c++1z
 
@@ -24,6 +26,9 @@ work/say:functor/say.cpp
 	g++ $(CPPFLAG) -o $@ $^
 		
 work/ast:functor/ast.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/uuid:uuid/uuid.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 clean:
