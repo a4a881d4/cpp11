@@ -5,7 +5,9 @@ all:work/ptr_vector \
 	work/ast \
 	work/uuid \
 	work/sharedMemory \
-	work/namedSharedMemory
+	work/namedSharedMemory \
+	work/offsetPtr \
+	work/vectorInSharedMemory
 
 
 
@@ -38,6 +40,12 @@ work/sharedMemory:interprocess/sharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/namedSharedMemory:interprocess/namedSharedMemory.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/offsetPtr:interprocess/offsetPtr.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/vectorInSharedMemory:interprocess/vectorInSharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 clean:

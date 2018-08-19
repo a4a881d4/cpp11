@@ -59,10 +59,10 @@ int main(int argc, char *argv[])
       //Open managed shared memory
       managed_shared_memory segment(open_only, "MySharedMemory");
 
-      std::pair<MyType*, managed_shared_memory::size_type> res;
+      //std::pair<MyType*, managed_shared_memory::size_type> res;
 
       //Find the array
-      res = segment.find<MyType> ("MyType array");
+      auto res = segment.find<MyType> ("MyType array");
       //Length should be 10
       if(res.second != 10) return 1;
       auto f = [&res](const char * s) {
