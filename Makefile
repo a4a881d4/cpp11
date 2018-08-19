@@ -3,7 +3,10 @@ all:work/ptr_vector \
 	work/qcldpc \
 	work/say \
 	work/ast \
-	work/uuid
+	work/uuid \
+	work/sharedMemory \
+	work/namedSharedMemory
+
 
 
 CPPFLAG = -std=c++1z
@@ -29,6 +32,12 @@ work/ast:functor/ast.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/uuid:uuid/uuid.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/sharedMemory:interprocess/sharedMemory.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/namedSharedMemory:interprocess/namedSharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 clean:
