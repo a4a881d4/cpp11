@@ -11,9 +11,9 @@ all:work/ptr_vector \
 	work/mapInSharedMemory \
 	work/sharedRegion \
 	work/mappedFile \
-	work/writingTrace
-
-
+	work/writingTrace \
+	work/namedCondSent \
+	work/namedCondRecv
 
 CPPFLAG = -std=c++1z
 
@@ -62,6 +62,12 @@ work/mappedFile:interprocess/mappedFile.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/writingTrace:interprocess/writingTrace.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/namedCondSent:interprocess/namedCondSent.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/namedCondRecv:interprocess/namedCondRecv.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 clean:
