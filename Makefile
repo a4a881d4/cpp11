@@ -7,7 +7,11 @@ all:work/ptr_vector \
 	work/sharedMemory \
 	work/namedSharedMemory \
 	work/offsetPtr \
-	work/vectorInSharedMemory
+	work/vectorInSharedMemory \
+	work/mapInSharedMemory \
+	work/sharedRegion \
+	work/mappedFile \
+	work/writingTrace
 
 
 
@@ -48,5 +52,17 @@ work/offsetPtr:interprocess/offsetPtr.cpp
 work/vectorInSharedMemory:interprocess/vectorInSharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
+work/mapInSharedMemory:interprocess/mapInSharedMemory.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/sharedRegion:interprocess/sharedRegion.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/mappedFile:interprocess/mappedFile.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/writingTrace:interprocess/writingTrace.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
 clean:
-	rm work/* -f
+	rm -f work/*
