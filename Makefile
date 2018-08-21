@@ -49,28 +49,28 @@ work/namedSharedMemory:interprocess/namedSharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/offsetPtr:interprocess/offsetPtr.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/vectorInSharedMemory:interprocess/vectorInSharedMemory.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/mapInSharedMemory:interprocess/mapInSharedMemory.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/sharedRegion:interprocess/sharedRegion.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/mappedFile:interprocess/mappedFile.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/writingTrace:interprocess/writingTrace.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/namedCondSent:interprocess/namedCondSent.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/namedCondRecv:interprocess/namedCondRecv.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 clean:
 	rm -f work/*
