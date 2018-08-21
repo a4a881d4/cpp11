@@ -17,6 +17,8 @@ all:work/ptr_vector \
 
 CPPFLAG = -std=c++1z
 
+LDFLAG = -lrt -lpthread
+
 work/ptr_vector:ptr_container/ptr_vector.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
@@ -41,10 +43,10 @@ work/uuid:uuid/uuid.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/sharedMemory:interprocess/sharedMemory.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/namedSharedMemory:interprocess/namedSharedMemory.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/offsetPtr:interprocess/offsetPtr.cpp
 	g++ $(CPPFLAG) -o $@ $^
