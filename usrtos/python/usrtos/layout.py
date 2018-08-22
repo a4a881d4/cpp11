@@ -2,6 +2,7 @@ from ctypes import *
 from version import VERSION
 import hashlib
 from uuid import UUID,uuid5
+import os
 
 class Head(Structure):
 	_fields_ = [ ('name',     c_char*32)   #000
@@ -58,11 +59,21 @@ class block:
 		for item in dumps:
 			print(item,": ",self.__dict__[item])
 
+	def toFile(self,dir='/tmp'):
+		fn = os.path.join(dir,self.fileName)
+		with open(fn,'a+b') as f:
+			f.seek(0,0)
+			f.write(string_at(addressof(self.head),sizeof(self.head)))
+			f.seek(self.metaSize+self.dataSize-1,0)
+			f.write(b"\0")
+			f.close()
+
 def main():
 	a = block("root")
 	a.defaultSZ(4096*24,4096*3)
 	a.genHead()
 	a.dump()
+	a.toFile()
 
 if __name__ == '__main__':
 	main()
