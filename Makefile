@@ -1,3 +1,11 @@
+UNAME := $(shell uname)
+ifeq ($(UNAME),Linux)
+	LDFLAG = -lrt -lpthread
+endif
+ifeq ($(UNAME),Darwin)
+	LDFLAG = 
+endif
+
 all:work/ptr_vector \
 	work/fib \
 	work/qcldpc \
@@ -17,7 +25,7 @@ all:work/ptr_vector \
 
 CPPFLAG = -std=c++1z
 
-LDFLAG = -lrt -lpthread
+
 
 work/ptr_vector:ptr_container/ptr_vector.cpp
 	g++ $(CPPFLAG) -o $@ $^
@@ -73,4 +81,5 @@ work/namedCondRecv:interprocess/namedCondRecv.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 clean:
+	echo $(UNAME)
 	rm -f work/*
