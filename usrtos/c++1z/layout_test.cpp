@@ -10,6 +10,6 @@ int main(int argc,char *argv[])
     s << argv[1];
 	b.setFileName(s.str());
 	b.headFromFile();
-	b.checkHead();
-	std:cout << std::endl;
+	if(b.checkHead());
+		std:cout << "Check head ok" << std::endl;
 }

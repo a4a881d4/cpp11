@@ -64,7 +64,7 @@ struct block {
 	struct Head* mhead;
 	block(){};
 	string mfileName;
-	
+	uuid usrtosNS = lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c");
 	void setFileName(string fn) { mfileName = fn; };
 	
 	void headFromFile() { headFromFile(mfileName.c_str()); }
@@ -90,15 +90,25 @@ struct block {
 		cout << m8 << endl;
 		cout << m9 << endl;
 	};
-	void checkHead() {
+	bool checkHead() {
 		sha1 sha;
 		char *szMsg = (char *)(mhead);
 		sha.process_bytes(szMsg, 152);
 		unsigned int digest[5];
 		sha.get_digest(digest);
-		stringstream s;
+		stringstream s1,s2;
     	for (int i = 0; i< 5; ++i)
-			s<< hex << digest[i];
-		cout<<s.str().c_str();
+			s1<< hex << digest[i];
+		for(int i;i<40;i++)
+			s2<<mhead->sha1.sha1[i];
+		if(s1.str()!=s2.str())
+			return false; //cout<<s1.str().c_str()<<s2.str()<<endl;
+		name_generator ngen(usrtosNS);
+		uuid u1 = ngen(s1.str().c_str());
+		string stru1 = lexical_cast<string>(u1);
+		auto fnLen = mfileName.size();
+		if(mfileName.find(stru1) == string::npos)
+			return false; //cout << stru1 << " " << mfileName << endl;
+		return true;
 	};
 };
