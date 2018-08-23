@@ -47,7 +47,7 @@ class block:
 		self.VERSION = VERSION
 		self.head.version = self.VERSION
 		m = hashlib.sha1()
-		m.update(string_at(addressof(self.head),128))
+		m.update(string_at(addressof(self.head),152))
 		self.sha1 = m.hexdigest()
 		self.head.sha1 = self.sha1.encode(encoding="utf-8")
 		self.fileName = str(uuid5(block.namespace,self.sha1))

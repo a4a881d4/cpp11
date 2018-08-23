@@ -2,7 +2,16 @@
 #include <string.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/uuid/sha1.hpp>
 
+using namespace boost;
+using namespace boost::uuids;
+using namespace boost::uuids::detail;
 using namespace std;
 
 /*
@@ -22,6 +31,7 @@ class Head(Structure):
 				]                          #200
 
 */
+
 struct sha1str {
 	char sha1[40];
 };
@@ -53,6 +63,12 @@ struct Head {
 struct block {
 	struct Head* mhead;
 	block(){};
+	string mfileName;
+	
+	void setFileName(string fn) { mfileName = fn; };
+	
+	void headFromFile() { headFromFile(mfileName.c_str()); }
+
 	void headFromFile(const char* fn) {
 		mhead = new(struct Head);
 		filebuf fbuf;
@@ -73,5 +89,16 @@ struct block {
 		cout << m7 << endl;
 		cout << m8 << endl;
 		cout << m9 << endl;
+	};
+	void checkHead() {
+		sha1 sha;
+		char *szMsg = (char *)(mhead);
+		sha.process_bytes(szMsg, 152);
+		unsigned int digest[5];
+		sha.get_digest(digest);
+		stringstream s;
+    	for (int i = 0; i< 5; ++i)
+			s<< hex << digest[i];
+		cout<<s.str().c_str();
 	};
 };

@@ -1,4 +1,5 @@
 import uuid
+import hashlib
 
 x = uuid.UUID("01234567-89ab-cdef-0123-456789abcdef")
 
