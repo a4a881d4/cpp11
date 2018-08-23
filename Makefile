@@ -21,7 +21,8 @@ all:work/ptr_vector \
 	work/mappedFile \
 	work/writingTrace \
 	work/namedCondSent \
-	work/namedCondRecv
+	work/namedCondRecv \
+	work/layout_test
 
 CPPFLAG = -std=c++1z
 
@@ -42,7 +43,7 @@ work/qcldpc:meta/QCLDPC.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/say:functor/say.cpp
-	g++ $(CPPFLAG) -o $@ $^
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 		
 work/ast:functor/ast.cpp
 	g++ $(CPPFLAG) -o $@ $^
@@ -78,6 +79,9 @@ work/namedCondSent:interprocess/namedCondSent.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/namedCondRecv:interprocess/namedCondRecv.cpp
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
+
+work/layout_test:usrtos/c++1z/layout_test.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 clean:

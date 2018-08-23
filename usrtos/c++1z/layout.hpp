@@ -1,4 +1,9 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <string.h>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
 
 /*
 class Head(Structure):
@@ -17,6 +22,19 @@ class Head(Structure):
 				]                          #200
 
 */
+struct sha1str {
+	char sha1[40];
+};
+
+ostream& operator<<(ostream& os,const struct sha1str& h)
+{
+	char buf[50];
+	memcpy(buf,&(h.sha1),40);
+	buf[40]='\0';
+	os<<buf;
+	return os;
+}
+
 struct Head {
 	char name[32];
 	char type[32];
@@ -26,8 +44,8 @@ struct Head {
 	double longitude;
 	double latitude;
 	double altitude;
-	char version[40];
-	char sha1[40];
+	struct sha1str version;
+	struct sha1str sha1;
 	boost::interprocess::interprocess_mutex rd;
 	boost::interprocess::interprocess_mutex wr;
 };
@@ -35,14 +53,25 @@ struct Head {
 struct block {
 	struct Head* mhead;
 	block(){};
-	headFromFile(const char* fn) {
+	void headFromFile(const char* fn) {
 		mhead = new(struct Head);
-		std::filebuf fbuf;
+		filebuf fbuf;
         fbuf.open(fn, std::ios_base::in | std::ios_base::binary);
-		fbuf.sgetn(mhead, sizeof(struct Head));
+		fbuf.sgetn((char *)(mhead), sizeof(struct Head));
 		fbuf.close();
 	};
-	dumpHead() {
-		
-	}
-}
+	void dumpHead() {
+		const struct Head& s = *mhead;
+		auto& [m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11] = s;
+		cout << m0 << endl;
+		cout << m1 << endl;
+		cout << m2 << endl;
+		cout << m3 << endl;
+		cout << m4 << endl;
+		cout << m5 << endl;
+		cout << m6 << endl;
+		cout << m7 << endl;
+		cout << m8 << endl;
+		cout << m9 << endl;
+	};
+};
