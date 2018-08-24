@@ -15,9 +15,9 @@ class Head(Structure):
 				,('altitude', c_double)    #104
 				,('version',  c_char*40)   #112
 				,('sha1',     c_char*40)   #152
-				,('rdlock',   c_int)       #192
-				,('wrlock',   c_int)       #196
-				]                          #200
+				,('rdlock',   c_int*10)    #192
+				,('wrlock',   c_int*10)    #232
+				]                          #272
 
 class block:
 	align = 4096
@@ -51,6 +51,8 @@ class block:
 		self.sha1 = m.hexdigest()
 		self.head.sha1 = self.sha1.encode(encoding="utf-8")
 		self.fileName = str(uuid5(block.namespace,self.sha1))
+		self.head.rdlock = (c_int*10)(1)
+		self.head.wrlock = (c_int*10)(0)
 		
 	def setSZ(self,sz,cp=0):
 		self.dataSize = self.align2page(sz)
@@ -80,11 +82,15 @@ class block:
 
 	def toFile(self,dir='/tmp'):
 		fn = os.path.join(dir,self.fileName)
+		zeros = b'\0'*256
 		with open(fn,'wb') as f:
+			length = self.metaSize + self.dataSize
+			while length>255:
+				f.write(zeros)
+				length -= 256
+			f.write(zeros[:length])
 			f.seek(0,0)
 			f.write(string_at(addressof(self.head),sizeof(self.head)))
-			f.seek(self.metaSize+self.dataSize-1,0)
-			f.write(b"\0")
 			f.flush()
 			f.close()
 

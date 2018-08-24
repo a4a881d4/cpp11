@@ -15,8 +15,6 @@ int main(int argc,char *argv[])
 	if(b.attach(s.str()))
 		std::cout << "Attach ok" << std::endl;
 	
-	b.dumpHead();
-
 	if(b.checkHead())
 		std::cout << "Check head ok" << std::endl;
 }

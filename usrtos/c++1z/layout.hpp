@@ -1,6 +1,7 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 #include <string.h>
 #include <iostream>
 #include <fstream>
@@ -10,6 +11,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/sha1.hpp>
+#include <unistd.h>
 
 using namespace boost;
 using namespace boost::uuids;
@@ -29,9 +31,9 @@ class Head(Structure):
 				,('altitude', c_double)    #104
 				,('version',  c_char*40)   #112
 				,('sha1',     c_char*40)   #152
-				,('rdlock',   c_int)       #192
-				,('wrlock',   c_int)       #196
-				]                          #200
+				,('rdlock',   c_int*10)    #192
+				,('wrlock',   c_int*10)    #232
+				]                          #272
 
 */
 
@@ -59,8 +61,8 @@ struct Head {
 	double altitude;
 	struct sha1str version;
 	struct sha1str sha1;
-	boost::interprocess::interprocess_mutex rd;
-	boost::interprocess::interprocess_mutex wr;
+	interprocess_mutex rd;
+	interprocess_mutex wr;
 };
 
 struct block {
@@ -70,8 +72,10 @@ struct block {
 	file_mapping m_file;
 	mapped_region m_headHandle;
 	mapped_region m_dataHandle;
+	mapped_region m_cpHandle;
 	uuid usrtosNS = lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c");
 	bool m_attached = false;
+	void *m_base;
 
 	void setFileName(string fn) { m_fileName = fn; };
 	
@@ -98,6 +102,10 @@ struct block {
 		cout << m8 << endl;
 		cout << m9 << endl;
 	};
+	void dump() {
+		dumpHead();
+		cout << m_fileName << endl;
+	};
 	bool checkHead() {
 		sha1 sha;
 		char *szMsg = (char *)(m_head);
@@ -107,8 +115,6 @@ struct block {
 		stringstream s1,s2;
     	for (int i = 0; i< 5; ++i)
 			s1 << hex << digest[i];
-
-		//cout << m_head->sha1;
 			
 		for(int i = 0;i<40;i++) {
 			//cout << m_head->sha1.sha1[i] << " ";
@@ -116,7 +122,7 @@ struct block {
 		}
 		if(s1.str()!=s2.str()) {
 			//cout<<"s1:"<<s1.str().c_str()<<" s2:"<<s2.str()<<endl;
-			return false; //
+			return false; 
 		}
 		name_generator ngen(usrtosNS);
 		uuid u1 = ngen(s1.str().c_str());
@@ -124,34 +130,118 @@ struct block {
 		auto fnLen = m_fileName.size();
 		if(m_fileName.find(stru1) == string::npos) {
 			//cout << stru1 << " " << m_fileName << endl;
-			return false; //
+			return false; 
 		}
 		return true;
 	};
-	/*
-	template<class MemoryMappable>
-   mapped_region(const MemoryMappable& mapping
-                ,mode_t mode
-                ,offset_t offset = 0
-                ,std::size_t size = 0
-                ,const void *address = 0
-                ,map_options_t map_options = default_map_options);
-	*/
-	bool attach(string fn) {
-		m_fileName = fn;
-		file_mapping mf(fn.c_str(), read_write);
-		mf.swap(m_file);
-		mapped_region mh( m_file
-			, read_write
-			, 0
-			, 4096
-			);
-		mh.mapped_region::swap(m_headHandle);
-		m_head = (struct Head*)(m_headHandle.get_address());
-		return checkHead();
+
+	bool checkLock() {
+		auto f = [](interprocess_mutex& m){
+			int c = 10;
+			while(!m.try_lock()) {
+				usleep(10);
+				c--;
+				if(c==0)
+					break;
+			}
+			if(c!=0)
+				m.unlock();
+			else{
+				memset(&m,0,sizeof(m));
+				cout << "fail to get lock" << endl;
+			}
+			//scoped_lock<interprocess_mutex> lock(m);
+		};
+		f(m_head->rd);
+		f(m_head->wr);
+		return true;
 	};
+
+	bool checkCP() {
+		if(m_head->cpSize==0) return true;
+		void *d = m_dataHandle.get_address();
+		void *c = m_cpHandle.get_address();
+		auto r = memcmp(d,c,m_head->cpSize);
+		if(r==0)
+			return true;
+		cout << *(int *)d << " " << *(int *)c << " " << r <<endl; 
+		return false;
+	};
+
+	bool attach(string fn) {
+		struct block b;
+		b.setFileName(fn);
+		b.headFromFile();
+		if(!b.checkHead()){
+			cout << "error 0 " << fn << endl;
+			return false;
+		}
+		try {
+			m_fileName = fn;
+			file_mapping mf(fn.c_str(), read_write);
+			mf.swap(m_file);
+			mapped_region mh( m_file
+				, read_write
+				, 0
+				, b.m_head->metaSize
+				);
+			mh.mapped_region::swap(m_headHandle);
+			m_head = (struct Head*)(m_headHandle.get_address());
+			if(!checkHead()) {
+				cout << "error 1" << endl;
+				return false;
+			}
+			mapped_region*  pmt = new mapped_region(
+				  m_file
+				, read_write
+				, b.m_head->metaSize
+				, b.m_head->dataSize + b.m_head->cpSize
+				);
+			if(pmt->get_size()!=b.m_head->dataSize + b.m_head->cpSize) {
+				cout << "error 2 " << pmt->get_size() << endl;
+				return false;
+			}
+			m_base = pmt->get_address();
+			
+			delete pmt;
+			
+			mapped_region md( m_file
+				, read_write
+				, b.m_head->metaSize
+				, b.m_head->dataSize
+				, m_base
+				);
+			md.swap(m_dataHandle);
+
+			if( b.m_head->cpSize>0 ){
+				mapped_region mc( m_file
+					, read_write
+					, b.m_head->metaSize
+					, b.m_head->cpSize
+					, static_cast<char*>(m_base) + (size_t)b.m_head->dataSize
+					);
+				mc.swap(m_cpHandle);
+			}
+			m_attached = checkHead()&&checkCP()&&checkLock();
+		}
+		catch(interprocess_exception &ex){
+			cout << "error 3" << endl;
+			auto l = sizeof(m_head->rd);
+			cout << ex.what() << " " << l << " " << &(m_head->rd) << " " << m_head << endl;
+			cout << hex << *(long long*)(&(m_head->rd));
+			cout << hex << *(long long*)(&(m_head->wr));
+			cout << endl;
+			auto rd = new(&(m_head->rd)) interprocess_mutex;
+			auto wr = new(&(m_head->wr)) interprocess_mutex;
+			cout << "affter init" << " ";
+			cout << hex << *(long long*)(&(m_head->rd));
+			cout << hex << *(long long*)(&(m_head->wr));
+			cout << endl;
+			return false;
+		}
+		return m_attached;
+	};
+
 	~block() {
-		if(m_attached)
-			file_mapping::remove(m_fileName.c_str());
 	};
 };
