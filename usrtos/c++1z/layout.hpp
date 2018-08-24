@@ -134,27 +134,26 @@ struct block {
 		}
 		return true;
 	};
-
+	bool checkMutex(interprocess_mutex& m) {
+		int c = 10;
+		while(!m.try_lock()) {
+			usleep(10);
+			c--;
+			if(c==0)
+				break;
+		}
+		if(c!=0) {
+			m.unlock();
+			return true;
+		}
+		else{
+			memset(&m,0,sizeof(m));
+			cout << "fail to get lock" << endl;
+			return false;
+		}
+	};
 	bool checkLock() {
-		auto f = [](interprocess_mutex& m){
-			int c = 10;
-			while(!m.try_lock()) {
-				usleep(10);
-				c--;
-				if(c==0)
-					break;
-			}
-			if(c!=0)
-				m.unlock();
-			else{
-				memset(&m,0,sizeof(m));
-				cout << "fail to get lock" << endl;
-			}
-			//scoped_lock<interprocess_mutex> lock(m);
-		};
-		f(m_head->rd);
-		f(m_head->wr);
-		return true;
+		return checkMutex(m_head->rd) && checkMutex(m_head->wr);
 	};
 
 	bool checkCP() {

@@ -51,7 +51,7 @@ class block:
 		self.sha1 = m.hexdigest()
 		self.head.sha1 = self.sha1.encode(encoding="utf-8")
 		self.fileName = str(uuid5(block.namespace,self.sha1))
-		self.head.rdlock = (c_int*10)(1)
+		self.head.rdlock = (c_int*10)(0)
 		self.head.wrlock = (c_int*10)(0)
 		
 	def setSZ(self,sz,cp=0):
