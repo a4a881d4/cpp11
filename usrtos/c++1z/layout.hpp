@@ -31,9 +31,7 @@ class Head(Structure):
 				,('altitude', c_double)    #104
 				,('version',  c_char*40)   #112
 				,('sha1',     c_char*40)   #152
-				,('rdlock',   c_int*10)    #192
-				,('wrlock',   c_int*10)    #232
-				]                          #272
+				]                          #192
 
 */
 
@@ -61,8 +59,7 @@ struct Head {
 	double altitude;
 	struct sha1str version;
 	struct sha1str sha1;
-	interprocess_mutex rd;
-	interprocess_mutex wr;
+	interprocess_mutex g_mutex;
 };
 
 struct block {
@@ -90,7 +87,7 @@ struct block {
 	};
 	void dumpHead() {
 		const struct Head& s = *m_head;
-		auto& [m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11] = s;
+		auto& [m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,m10] = s;
 		cout << m0 << endl;
 		cout << m1 << endl;
 		cout << m2 << endl;
@@ -134,6 +131,9 @@ struct block {
 		}
 		return true;
 	};
+	void resetMutex(interprocess_mutex& m) {
+		auto pm = new(&m) interprocess_mutex;
+	};
 	bool checkMutex(interprocess_mutex& m) {
 		int c = 10;
 		while(!m.try_lock()) {
@@ -147,13 +147,13 @@ struct block {
 			return true;
 		}
 		else{
-			memset(&m,0,sizeof(m));
+			resetMutex(m);
 			cout << "fail to get lock" << endl;
 			return false;
 		}
 	};
 	bool checkLock() {
-		return checkMutex(m_head->rd) && checkMutex(m_head->wr);
+		return checkMutex(m_head->g_mutex);
 	};
 
 	bool checkCP() {
@@ -225,16 +225,13 @@ struct block {
 		}
 		catch(interprocess_exception &ex){
 			cout << "error 3" << endl;
-			auto l = sizeof(m_head->rd);
-			cout << ex.what() << " " << l << " " << &(m_head->rd) << " " << m_head << endl;
-			cout << hex << *(long long*)(&(m_head->rd));
-			cout << hex << *(long long*)(&(m_head->wr));
+			auto l = sizeof(m_head->g_mutex);
+			cout << ex.what() << " " << l << " " << &(m_head->g_mutex) << " " << m_head << endl;
+			cout << hex << *(long long*)(&(m_head->g_mutex));
 			cout << endl;
-			auto rd = new(&(m_head->rd)) interprocess_mutex;
-			auto wr = new(&(m_head->wr)) interprocess_mutex;
+			resetMutex(m_head->g_mutex);
 			cout << "affter init" << " ";
-			cout << hex << *(long long*)(&(m_head->rd));
-			cout << hex << *(long long*)(&(m_head->wr));
+			cout << hex << *(long long*)(&(m_head->g_mutex));
 			cout << endl;
 			return false;
 		}

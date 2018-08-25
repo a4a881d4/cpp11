@@ -15,9 +15,7 @@ class Head(Structure):
 				,('altitude', c_double)    #104
 				,('version',  c_char*40)   #112
 				,('sha1',     c_char*40)   #152
-				,('rdlock',   c_int*10)    #192
-				,('wrlock',   c_int*10)    #232
-				]                          #272
+				]                          #192
 
 class block:
 	align = 4096
