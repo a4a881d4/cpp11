@@ -349,10 +349,6 @@ struct fifo_pointer : bar {
 	int rp;
 	// lock when access sp and rp
 	boost::interprocess::interprocess_mutex fifo_mutex; 
-	//Condition to wait when the queue is empty
-	boost::interprocess::interprocess_condition  cond_empty;
-	//Condition to wait when the queue is full
-	boost::interprocess::interprocess_condition  cond_full;
 };
 
 template <size_t Pos, size_t MetaSize>
