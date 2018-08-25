@@ -17,4 +17,22 @@ int main(int argc,char *argv[])
 	
 	if(b.checkHead())
 		std::cout << "Check head ok" << std::endl;
+
+	if(b.checkType("block"))
+		std::cout << "Check type ok" << std::endl;
+
+	if(b.checkMetaSize<4096>())
+		std::cout << "Check meta size ok" << std::endl;
+
+	MemoryBlockLayout::UsrtBlk m;
+	if(m.attach(s.str()))
+		std::cout << "Usrt block Attach ok" << std::endl;
+
+	m.dump();
+
+	MemoryBlockLayout::UsrtMem um;
+	if(um.attach(s.str()))
+		std::cout << "Usrt mem Attach ok" << std::endl;
+
+	um.dump();
 }
