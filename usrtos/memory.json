@@ -1,0 +1,41 @@
+[
+  {
+    "VERSION": "",
+    "altitude": 50.0,
+    "cpSize": 12288,
+    "dataSize": 98304,
+    "fileName": "",
+    "latitude": 40.0,
+    "longitude": 120.0,
+    "metaSize": 4096,
+    "name": "root",
+    "sha1": "",
+    "type": "MemBlock"
+  },
+  {
+    "VERSION": "",
+    "altitude": 50.0,
+    "cpSize": 12288,
+    "dataSize": 98304,
+    "fileName": "",
+    "latitude": 40.0,
+    "longitude": 120.0,
+    "metaSize": 4096,
+    "name": "heap",
+    "sha1": "",
+    "type": "MemHeap"
+  },
+  {
+    "VERSION": "",
+    "altitude": 50.0,
+    "cpSize": 12288,
+    "dataSize": 98304,
+    "fileName": "",
+    "latitude": 40.0,
+    "longitude": 120.0,
+    "metaSize": 4096,
+    "name": "fifo",
+    "sha1": "",
+    "type": "MemFifo"
+  }
+]

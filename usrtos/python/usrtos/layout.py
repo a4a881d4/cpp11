@@ -3,6 +3,8 @@ from version import VERSION
 import hashlib
 from uuid import UUID,uuid5
 import os
+import json
+import sys
 
 class Head(Structure):
 	_fields_ = [ ('name',     c_char*32)   #000
@@ -20,6 +22,12 @@ class Head(Structure):
 class block:
 	align = 4096
 	namespace = UUID('8ea09e05-fd67-5949-a9ab-e722a3dae01c')
+	dumps = [ 'name','type'
+			, 'dataSize','metaSize'
+			, 'cpSize','VERSION'
+			, 'sha1','fileName'
+			, 'longitude', 'latitude', 'altitude'
+			]
 	def __init__(self,name):
 		n = name.encode(encoding="utf-8")
 		if len(n)>32:
@@ -30,6 +38,7 @@ class block:
 		self.metaSize = block.align
 		self.defaultSZ(0)
 		self.setPosition(0.,0.,0.)
+
 	
 	def genHead(self):
 		self.head = Head()
@@ -69,14 +78,16 @@ class block:
 		self.altitude = hi
 
 	def dump(self):
-		dumps = [ 'name','type'
-				, 'dataSize','metaSize'
-				, 'cpSize','VERSION'
-				, 'sha1','fileName'
-				, 'longitude', 'latitude', 'altitude'
-				]
-		for item in dumps:
+		for item in block.dumps:
 			print(item,": ",self.__dict__[item])
+	def toMap(self):
+		r = {}
+		for key in block.dumps:
+			v = self.__dict__[key]
+			if type(v) == type(b"a"):
+				v = v.decode()
+			r[key] = v
+		return r
 
 	def toFile(self,dir='/tmp'):
 		fn = os.path.join(dir,self.fileName)
@@ -92,14 +103,35 @@ class block:
 			f.flush()
 			f.close()
 
-def main():
+	@staticmethod
+	def fromMap(m):
+		a = block(m["name"])
+		a.type = m["type"].encode(encoding='utf-8')
+		a.defaultSZ(m["dataSize"],m["cpSize"])
+		a.metaSize = a.align2page(m["metaSize"])
+		a.setPosition(m["longitude"],m["latitude"],m["altitude"])
+		a.genHead()
+		a.dump()
+		a.toFile()
+
+def test():
 	a = block("root")
 	a.defaultSZ(4096*24,4096*3)
 	a.setPosition(120.,40.,50.)
 	a.genHead()
 	a.dump()
 	a.toFile()
+	print(json.dumps(a.toMap(), sort_keys=True, indent=2))
+
+def main(fn):
+	with open(fn) as f:
+		blocks=json.load(f)
+		for m in blocks:
+			block.fromMap(m)
 
 if __name__ == '__main__':
-	main()
+	if len(sys.argv)==1:
+		test()
+	else:
+		main(sys.argv[1])
 	

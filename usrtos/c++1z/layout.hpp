@@ -1,4 +1,5 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
@@ -11,8 +12,9 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/sha1.hpp>
+#include <boost/mpl/size_t.hpp>
 #include <unistd.h>
-
+ #include<iomanip>
 
 /*
 class Head(Structure):
@@ -84,6 +86,7 @@ public:
 	uuid m_uuid;
 	bool m_attached = false;
 	void *m_base;
+	void *m_end;
 
 	void setFileName(std::string fn) { m_fileName = fn; };
 	
@@ -125,14 +128,14 @@ public:
 		sha.get_digest(digest);
 		std::stringstream s1,s2;
     	for (int i = 0; i< 5; ++i)
-			s1 << std::hex << digest[i];
+			s1 << std::setfill('0') << std::setw(8) << std::hex << digest[i];
 			
 		for(int i = 0;i<40;i++) {
 			//std::cout << m_head->sha1.sha1[i] << " ";
 			s2 << m_head->sha1.sha1[i];
 		}
 		if(s1.str()!=s2.str()) {
-			//std::cout<<"s1:"<<s1.str().c_str()<<" s2:"<<s2.str()<<std::endl;
+			std::cout<<"s1:"<<s1.str()<<" s2:"<<s2.str()<<std::endl;
 			return false; 
 		}
 		name_generator ngen(usrtosNS);
@@ -140,7 +143,7 @@ public:
 		std::string stru1 = lexical_cast<std::string>(m_uuid);
 		auto fnLen = m_fileName.size();
 		if(m_fileName.find(stru1) == std::string::npos) {
-			//std::cout << stru1 << " " << m_fileName << std::endl;
+			std::cout << stru1 << " " << m_fileName << std::endl;
 			return false; 
 		}
 		return true;
@@ -152,24 +155,31 @@ public:
 
 	bool checkMutex(interprocess_mutex& m) {
 		int c = 10;
-		while(!m.try_lock()) {
-			usleep(10);
-			c--;
-			if(c==0)
-				break;
+		try {
+			while(!m.try_lock()) {
+				usleep(10);
+				c--;
+				if(c==0)
+					break;
+			}
+			if(c!=0) {
+				m.unlock();
+				return true;
+			}
+			else{
+				resetMutex(m);
+				std::cout << "fail to get lock" << std::endl;
+				return false;
+			}
 		}
-		if(c!=0) {
-			m.unlock();
-			return true;
-		}
-		else{
-			resetMutex(m);
-			std::cout << "fail to get lock" << std::endl;
+		catch(interprocess_exception &ex){
+			std::cout << ex.what() << m_head->name << std::endl;
+			block::resetMutex(m);
 			return false;
 		}
 	};
 
-	bool checkLock() {
+	virtual bool checkLock() {
 		return checkMutex(m_head->g_mutex);
 	};
 
@@ -192,7 +202,7 @@ public:
 		struct block b;
 		b.setFileName(fn);
 		b.headFromFile();
-		if(!b.checkHead()){
+		if(!b.checkHead()) {
 			std::cout << "error 0 " << fn << std::endl;
 			return false;
 		}
@@ -229,6 +239,7 @@ public:
 				return false;
 			}
 			m_base = pmt->get_address();
+			m_end = (void *)((char *)m_base+m_head->dataSize);
 			std::cout << "pass 2" << std::endl;
 			std::cout << std::flush;
 			
@@ -285,19 +296,48 @@ public:
 	bool checkMetaSize() {
 		return (m_head->metaSize==MetaSize);
 	}
+
 	template<typename Addon, size_t pos>
 	const Addon *get_addons() {
 		return static_cast<Addon*>((char*)m_head+pos);
 	};
+
 	template<typename T>
 	T* GP2LP(GP& gp) {
 		if(!checkUUID(gp.id))
 			return nullptr;
 		if(gp.objsize!=(long long)sizeof(T))
 			std::cout << "invalid size" << std::endl;
-		T* r = static_cast<T*>((char *)m_head+(gp.offset%m_head->dataSize));
+		T* r = Off2LP<T>(gp.offset);
 		return r;
 	}
+
+	template <typename T>
+	T* Off2LP(size_t offset) {
+		return static_cast<T*>((void *)((char *)m_base+(offset%m_head->dataSize)));
+	};
+
+	template <typename T>
+	size_t LP2offset(T* p) {
+		void *vp = static_cast<void *>(p);
+		if(vp>=m_base && vp<m_end) {
+			return (char *)vp-(char *)m_base;
+		}
+		else
+			return m_head->dataSize;
+	};
+
+	template <typename T>
+	bool LP2GP(GP& gp, T* p) {
+		auto off = LP2offset<T>(p);
+		if(off==m_head->dataSize)
+			return false;
+		gp.id = m_uuid;
+		gp.offset = off;
+		gp.objsize = sizeof(T);
+		return true;
+	};
+
 	~block() {
 	};
 };
@@ -306,14 +346,13 @@ template <typename Addon, typename type_t, size_t pos, size_t MetaSize>
 class MemBlock : public block {
 public:
 	virtual bool checkHead() {
-		return block::checkHead() && checkMetaSize<MetaSize>() && checkType(type_t::_type());
-		// return checkType(type_t::_type()) 
-		// && (block*)this->checkHead() 
-		// && checkMetaSize<MetaSize>();
+		return block::checkHead() 
+		&& checkMetaSize<MetaSize>() 
+		&& checkType(type_t::_type());
 	};
 	Addon *get_addons() {
 		return (Addon*)((char*)m_head+pos);
-	};
+	};	
 };
 
 struct bar {
@@ -321,51 +360,102 @@ struct bar {
 	boost::interprocess::interprocess_mutex bar_mutex; 
 };
 
-template <typename Addon, typename type_t, size_t pos, size_t MetaSize>
-class MemHeap : public MemBlock<Addon, type_t, pos, MetaSize> {
+struct fifo_pointer : bar {
+	int sp;
+	int rp;
+	// lock when access sp and rp
+	boost::interprocess::interprocess_mutex fifo_mutex; 
+	//Condition to wait when the queue is empty
+	boost::interprocess::interprocess_condition  cond_empty;
+	//Condition to wait when the queue is full
+	boost::interprocess::interprocess_condition  cond_full;
+};
+
+template <size_t Pos, size_t MetaSize>
+struct fifo_addons : fifo_pointer{
+	typedef mpl::size_t<((MetaSize-Pos-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
+	size_t buf[FIFOSIZE::value];
+};
+
+template <typename Addon, typename type_t, size_t Pos, size_t MetaSize>
+class MemHeap : public MemBlock<Addon, type_t, Pos, MetaSize> {
+
 public:
+	
+	typedef MemBlock<Addon, type_t, Pos, MetaSize> MemAddons;
+	
 	virtual void dump() {
 		block::dump();
-		std::cout << (MemBlock<Addon, type_t, pos, MetaSize> *)this->get_addons()->pos << std::endl;
+		std::cout << "pos:" << MemAddons::get_addons()->pos << std::endl;
 	};
+	
+	virtual bool checkLock() {
+		return block::checkMutex(MemAddons::get_addons()->bar_mutex) 
+		&& block::checkLock();
+	};
+
 	template <typename T>
-	T* newLP(size_t aligned=1) {
-		size_t s = sizeof(T);
-		auto pa = (MemBlock<Addon, type_t, pos, MetaSize> *)this->get_addons();
+	T* newLP(size_t n=1, size_t aligned=1) {
+		size_t s = sizeof(T)*n;
+		auto pa = MemAddons::get_addons();
 		void *r = nullptr;
-		try {
-			scoped_lock<interprocess_mutex> lock(pa->bar_mutex);
-			if(aligned!=1) {
-				size_t m = pa->pos%aligned;
-				if(m!=0)
-					pa->pos += (aligned-m); 
-			}
-			r = (void *)((char *)block::m_base+pa->pos);
-			pa->pos += s;
-			pa->pos %= block::m_head->dataSize;
+		
+		scoped_lock<interprocess_mutex> lock(pa->bar_mutex);
+		if(aligned!=1) {
+			size_t m = pa->pos%aligned;
+			if(m!=0)
+				pa->pos += (aligned-m); 
 		}
-		catch(interprocess_exception &ex){
-			std::cout << "error newLP" << std::endl;
-			std::cout << ex.what() << std::endl;
-			resetMutex(pa->bar_mutex);
-			return nullptr;
-		}
+		r = block::Off2LP<T>(pa->pos);
+		pa->pos += s;
 		return static_cast<T*>(r);
-	}; 
+	};	
+};
+
+template <typename Addon, typename type_t, size_t Pos, size_t MetaSize>
+class MemFifo : public MemHeap<Addon, type_t, Pos, MetaSize> {
+public:
+	typedef MemBlock<Addon, type_t, Pos, MetaSize> FifoAddons; 
+	size_t len() {
+		auto pa = FifoAddons::get_addons();
+		return (pa->sp-pa->rp+Addon::FIFOSIZE::value)%Addon::FIFOSIZE::value;
+	};
+
+	virtual void dump() {
+		MemHeap<Addon, type_t, Pos, MetaSize>::dump();
+	};
+	
+	virtual bool checkLock() {
+		auto r = block::checkMutex(FifoAddons::get_addons()->fifo_mutex);
+		if(!r)
+			std::cout << "check fifo mutex fail" << std::endl;
+		return r
+		&& MemHeap<Addon, type_t, Pos, MetaSize>::checkLock();
+	};
+
 };
 
 class MemHeapType {
 	public:
 	static const char * _type() { return "MemHeap"; };
 };
+
 class BlockType {
 	public:
-	static const char * _type() { return "block"; };
+	static const char * _type() { return "MemBlock"; };
 };
+
+class FifoType {
+	public:
+	static const char * _type() { return "MemFifo"; };
+};
+
 class MemoryBlockLayout {
 	
 public:
 	typedef MemHeap<struct bar, MemHeapType, 0x200, 0x1000> UsrtMem;
 	typedef MemHeap<struct bar, BlockType, 0x200, 0x1000> UsrtBlk;
+	typedef MemFifo<struct fifo_addons<0x200, 0x1000>, FifoType, 0x200, 0x1000> UsrtFifo;
+
 };
 

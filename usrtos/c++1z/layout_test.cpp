@@ -25,14 +25,25 @@ int main(int argc,char *argv[])
 		std::cout << "Check meta size ok" << std::endl;
 
 	MemoryBlockLayout::UsrtBlk m;
-	if(m.attach(s.str()))
+	if(m.attach(s.str())){
 		std::cout << "Usrt block Attach ok" << std::endl;
+		m.dump();
+	}
 
-	m.dump();
 
 	MemoryBlockLayout::UsrtMem um;
-	if(um.attach(s.str()))
+	if(um.attach(s.str())) {
 		std::cout << "Usrt mem Attach ok" << std::endl;
+		um.dump();
+		auto pd = um.newLP<double>();
+		auto p = um.newLP<int>(10,16);
+		um.dump();
+	}
 
-	um.dump();
+	
+	MemoryBlockLayout::UsrtFifo fm;
+	if(fm.attach(s.str())){
+		std::cout << "Usrt fifo Attach ok" << std::endl;
+		fm.dump();
+	}
 }
