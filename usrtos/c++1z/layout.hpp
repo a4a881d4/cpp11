@@ -16,23 +16,6 @@
 #include <unistd.h>
  #include<iomanip>
 
-/*
-class Head(Structure):
-	_fields_ = [ ('name',     c_char*32)   #000
-				,('type',     c_char*32)   #032
-				,('metaSize', c_longlong)  #064
-				,('dataSize', c_longlong)  #072
-				,('cpSize',   c_longlong)  #080
-				,('longitude',c_double)    #088
-				,('latitude', c_double)    #096
-				,('altitude', c_double)    #104
-				,('version',  c_char*40)   #112
-				,('sha1',     c_char*40)   #152
-				]                          #192
-
-*/
-
-
 struct sha1str {
 	char sha1[40];
 };
@@ -285,9 +268,6 @@ public:
 	};
 
 	bool checkType(const char* type) {
-		// char b[32];
-		// memset(b,0,32);
-		// strcpy(b,type);
 		auto typeOK = strcmp(m_head->type,type);
 		return (typeOK==0);
 	};
@@ -338,6 +318,10 @@ public:
 		return true;
 	};
 
+	bool validOffset(size_t off){
+		return off<m_head->dataSize;
+	};
+	
 	~block() {
 	};
 };
@@ -375,6 +359,12 @@ template <size_t Pos, size_t MetaSize>
 struct fifo_addons : fifo_pointer{
 	typedef mpl::size_t<((MetaSize-Pos-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
 	size_t buf[FIFOSIZE::value];
+	void inc(int& a) {
+		a++;
+		a%=FIFOSIZE::value;
+	};
+	void incsp() {inc(sp);};
+	void incrp() {inc(rp);};
 };
 
 template <typename Addon, typename type_t, size_t Pos, size_t MetaSize>
@@ -415,14 +405,33 @@ public:
 template <typename Addon, typename type_t, size_t Pos, size_t MetaSize>
 class MemFifo : public MemHeap<Addon, type_t, Pos, MetaSize> {
 public:
-	typedef MemBlock<Addon, type_t, Pos, MetaSize> FifoAddons; 
+	typedef MemBlock<Addon, type_t, Pos, MetaSize> FifoAddons;
+	int m_rp; 
+	
 	size_t len() {
 		auto pa = FifoAddons::get_addons();
 		return (pa->sp-pa->rp+Addon::FIFOSIZE::value)%Addon::FIFOSIZE::value;
 	};
+	
+	void local_reset() {
+		m_rp = FifoAddons::get_addons()->sp;
+	};
+	
+	size_t local_len() {
+		auto pa = FifoAddons::get_addons();
+		return (pa->sp-m_rp+Addon::FIFOSIZE::value)%Addon::FIFOSIZE::value;
+	};
+	void dumpPoint() {
+		std::cout << "  sp:  " << FifoAddons::get_addons()->sp 
+			  << "  rp:  " << FifoAddons::get_addons()->rp
+			  << "  lrp: " << m_rp
+			  << "  llen:" << local_len()
+			  << "  len: " << len() << std::endl;
 
+	};
 	virtual void dump() {
 		MemHeap<Addon, type_t, Pos, MetaSize>::dump();
+		dumpPoint();
 	};
 	
 	virtual bool checkLock() {
@@ -431,6 +440,41 @@ public:
 			std::cout << "check fifo mutex fail" << std::endl;
 		return r
 		&& MemHeap<Addon, type_t, Pos, MetaSize>::checkLock();
+	};
+
+	template<typename T>
+	size_t push(T& t) {
+		auto pa = FifoAddons::get_addons();
+		auto off = block::LP2offset<T>(&t);
+		if(block::validOffset(off)) {
+			scoped_lock<interprocess_mutex> lock(pa->fifo_mutex);
+			if(len()==Addon::FIFOSIZE::value-1)
+				pa->incrp();
+			pa->buf[pa->sp] = off;
+			pa->incsp();
+		}
+		return off; 
+	};
+
+	template<typename T>
+	T* get() {
+		auto pa = FifoAddons::get_addons();
+		scoped_lock<interprocess_mutex> lock(pa->fifo_mutex);
+		if(len()==0)
+			return nullptr;
+		T* r = block::Off2LP<T>(pa->buf[pa->rp]);
+		pa->incrp();
+		return r; 
+	};
+
+	template<typename T>
+	T* local_get() {
+		auto pa = FifoAddons::get_addons();
+		if(local_len()==0)
+			return nullptr;
+		T* r = block::Off2LP<T>(pa->buf[m_rp]);
+		pa->inc(m_rp);
+		return r; 
 	};
 
 };

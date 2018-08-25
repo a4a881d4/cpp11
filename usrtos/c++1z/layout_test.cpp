@@ -30,7 +30,6 @@ int main(int argc,char *argv[])
 		m.dump();
 	}
 
-
 	MemoryBlockLayout::UsrtMem um;
 	if(um.attach(s.str())) {
 		std::cout << "Usrt mem Attach ok" << std::endl;
@@ -39,11 +38,31 @@ int main(int argc,char *argv[])
 		auto p = um.newLP<int>(10,16);
 		um.dump();
 	}
-
 	
 	MemoryBlockLayout::UsrtFifo fm;
 	if(fm.attach(s.str())){
 		std::cout << "Usrt fifo Attach ok" << std::endl;
+		std::cout << "Before alloc mem" << std::endl;
 		fm.dump();
+		auto pd = fm.newLP<double>();
+		*pd = 1000.;
+		std::cout << "After alloc mem" << std::endl;
+		fm.dumpPoint();
+		fm.local_reset();
+		fm.push<double>(*pd);
+		std::cout << "After push" << std::endl;
+		fm.dumpPoint();
+		auto lpc = fm.local_get<double>();
+		std::cout << "After local get" << std::endl;
+		if(lpc!=nullptr) {
+			std::cout << *lpc << std::endl;
+		}
+		fm.dumpPoint();
+		auto pc = fm.get<double>();
+		std::cout << "After get" << std::endl;
+		if(pc!=nullptr) {
+			std::cout << *pc << std::endl;
+		}
+		fm.dumpPoint();
 	}
 }
