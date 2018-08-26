@@ -37,7 +37,7 @@ struct fifo_pointer : bar {
 };
 
 template <size_t Pos, size_t MetaSize>
-struct fifo_addons : fifo_pointer{
+struct fifo_addons : fifo_pointer {
 	typedef mpl::size_t<((MetaSize-Pos-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
 	size_t buf[FIFOSIZE::value];
 	void inc(int& a) {

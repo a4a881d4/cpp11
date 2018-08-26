@@ -1,3 +1,4 @@
+#pragma once
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -105,26 +106,34 @@ public:
 
 	virtual bool checkHead() {
 		sha1 sha;
+		
 		char *szMsg = (char *)(m_head);
+		
 		sha.process_bytes(szMsg, 152);
 		unsigned int digest[5];
 		sha.get_digest(digest);
+		
 		std::stringstream s1,s2;
+    	
     	for (int i = 0; i< 5; ++i)
 			s1 << std::setfill('0') << std::setw(8) << std::hex << digest[i];
 			
 		for(int i = 0;i<40;i++) {
-			//std::cout << m_head->sha1.sha1[i] << " ";
 			s2 << m_head->sha1.sha1[i];
 		}
+		
 		if(s1.str()!=s2.str()) {
 			std::cout<<"s1:"<<s1.str()<<" s2:"<<s2.str()<<std::endl;
 			return false; 
 		}
+		
 		name_generator ngen(usrtosNS);
 		m_uuid = ngen(s1.str().c_str());
+		
 		std::string stru1 = lexical_cast<std::string>(m_uuid);
+		
 		auto fnLen = m_fileName.size();
+		
 		if(m_fileName.find(stru1) == std::string::npos) {
 			std::cout << stru1 << " " << m_fileName << std::endl;
 			return false; 
@@ -151,7 +160,7 @@ public:
 			}
 			else{
 				resetMutex(m);
-				std::cout << "fail to get lock" << std::endl;
+				std::cout << "fail to get lock: " << mn << std::endl;
 				return false;
 			}
 		}

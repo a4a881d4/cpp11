@@ -22,7 +22,8 @@ all:work/ptr_vector \
 	work/writingTrace \
 	work/namedCondSent \
 	work/namedCondRecv \
-	work/layout_test
+	work/layout_test \
+	work/mem_test
 
 CPPFLAG = -std=c++1z
 
@@ -82,6 +83,9 @@ work/namedCondRecv:interprocess/namedCondRecv.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/layout_test:usrtos/c++1z/layout_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/mem_test:usrtos/c++1z/mem_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 clean:
