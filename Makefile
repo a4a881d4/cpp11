@@ -26,7 +26,7 @@ all:work/ptr_vector \
 
 CPPFLAG = -std=c++1z
 
-
+USRTOSFLAG = -Iusrtos/include
 
 work/ptr_vector:ptr_container/ptr_vector.cpp
 	g++ $(CPPFLAG) -o $@ $^
@@ -82,7 +82,7 @@ work/namedCondRecv:interprocess/namedCondRecv.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/layout_test:usrtos/c++1z/layout_test.cpp
-	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 clean:
 	echo $(UNAME)

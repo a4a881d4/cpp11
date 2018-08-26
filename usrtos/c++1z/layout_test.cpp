@@ -1,9 +1,11 @@
 #include "layout.hpp"
 #include <sstream>
 
+using namespace usrtos;
+
 int main(int argc,char *argv[])
 {
-	struct block b;
+	struct CPBlock b;
 	b.headFromFile(argv[1]);
 	b.dumpHead();
 	std::stringstream s;
@@ -47,22 +49,34 @@ int main(int argc,char *argv[])
 		auto pd = fm.newLP<double>();
 		*pd = 1000.;
 		std::cout << "After alloc mem" << std::endl;
+		
 		fm.dumpPoint();
+		
 		fm.local_reset();
 		fm.push<double>(*pd);
 		std::cout << "After push" << std::endl;
+		
 		fm.dumpPoint();
+		
 		auto lpc = fm.local_get<double>();
 		std::cout << "After local get" << std::endl;
 		if(lpc!=nullptr) {
 			std::cout << *lpc << std::endl;
 		}
+		
 		fm.dumpPoint();
-		auto pc = fm.get<double>();
-		std::cout << "After get" << std::endl;
-		if(pc!=nullptr) {
-			std::cout << *pc << std::endl;
+		
+		while(1) {
+			auto pc = fm.get<double>();
+			if(pc!=nullptr) {
+				std::cout << *pc << std::endl;
+			} else {
+				std::cout << "fifo empty" << std::endl;
+				break;
+			}
 		}
+		std::cout << "After get" << std::endl;
+		
 		fm.dumpPoint();
 	}
 }
