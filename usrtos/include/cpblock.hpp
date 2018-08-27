@@ -57,6 +57,7 @@ public:
 		uuid id;
 		long long offset;
 		long long objsize;
+		
 	} GP;
 
 	struct Head* m_head;

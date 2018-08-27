@@ -23,7 +23,8 @@ all:work/ptr_vector \
 	work/namedCondSent \
 	work/namedCondRecv \
 	work/layout_test \
-	work/mem_test
+	work/mem_test \
+	work/heap_test
 
 CPPFLAG = -std=c++1z
 
@@ -86,6 +87,9 @@ work/layout_test:usrtos/c++1z/layout_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/mem_test:usrtos/c++1z/mem_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/heap_test:usrtos/c++1z/heap_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 clean:

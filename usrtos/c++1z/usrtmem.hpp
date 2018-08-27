@@ -9,7 +9,7 @@ class Mem {
 public:	
 	struct bar {
 		size_t pos;
-		boost::interprocess::interprocess_mutex bar_mutex; 
+		interprocess_mutex bar_mutex; 
 	};
 	
 private:
@@ -24,7 +24,7 @@ public:
 	};
 
 	template <typename T>
-	T* newLP(size_t n=1, size_t aligned=1) {
+	void defaultGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
 		size_t s = sizeof(T)*n;
 		scoped_lock<interprocess_mutex> lock(m_bar->bar_mutex);
 		if(aligned!=1) {
@@ -32,9 +32,22 @@ public:
 			if(m!=0)
 				m_bar->pos += (aligned-m); 
 		}
-		auto r = m_mem->Off2LP<T>(m_bar->pos);
+		gp.offset = m_bar->pos;
+		gp.objsize = s;
 		m_bar->pos += s;
-		return r;
+	};
+
+	template <typename T>
+	T* newLP(size_t n=1, size_t aligned=1) {
+		CPBlock::GP gp;
+		defaultGP<T>(gp,n,aligned);
+		return m_mem->Off2LP<T>(gp.offset);;
+	};
+	
+	template <typename T>
+	void newGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
+		defaultGP<T>(gp,n,aligned);
+		gp.id = m_mem->m_uuid;
 	};
 	
 	void dump() {
@@ -46,7 +59,7 @@ public:
 	};
 };
 
-template<size_t AT, size_t MetaSize>
+template<size_t AT, size_t Fsize>
 class Fifo : public Mem<AT> {
 
 public:
@@ -54,10 +67,10 @@ public:
 	struct fifo_pointer : Mem<AT>::bar {
 		int sp;
 		int rp;
-		boost::interprocess::interprocess_mutex fifo_mutex; 
+		interprocess_mutex fifo_mutex; 
 	};
 	
-	typedef boost::mpl::size_t<((MetaSize-AT-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
+	typedef boost::mpl::size_t<((Fsize-AT-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
 		
 	struct fifo_addons : fifo_pointer {
 		size_t buf[FIFOSIZE::value];
@@ -73,15 +86,20 @@ private:
 	};
 	void incsp() {inc(m_pa->sp);};
 	void incrp() {inc(m_pa->rp);};
-
+	void push(size_t off) {
+		scoped_lock<interprocess_mutex> lock(m_pa->fifo_mutex);
+		if(len()==FIFOSIZE::value-1)
+			incrp();
+		m_pa->buf[m_pa->sp] = off;
+		incsp();
+	};
 public:
 
 	Fifo(CPBlock& m) : Mem<AT>(m){
 		m_mem = &m;
-		//Mem<AT>(m);
 		m_pa = static_cast<struct fifo_addons*>((void *)((char *)(m_mem->m_head)+AT));
 		m_mem->checkMutex(m_pa->fifo_mutex,"fifo_mutex"); 
-	}
+	};
 
 	size_t len() {
 		return (m_pa->sp-m_pa->rp+FIFOSIZE::value)%FIFOSIZE::value;
@@ -107,18 +125,15 @@ public:
 	
 	virtual void dump() {
 		Mem<AT>::dump();
+		std::cout << "Fifo size: " << FIFOSIZE::value << std::endl;
 		dumpPoint();
 	};
 	
 	template<typename T>
 	size_t push(T& t) {
-		auto off = m_mem->LP2offset<T>(&t);
+		size_t off = m_mem->LP2offset<T>(&t);
 		if(m_mem->validOffset(off)) {
-			scoped_lock<interprocess_mutex> lock(m_pa->fifo_mutex);
-			if(len()==FIFOSIZE::value-1)
-				incrp();
-			m_pa->buf[m_pa->sp] = off;
-			incsp();
+			push(off);
 		}
 		return off; 
 	};
