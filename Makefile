@@ -24,7 +24,8 @@ all:work/ptr_vector \
 	work/namedCondRecv \
 	work/layout_test \
 	work/mem_test \
-	work/heap_test
+	work/heap_test \
+	work/time
 
 CPPFLAG = -std=c++1z
 
@@ -51,6 +52,9 @@ work/ast:functor/ast.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/uuid:uuid/uuid.cpp
+	g++ $(CPPFLAG) -o $@ $^
+
+work/time:chrono/time.cpp
 	g++ $(CPPFLAG) -o $@ $^
 
 work/sharedMemory:interprocess/sharedMemory.cpp
