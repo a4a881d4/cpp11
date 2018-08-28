@@ -1,10 +1,10 @@
 #pragma once
-
 #include <cpblock.hpp>
+#include <boost/mpl/size_t.hpp>
 
 namespace usrtos {
 
-template <typename T, typename Compare, size_t AT, size_t Hsize>
+template <typename T, typename Compare, size_t AT, size_t END>
 class Heap {
 
 public:
@@ -12,9 +12,11 @@ public:
 		size_t size;
 		interprocess_mutex heap_mutex;
 	};
+
+	typedef boost::mpl::size_t<((END-AT-sizeof(struct _heap_meta)-16)/sizeof(size_t))> Hsize;
 	
 	struct _shared : _heap_meta {
-		size_t heap[Hsize];
+		size_t heap[Hsize::value];
 	};
 
 private:
@@ -26,7 +28,8 @@ private:
 		typename Compare::less l;
 		return l(m_mem->Off2LP<T>(a),m_mem->Off2LP<T>(b));
 	};
-	long long key(size_t a) {
+
+	auto key(size_t a) {
 		typename Compare::key k;
 		return k(m_mem->Off2LP<T>(a));
 	};
@@ -80,21 +83,30 @@ public:
 		m_mem->checkMutex(m_pa->heap_mutex,"heap_mutex"+name); 
 	};
 
-	size_t insert(size_t a)
+	static const size_t HeapSize() { return Hsize::value; };
+	size_t NullOffset() { return m_mem->m_head->dataSize; };
+	
+	size_t _insert(size_t a)
 	{
-		if(m_pa->size < Hsize) {
+		if(m_pa->size < Hsize::value) {
 			scoped_lock<interprocess_mutex> lock(m_pa->heap_mutex);
 			m_pa->heap[m_pa->size] = a;
 			m_pa->size++;
 			up(m_pa->size-1);
-			return 0;
+			return a;
 		} else
-			return Hsize;
+			return NullOffset();
 	};
-
+	size_t insert(size_t a)
+	{
+		if(m_pa->size < Hsize::value-1) {
+			return _insert(a);
+		} else
+			return NullOffset();
+	};
 	size_t del(size_t a)
 	{
-		size_t ret = Hsize;
+		size_t ret = NullOffset();
 		if(m_pa->size == 0) 
 			return ret;
 
@@ -108,7 +120,7 @@ public:
 			m_pa->size--;
 			m_pa->heap[i]=m_pa->heap[m_pa->size];
 			down(i);
-			ret = 0;
+			ret = a;
 		}
 		
 		return ret;
@@ -116,6 +128,10 @@ public:
 
 	size_t LP2offset(T* p) {
 		return m_mem->LP2offset<T>(p);
+	};
+
+	T* Off2LP(size_t off) {
+		return m_mem->Off2LP<T>(off);
 	};
 
 	int check(int debug = 0) {
@@ -157,6 +173,26 @@ public:
 		}
 		std::cout << std::flush;
 		return err;
+	};
+
+	void dumpHeap() {
+		int i;
+		std::cout << "Heap size: " << m_pa->size << std::endl;
+		for( int i = 0;i < m_pa->size;i++ ) {
+			std::cout << "No " << i << ": "
+				<< key(m_pa->heap[i])
+				<< std::endl;
+		}
+	};
+
+	size_t pop() {
+		auto p = m_pa->heap[0];
+		if(m_pa->size > 0) {
+			del(p);
+			return p;
+		}
+		else
+			return NullOffset();
 	};
 }; // class Heap
 }; // namespace usrtos

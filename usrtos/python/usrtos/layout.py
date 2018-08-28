@@ -107,8 +107,8 @@ class block:
 	def fromMap(m):
 		a = block(m["name"])
 		a.type = m["type"].encode(encoding='utf-8')
-		a.defaultSZ(m["dataSize"],m["cpSize"])
-		a.metaSize = a.align2page(m["metaSize"])
+		a.defaultSZ(m["dataSize"]*block.align,m["cpSize"]*block.align)
+		a.metaSize = a.align2page(m["metaSize"]*block.align)
 		a.setPosition(m["longitude"],m["latitude"],m["altitude"])
 		a.genHead()
 		a.dump()

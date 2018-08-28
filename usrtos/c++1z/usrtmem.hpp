@@ -59,7 +59,7 @@ public:
 	};
 };
 
-template<size_t AT, size_t Fsize>
+template<size_t AT, size_t END>
 class Fifo : public Mem<AT> {
 
 public:
@@ -70,7 +70,7 @@ public:
 		interprocess_mutex fifo_mutex; 
 	};
 	
-	typedef boost::mpl::size_t<((Fsize-AT-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
+	typedef boost::mpl::size_t<((END-AT-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
 		
 	struct fifo_addons : fifo_pointer {
 		size_t buf[FIFOSIZE::value];
