@@ -1,6 +1,6 @@
 UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
-	LDFLAG = -lrt -lpthread
+	LDFLAG = -lrt -lpthread -lboost_filesystem -lboost_system
 endif
 ifeq ($(UNAME),Darwin)
 	LDFLAG = 
@@ -25,9 +25,12 @@ all:work/ptr_vector \
 	work/layout_test \
 	work/mem_test \
 	work/heap_test \
-	work/time
+	work/time \
+	work/regex \
+	work/finduuid \
+	work/findblock_test
 
-CPPFLAG = -std=c++1z
+CPPFLAG = -std=c++1z #-L/usr/lib/x86_64-linux-gnu/
 
 USRTOSFLAG = -Iusrtos/include
 
@@ -56,6 +59,12 @@ work/uuid:uuid/uuid.cpp
 
 work/time:chrono/time.cpp
 	g++ $(CPPFLAG) -o $@ $^
+
+work/regex:regex/regex.cpp
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
+
+work/finduuid:regex/finduuid.cpp
+	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
 
 work/sharedMemory:interprocess/sharedMemory.cpp
 	g++ $(CPPFLAG) -o $@ $^ $(LDFLAG)
@@ -94,6 +103,9 @@ work/mem_test:usrtos/c++1z/mem_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/heap_test:usrtos/c++1z/heap_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/findblock_test:usrtos/c++1z/findblock_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 clean:

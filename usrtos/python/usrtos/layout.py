@@ -89,7 +89,7 @@ class block:
 			r[key] = v
 		return r
 
-	def toFile(self,dir='/tmp'):
+	def toFile(self,dir='/tmp/usrtos'):
 		fn = os.path.join(dir,self.fileName)
 		zeros = b'\0'*256
 		with open(fn,'wb') as f:

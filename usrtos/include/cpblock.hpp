@@ -136,9 +136,10 @@ public:
 		auto fnLen = m_fileName.size();
 		
 		if(m_fileName.find(stru1) == std::string::npos) {
-			std::cout << stru1 << " " << m_fileName << std::endl;
+			std::cout << stru1 << " : " << m_fileName << std::endl;
 			return false; 
 		}
+
 		return true;
 	};
 
