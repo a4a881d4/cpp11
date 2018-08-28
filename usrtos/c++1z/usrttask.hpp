@@ -47,16 +47,49 @@ struct task {
 	uuid id;
 };
 
+class OffsetPtr {
+public:
+	size_t p;
+	OffsetPtr() : p(0) {};
+	OffsetPtr(size_t o) : p(o){};
+	OffsetPtr(OffsetPtr& a) { p = a.p; };
+	
+	static const OffsetPtr Null() { return OffsetPtr(0xffffffffffffffff); };
+	
+	template<typename T>
+	size_t LP2offset(T* tp, CPBlock *mem) {
+		p = mem->LP2offset<T>(tp);
+		return p;
+	};
+
+	template<typename T>
+	T* Off2LP(CPBlock *mem) {
+		return mem->Off2LP<T>(p);
+	};
+
+};
+
+inline bool operator==(OffsetPtr a, OffsetPtr b) { return (a.p == b.p); };
+inline bool operator!=(OffsetPtr a, OffsetPtr b) { return (a.p != b.p); };
+
 class TaskHeap {
 
 	template <typename Task>
 	struct Wait {
 		static const std::string _type() { return std::string("wait"); };
 		struct less {
-			bool operator()(Task *a, Task *b) { return (a->noE < b->noE); };
+			CPBlock *mem;
+			void set(CPBlock *m) { mem = m; };
+			bool operator()(OffsetPtr a, OffsetPtr b) { 
+				return (a.Off2LP<task>(mem)->noE < b.Off2LP<task>(mem)->noE); 
+			};
 		};
 		struct key {
-			utime_t operator()(Task *a) { return a->noE; };
+			CPBlock *mem;
+			void set(CPBlock *m) { mem = m; };
+			utime_t operator()(OffsetPtr a) { 
+				return a.Off2LP<task>(mem)->noE; 
+			};
 		};
 	};
 
@@ -64,17 +97,25 @@ class TaskHeap {
 	struct Ready {
 		static const std::string _type() { return std::string("ready"); };
 		struct less {
-			bool operator()(Task *a, Task *b) { return (a->noL < b->noL); };
+			CPBlock *mem;
+			void set(CPBlock *m) { mem = m; };
+			bool operator()(OffsetPtr a, OffsetPtr b) { 
+				return (a.Off2LP<task>(mem)->noL < b.Off2LP<task>(mem)->noL); 
+			};
 		};
 		struct key {
-			utime_t operator()(Task *a) { return a->noL; };
+			CPBlock *mem;
+			void set(CPBlock *m) { mem = m; };
+			utime_t operator()(OffsetPtr a) { 
+				return a.Off2LP<task>(mem)->noL; 
+			};
 		};
 	};
 
 public:
 	typedef Fifo<0x1000,0x2000> TaskFifo;
-	typedef Heap<task,Wait<task>,0x2000,0xa000> WaitHeap;
-	typedef Heap<task,Ready<task>,0xa000,0x10000> ReadyHeap;
+	typedef Heap<task,OffsetPtr,Wait<task>,0x2000,0xa000> WaitHeap;
+	typedef Heap<task,OffsetPtr,Ready<task>,0xa000,0x10000> ReadyHeap;
 	WaitHeap *wait;
 	ReadyHeap *ready;
 	TaskFifo *tm;
@@ -105,11 +146,14 @@ public:
 		struct task *card = tm->newLP<task>();
 		card->noE = now();
 		int r = 0;
-		auto card_off = wait->LP2offset(card);
-		if(wait->_insert(card_off) != wait->NullOffset()) {
-			size_t p;
+		
+		OffsetPtr card_off;
+		card_off.LP2offset(card,wait->getMem());
+
+		if(wait->_insert(card_off) != OffsetPtr::Null()) {
+			OffsetPtr p;
 			while((p = wait->pop()) != card_off) {
-				if(ready->insert(p) == ready->NullOffset()) {
+				if(ready->insert(p) == OffsetPtr::Null()) {
 					wait->del(card_off);
 					break;
 				}

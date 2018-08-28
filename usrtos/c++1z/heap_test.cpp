@@ -32,7 +32,10 @@ int main(int argc,char *argv[])
 		if(p!=nullptr) {
 			p->noE=h.after((double)i * 1e6);
 			p->noL=h.after((100.-i)*1e6);
-			if(h.wait->insert(h.wait->LP2offset(p)) == h.wait->NullOffset()) {
+			OffsetPtr op;
+			op.LP2offset<task>(p,h.wait->getMem());
+			if(h.wait->insert(op) 
+				== OffsetPtr::Null()) {
 				std::cout << "wait heap full" << h.wait->HeapSize() << std::endl;
 				break;
 			}
@@ -41,7 +44,7 @@ int main(int argc,char *argv[])
 			std::cout << "can not alloc memory" << std::endl;
 		}
 	}
-	size_t p;
+	OffsetPtr p;
 	int c;
 	adj = h.adjust();
 	std::cout << "2. move " << adj << " from wait to ready " << std::endl;
@@ -58,8 +61,8 @@ int main(int argc,char *argv[])
 	if(h.ready->check(h.ready->HeapSize()) == 0) {
 		std::cout << "ready heap check success" << std::endl;
 		c = 0;
-		while((p = h.ready->pop()) != h.ready->NullOffset() && c < 129*2) {
-			h.dumpTaskTime(*(h.ready->Off2LP(p)));
+		while((p = h.ready->pop()) != OffsetPtr::Null() && c < 129*2) {
+			h.dumpTaskTime(*(p.Off2LP<task>(h.ready->getMem())));
 			c++;
 		}
 	}

@@ -4,7 +4,7 @@
 
 namespace usrtos {
 
-template <typename T, typename Compare, size_t AT, size_t END>
+template <typename T, typename PointerType, typename Compare, size_t AT, size_t END>
 class Heap {
 
 public:
@@ -13,25 +13,25 @@ public:
 		interprocess_mutex heap_mutex;
 	};
 
-	typedef boost::mpl::size_t<((END-AT-sizeof(struct _heap_meta)-16)/sizeof(size_t))> Hsize;
+	typedef boost::mpl::size_t<((END-AT-sizeof(struct _heap_meta)-16)/sizeof(PointerType))> Hsize;
 	
 	struct _shared : _heap_meta {
-		size_t heap[Hsize::value];
+		PointerType heap[Hsize::value];
 	};
 
 private:
 	struct _shared *m_pa;
 	CPBlock *m_mem;
 	std::string name;
+	typename Compare::key m_key;
+	typename Compare::less m_less;
 
-	bool less(size_t a, size_t b) {
-		typename Compare::less l;
-		return l(m_mem->Off2LP<T>(a),m_mem->Off2LP<T>(b));
+	bool less(PointerType a, PointerType b) {
+		return m_less(a,b);
 	};
 
-	auto key(size_t a) {
-		typename Compare::key k;
-		return k(m_mem->Off2LP<T>(a));
+	auto KEY(PointerType a) {
+		 return m_key(a);
 	};
 
 	void down(size_t index)
@@ -81,12 +81,14 @@ public:
 		m_pa = static_cast<struct _shared*>((void *)((char *)(m_mem->m_head)+AT));
 		name = Compare::_type();
 		m_mem->checkMutex(m_pa->heap_mutex,"heap_mutex"+name); 
+		m_less.set(&m);
+		m_key.set(&m);
 	};
 
 	static const size_t HeapSize() { return Hsize::value; };
-	size_t NullOffset() { return m_mem->m_head->dataSize; };
-	
-	size_t _insert(size_t a)
+	CPBlock *getMem() { return m_mem; };
+
+	PointerType _insert(PointerType a)
 	{
 		if(m_pa->size < Hsize::value) {
 			scoped_lock<interprocess_mutex> lock(m_pa->heap_mutex);
@@ -95,25 +97,25 @@ public:
 			up(m_pa->size-1);
 			return a;
 		} else
-			return NullOffset();
+			return PointerType::Null();
 	};
-	size_t insert(size_t a)
+	PointerType insert(PointerType a)
 	{
 		if(m_pa->size < Hsize::value-1) {
 			return _insert(a);
 		} else
-			return NullOffset();
+			return PointerType::Null();
 	};
-	size_t del(size_t a)
+	PointerType del(PointerType a)
 	{
-		size_t ret = NullOffset();
+		PointerType ret = PointerType::Null();
 		if(m_pa->size == 0) 
 			return ret;
 
 		scoped_lock<interprocess_mutex> lock(m_pa->heap_mutex);
 		int i;
 		for(i = 0;i < m_pa->size;i++) {
-			if(m_pa->heap[i] == a)
+			if(a == m_pa->heap[i])
 				break;
 		}
 		if(i != m_pa->size) {
@@ -124,14 +126,6 @@ public:
 		}
 		
 		return ret;
-	};
-
-	size_t LP2offset(T* p) {
-		return m_mem->LP2offset<T>(p);
-	};
-
-	T* Off2LP(size_t off) {
-		return m_mem->Off2LP<T>(off);
 	};
 
 	int check(int debug = 0) {
@@ -146,8 +140,8 @@ public:
 				std::cout
 					<< Compare::_type() 
 					<< " error @" << i << "-" << left
-					<< " i: " << key(m_pa->heap[i])
-					<< " left: " << key(m_pa->heap[left])
+					<< " i: " << KEY(m_pa->heap[i])
+					<< " left: " << KEY(m_pa->heap[left])
 					<< std::endl;
 				err++;
 			}
@@ -157,8 +151,8 @@ public:
 				std::cout 
 					<< Compare::_type() 
 					<< " error @" << i << "-" << right
-					<< " i: " << key(m_pa->heap[i])
-					<< " right: " << key(m_pa->heap[right])
+					<< " i: " << KEY(m_pa->heap[i])
+					<< " right: " << KEY(m_pa->heap[right])
 					<< std::endl;
 				err++;
 			}
@@ -167,7 +161,7 @@ public:
 				std::cout 
 					<< Compare::_type() 
 					<< " No " << i << ":"
-					<< key(m_pa->heap[i])
+					<< KEY(m_pa->heap[i])
 					<< std::endl;
 			}
 		}
@@ -180,19 +174,19 @@ public:
 		std::cout << "Heap size: " << m_pa->size << std::endl;
 		for( int i = 0;i < m_pa->size;i++ ) {
 			std::cout << "No " << i << ": "
-				<< key(m_pa->heap[i])
+				<< KEY(m_pa->heap[i])
 				<< std::endl;
 		}
 	};
 
-	size_t pop() {
+	PointerType pop() {
 		auto p = m_pa->heap[0];
 		if(m_pa->size > 0) {
 			del(p);
 			return p;
 		}
 		else
-			return NullOffset();
+			return PointerType::Null();
 	};
 }; // class Heap
 }; // namespace usrtos
