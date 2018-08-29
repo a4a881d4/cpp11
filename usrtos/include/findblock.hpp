@@ -76,5 +76,8 @@ public:
 			it->second->dump();
 		}
 	};
+
+	auto getMap() { return &m_blocks; };
+
 };
 }; // namespace usrtos

@@ -1,7 +1,9 @@
 #include "usrtmem.hpp"
+#include <map>
 
+namespace usrtos {
 template<size_t AT, size_t END>
-class log : public Fifo {
+class log : public Fifo<AT,END> {
 public:
 	log(CPBlock& m) : Fifo<AT,END>(m) {};
 	void printf(int level,const char * format, ...) {
@@ -12,16 +14,16 @@ public:
     	va_end (args);
     	buffer[1023]='\0';
     	int lenLog = strlen(buffer)+1;
-    	char *gb = newLP<char>(lenLog);
+    	char *gb = Mem<AT>::template newLP<char>(lenLog);
     	memcpy(gb,buffer,lenLog);
-    	push<char>(gb);
+    	Fifo<AT,END>::template push<char>(gb);
 	};
-	void init() { local_reset(); };
-	char *getLog() { return local_get<char>(); };
+	void init() { Fifo<AT,END>::local_reset(); };
+	char *getLog() { return Fifo<AT,END>::template local_get<char>(); };
 	void dump() {
-		int l = local_len();
+		int l = Fifo<AT,END>::local_len();
 		for(int i=0;i<l;i++)
-			std::cout << m_mem->m_head->name << ": " << getLog() <<std::endl;
+			std::cout << getLog() <<std::endl;
 	};
 };
 
@@ -30,11 +32,11 @@ public:
 	typedef log<0x1000,0x10000> usrtlog;
 
 private:
-	map<std::string,usrtlog*> m_logs;
+	std::map<std::string,usrtlog*> m_logs;
 
 public:
 
-	logs(map<std::string,CPBlock*>& blocks) {
+	logs(std::map<std::string,CPBlock*>& blocks) {
 		for(auto it = blocks.begin();it != blocks.end();++it) {
 			if(memcmp("log",it->second->m_head->name,3)==0) {
 				std::string bn(it->second->m_head->name);
@@ -45,7 +47,7 @@ public:
 	};
 
 	usrtlog *operator[](std::string l) {
-		auto iter = m_logs.find(l)
+		auto iter = m_logs.find(l);
 		if( iter!=m_logs.end() )
 			return m_logs[l];
 		else
@@ -53,10 +55,11 @@ public:
 	};
 
 	bool has(std::string l) {
-		auto iter = m_logs.find(l)
+		auto iter = m_logs.find(l);
 		if( iter!=m_logs.end() )
 			return true;
 		else
 			return false;
 	};
 };
+}; // namesapce usrtos

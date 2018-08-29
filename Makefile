@@ -28,7 +28,8 @@ all:work/ptr_vector \
 	work/time \
 	work/regex \
 	work/finduuid \
-	work/findblock_test
+	work/findblock_test \
+	work/log_test
 
 CPPFLAG = -std=c++1z 
 
@@ -104,6 +105,9 @@ work/heap_test:usrtos/c++1z/heap_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/findblock_test:usrtos/c++1z/findblock_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/log_test:usrtos/c++1z/log_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 clean:
