@@ -1,3 +1,4 @@
+#pragma once
 #include <cpblock.hpp>
 #include <regex>
 #define BOOST_FILESYSTEM_NO_DEPRECATED

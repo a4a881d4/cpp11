@@ -1,5 +1,5 @@
 #include <findblock.hpp>
-#include <log.hpp>
+#include <logs.hpp>
 
 #include <sstream>
 #include <set>

@@ -29,7 +29,9 @@ all:work/ptr_vector \
 	work/regex \
 	work/finduuid \
 	work/findblock_test \
-	work/log_test
+	work/log_test \
+	work/hello_ext.so \
+	work/usrtos.so
 
 CPPFLAG = -std=c++1z 
 
@@ -109,6 +111,12 @@ work/findblock_test:usrtos/c++1z/findblock_test.cpp
 
 work/log_test:usrtos/c++1z/log_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/hello_ext.so: python/hello.cpp
+	g++ -I/usr/include/python3.6m/ -fPIC -shared python/hello.cpp -o work/hello_ext.so -lboost_python3
+
+work/usrtos.so: usrtos/c++1z/usrt.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -I/usr/include/python3.6m/ -fPIC -shared $^ -o $@ -lboost_python3
 
 clean:
 	echo $(UNAME)

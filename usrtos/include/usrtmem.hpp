@@ -1,3 +1,4 @@
+#pragma once
 #include <cpblock.hpp>
 #include <boost/mpl/size_t.hpp>
 
