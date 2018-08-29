@@ -3,7 +3,7 @@ ifeq ($(UNAME),Linux)
 	LDFLAG = -lrt -lpthread -lboost_filesystem -lboost_system
 endif
 ifeq ($(UNAME),Darwin)
-	LDFLAG = 
+	LDFLAG = -lboost_filesystem -lboost_system
 endif
 
 all:work/ptr_vector \
@@ -30,14 +30,12 @@ all:work/ptr_vector \
 	work/finduuid \
 	work/findblock_test
 
-CPPFLAG = -std=c++1z #-L/usr/lib/x86_64-linux-gnu/
+CPPFLAG = -std=c++1z 
 
 USRTOSFLAG = -Iusrtos/include
 
 work/ptr_vector:ptr_container/ptr_vector.cpp
 	g++ $(CPPFLAG) -o $@ $^
-
-#-L/usr/lib/x86_64-linux-gnu/ -lboost_filesystem
 
 work/readdir:filesystem/readdir.cpp
 	g++ $(CPPFLAG) -o $@ $^

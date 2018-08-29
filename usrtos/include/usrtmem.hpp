@@ -131,7 +131,12 @@ public:
 	
 	template<typename T>
 	size_t push(T& t) {
-		size_t off = m_mem->LP2offset<T>(&t);
+		return push<T>(&t);
+	};
+
+	template<typename T>
+	size_t push(T *t) {
+		size_t off = m_mem->LP2offset<T>(t);
 		if(m_mem->validOffset(off)) {
 			push(off);
 		}
