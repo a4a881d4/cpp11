@@ -27,5 +27,26 @@ int main(int argc,char *argv[])
 		else {
 			std::cout << "miss " << l << "!" << std::endl;
 		}
-	} 
+	}
+	std::string lname(argv[3]);
+	if(mylog.has(lname)) {
+
+		auto pl = mylog[lname];
+
+		if(strcmp(argv[2],"dump")==0) {
+			while(1) {
+				usleep(100000);
+				pl->dump();
+			}
+		}
+
+		if(strcmp(argv[2],"log")==0) {
+			int c = 0;
+			while(1) {
+				usleep(1000000);
+				pl->printf("hello world! %d\n",c);
+				c++;
+			}
+		}
+	}
 }

@@ -1,7 +1,7 @@
 #pragma once
+#include <usrttype.hpp>
 #include <cpblock.hpp>
 #include <boost/mpl/size_t.hpp>
-#include <usrttype.hpp>
 
 namespace usrtos {
 

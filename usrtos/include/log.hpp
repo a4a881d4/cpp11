@@ -6,7 +6,7 @@ template<size_t AT, size_t END>
 class log : public Fifo<AT,END> {
 public:
 	log(CPBlock& m) : Fifo<AT,END>(m) {};
-	void printf(int level,const char * format, ...) {
+	void printf(const char * format, ...) {
 	    char buffer[1024];
     	va_list args;
     	va_start (args, format);
