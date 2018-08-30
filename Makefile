@@ -2,10 +2,10 @@ UNAME := $(shell uname)
 
 CPPFLAG = -std=c++1z 
 LDFLAG = -lboost_filesystem -lboost_system
-PYFLAG = ""
+PYFLAG = 
 ifeq ($(UNAME),Linux)
-	LDFLAG += -lboost_filesystem -lboost_system -lboost_python3
-	PYTHON_INCLUDE = -I/usr/include/python3.6m/
+	LDFLAG += -lrt -lpthread -lboost_python3
+	PYTHON_INCLUDE = /usr/include/python3.6m/
 endif
 ifeq ($(UNAME),Darwin)
 	PYFLAG += -lboost_python37 -lpython3.7

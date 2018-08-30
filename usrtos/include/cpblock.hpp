@@ -67,26 +67,34 @@ public:
 	mapped_region m_headHandle;
 	mapped_region m_dataHandle;
 	mapped_region m_cpHandle;
-	uuid usrtosNS = lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c");
 	uuid m_uuid;
 	bool m_attached = false;
 	void *m_base;
 	void *m_end;
 
+	static const uuid usrtosNS() { return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); };
+	
 	void setFileName(std::string fn) { m_fileName = fn; };
 	
-	void headFromFile() { headFromFile(m_fileName.c_str()); }
-
-	void headFromFile(const char* fn) {
-		m_head = new(struct Head);
+	static struct Head& sheadFromFile(const char* fn) {
+		auto p_head = new(struct Head);
 		std::filebuf fbuf;
         fbuf.open(fn, std::ios_base::in | std::ios_base::binary);
-		fbuf.sgetn((char *)(m_head), sizeof(struct Head));
+		fbuf.sgetn((char *)(p_head), sizeof(struct Head));
 		fbuf.close();
+		return *p_head;
+	}
+	void headFromFile() { headFromFile(m_fileName.c_str()); }
+	void headFromFile(const char* fn) {
+		m_head = &CPBlock::sheadFromFile(fn);
 	};
 
 	void dumpHead() {
 		const struct Head& s = *m_head;
+		CPBlock::sdumpHead(s);
+	}
+	
+	static void sdumpHead(const struct Head& s) {
 		auto& [m0,m1,m2,m3,m4,m5,m6,m7,m8,m9,m10] = s;
 		std::cout << m0 << std::endl;
 		std::cout << m1 << std::endl;
@@ -106,9 +114,14 @@ public:
 	};
 
 	virtual bool checkHead() {
+		const struct Head& s = *m_head;
+		return CPBlock::scheckHead(m_fileName, s, &m_uuid);
+	};
+
+	static bool scheckHead(std::string fn, const struct Head& s, uuid *pid = nullptr) {
 		sha1 sha;
 		
-		char *szMsg = (char *)(m_head);
+		char *szMsg = (char *)(&s);
 		
 		sha.process_bytes(szMsg, 152);
 		unsigned int digest[5];
@@ -120,7 +133,7 @@ public:
 			s1 << std::setfill('0') << std::setw(8) << std::hex << digest[i];
 			
 		for(int i = 0;i<40;i++) {
-			s2 << m_head->sha1.sha1[i];
+			s2 << s.sha1.sha1[i];
 		}
 		
 		if(s1.str()!=s2.str()) {
@@ -128,18 +141,19 @@ public:
 			return false; 
 		}
 		
-		name_generator ngen(usrtosNS);
-		m_uuid = ngen(s1.str().c_str());
+		name_generator ngen(CPBlock::usrtosNS());
+		uuid id = ngen(s1.str().c_str());
 		
-		std::string stru1 = lexical_cast<std::string>(m_uuid);
+		std::string stru1 = lexical_cast<std::string>(id);
 		
-		auto fnLen = m_fileName.size();
+		auto fnLen = fn.size();
 		
-		if(m_fileName.find(stru1) == std::string::npos) {
-			std::cout << stru1 << " : " << m_fileName << std::endl;
+		if(fn.find(stru1) == std::string::npos) {
+			std::cout << stru1 << " : " << fn << std::endl;
 			return false; 
 		}
-
+		if(pid!=nullptr)
+			*pid = id;
 		return true;
 	};
 
