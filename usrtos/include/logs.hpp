@@ -16,6 +16,7 @@ public:
 			if(memcmp("log",it->second->m_head->name,3)==0) {
 				std::string bn(it->second->m_head->name);
 				usrtlog *l = new usrtlog(*(it->second));
+				l->init();
 				m_logs[bn] = l;
 			}
 		}
@@ -25,14 +26,17 @@ public:
 		auto iter = m_logs.find(l);
 		if(iter != m_logs.end())
 			return m_logs[l];
-		else
+		else {
+			std::cout << " cannot find " << l << std::endl;
 			return nullptr;
+		}
 	};
 
 	bool has(std::string l) {
 		auto iter = m_logs.find(l);
-		if(iter != m_logs.end())
+		if(iter != m_logs.end()) {
 			return true;
+		}
 		else
 			return false;
 	};

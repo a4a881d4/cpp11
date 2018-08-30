@@ -22,7 +22,6 @@ public:
 	FindBlock(std::string d) { m_dir = d; };
 
 	Heads& list() {
-		//CPBlock b;
 		auto p_heads = new Heads;
 		std::regex expuuid("[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"); 
 		fs::path full_path(fs::initial_path<fs::path>());
@@ -53,7 +52,7 @@ public:
 	};
 	
 	Blocks& attach(Heads& m_heads) {
-		auto p_blocks = std::make_shared<Blocks>();
+		auto p_blocks = new Blocks;
 		fs::path full_path(fs::initial_path<fs::path>());
 		full_path = fs::system_complete(fs::path(m_dir));
 		for(auto it = m_heads.begin();it != m_heads.end(); ++it) {

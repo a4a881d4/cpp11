@@ -23,8 +23,15 @@ public:
 	char *getLog() { return Fifo<AT,END>::template local_get<char>(); };
 	void dump() {
 		int l = Fifo<AT,END>::local_len();
-		for(int i=0;i<l;i++)
-			std::cout << getLog() <<std::endl;
+		for(int i=0;i<l;i++) {
+			const char * str = getLog();
+			int len = strlen(str);
+			if( len< 256 ) {
+				std::cout << str <<std::endl;		
+			} else {
+				std::cout << "message(" << len << ") to long" << std::endl; 
+			}
+		}
 	};
 };
 }; // namesapce usrtos

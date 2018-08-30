@@ -8,17 +8,18 @@ using namespace usrtos;
 
 int main(int argc,char *argv[])
 {
-	FindBlock fb;
-	
-	std::stringstream s;
-    s << argv[1];
-	fb.setDir(s.str());
-	fb.list();
-	fb.dumpHead();
-	fb.attach();
-	fb.dump();
+	std::string dir(argv[1]);
 
-	logs mylog(*(fb.getMap()));
+	FindBlock fb(dir);
+	
+	auto heads = fb.list();
+	std::cout << "heads type is " << typeid(heads).name() << std::endl;
+	fb.dumpHead(heads);
+	auto blocks = fb.attach(heads);
+	std::cout << "blocks type is " << typeid(blocks).name() << std::endl;
+	fb.dump(blocks);
+
+	logs mylog(blocks);
 	std::set<std::string> logName{"log0","log1","log2","log3","log4","log5"};
 	for(auto l : logName) {
 		if(mylog.has(l)) {
