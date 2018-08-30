@@ -25,6 +25,7 @@ public:
 	void dumpHead() {
 		m_mem->dumpHead();
 	};
+
 };
 
 BOOST_PYTHON_MODULE(usrtos)
@@ -32,6 +33,9 @@ BOOST_PYTHON_MODULE(usrtos)
 	class_<_usrtos_mem_obj>("UsrtMem", init<std::string>())
 		.def("dump", &_usrtos_mem_obj::dump)
 		.def("dumpHead", &_usrtos_mem_obj::dumpHead)
+	;
+
+	class_<CPBlock::GP>("gp")
 	;
 }
 };

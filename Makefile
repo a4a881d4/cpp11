@@ -1,10 +1,19 @@
 UNAME := $(shell uname)
+
+CPPFLAG = -std=c++1z 
+LDFLAG = -lboost_filesystem -lboost_system
+PYFLAG = ""
 ifeq ($(UNAME),Linux)
-	LDFLAG = -lrt -lpthread -lboost_filesystem -lboost_system
+	LDFLAG += -lboost_filesystem -lboost_system -lboost_python3
+	PYTHON_INCLUDE = -I/usr/include/python3.6m/
 endif
 ifeq ($(UNAME),Darwin)
-	LDFLAG = -lboost_filesystem -lboost_system
+	PYFLAG += -lboost_python37 -lpython3.7
+	PYTHON_INCLUDE = /usr/local/Cellar/python/3.7.0/Frameworks/Python.framework/Versions/3.7/include/python3.7m/
+	LIBPYTHON_PATH = /usr/local/Cellar/python/3.7.0/Frameworks/Python.framework/Versions/3.7/lib/
+	CPPFLAG += -L$(LIBPYTHON_PATH)
 endif
+	CPPFLAG += -I$(PYTHON_INCLUDE) 
 
 all:work/ptr_vector \
 	work/fib \
@@ -33,7 +42,6 @@ all:work/ptr_vector \
 	work/hello_ext.so \
 	work/usrtos.so
 
-CPPFLAG = -std=c++1z 
 
 USRTOSFLAG = -Iusrtos/include
 
@@ -113,10 +121,10 @@ work/log_test:usrtos/c++1z/log_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/hello_ext.so: python/hello.cpp
-	g++ -I/usr/include/python3.6m/ -fPIC -shared python/hello.cpp -o work/hello_ext.so -lboost_python3
+	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared python/hello.cpp -o work/hello_ext.so $(PYFLAG) $(LDFLAG)
 
 work/usrtos.so: usrtos/c++1z/usrt.cpp
-	g++ $(CPPFLAG) $(USRTOSFLAG) -I/usr/include/python3.6m/ -fPIC -shared $^ -o $@ -lboost_python3
+	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared $^ -o $@ $(LDFLAG) $(PYFLAG)
 
 clean:
 	echo $(UNAME)
