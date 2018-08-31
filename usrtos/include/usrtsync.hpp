@@ -19,13 +19,39 @@ struct UsrtMutex {
 
     void dump() {
     	sf[63] = '\0';
-    	std::cout << "Locked or last locked by thread: " << std::hex << m_threadid << "@" << ln << sf << std::endl; 
+    	std::cout << "Locked or last locked by thread: " << "@" << ln << "@" << sf << " " << m_threadid << std::endl; 
     };
 
     void delaySomeTime() {
     	std::cout << "try to lock but ";
     	dump();
     };
+
+    int mutex_ncpy(const char* c, size_t cnt) {
+    	char *p = (char *)c;
+    	int cc = cnt;
+        char *mark = nullptr;
+    	while(*p!='\0' && cc>0) {
+            if(*p=='/')
+                mark = p;
+    		cc--;
+    		++p;
+    	}
+    	if(mark) 
+    		p = mark+1;
+    	else 
+    		p=(char *)c;
+    	char *r = sf;
+    	cc = cnt;
+    	while(*p!='\0' && cc>0) {
+    		*r = *p;
+    		++r;
+    		++p;
+    		cc--;
+    	}
+        if(cc>0) *r = '\0';
+    	return cnt - cc;
+    }
 #else
     void dump() {};
     void delaySomeTime() {
@@ -56,7 +82,7 @@ class UsrtScopedLock {
 public:
 #if USRT_MUTEX_DEBUG	
 	UsrtScopedLock(UsrtMutex& mutex, const char *file=__FILE__, int lineno=__LINE__) {
-		strncpy(mutex.sf,file,63);
+		mutex.mutex_ncpy(file,63);
 		mutex.ln = lineno;
 #else
 	UsrtScopedLock(UsrtMutex& mutex) {
