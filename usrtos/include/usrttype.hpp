@@ -1,7 +1,8 @@
 #pragma once
 #include <chrono>
-
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
 namespace usrtos {
+
 typedef std::chrono::high_resolution_clock::time_point utime_t;
 typedef std::chrono::duration<int, std::micro> micro_type;
 
@@ -14,4 +15,7 @@ inline std::ostream& operator<<(std::ostream& os,const utime_t& h)
 	os << dd.count();
 	return os;
 }
+
+typedef boost::interprocess::interprocess_mutex umutex;
+
 };

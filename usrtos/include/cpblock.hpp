@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
@@ -14,6 +13,7 @@
 #include <boost/uuid/sha1.hpp>
 #include <unistd.h>
 #include <iomanip>
+#include <usrttype.hpp>
 
 namespace usrtos {
 
@@ -41,7 +41,7 @@ struct Head {
 	double altitude;
 	struct sha1str version;
 	struct sha1str sha1;
-	boost::interprocess::interprocess_mutex g_mutex;
+	umutex g_mutex;
 };
 
 
@@ -157,11 +157,11 @@ public:
 		return true;
 	};
 
-	void resetMutex(interprocess_mutex& m) {
-		auto pm = new(&m) interprocess_mutex;
+	void resetMutex(umetex& m) {
+		auto pm = new(&m) umetex;
 	};
 
-	bool checkMutex(interprocess_mutex& m, std::string mn) {
+	bool checkMutex(umetex& m, std::string mn) {
 		int c = 10;
 		try {
 			while(!m.try_lock()) {
