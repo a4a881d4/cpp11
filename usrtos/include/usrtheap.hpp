@@ -11,7 +11,7 @@ class Heap {
 public:
 	struct _heap_meta { 
 		size_t size;
-		interprocess_mutex heap_mutex;
+		umutex heap_mutex;
 	};
 
 	typedef boost::mpl::size_t<((END-AT-sizeof(struct _heap_meta)-16)/sizeof(PointerType))> Hsize;
@@ -92,7 +92,7 @@ public:
 	PointerType _insert(PointerType a)
 	{
 		if(m_pa->size < Hsize::value) {
-			scoped_lock<interprocess_mutex> lock(m_pa->heap_mutex);
+			uscoped_lock lock(m_pa->heap_mutex);
 			m_pa->heap[m_pa->size] = a;
 			m_pa->size++;
 			up(m_pa->size-1);
@@ -113,7 +113,7 @@ public:
 		if(m_pa->size == 0) 
 			return ret;
 
-		scoped_lock<interprocess_mutex> lock(m_pa->heap_mutex);
+		uscoped_lock lock(m_pa->heap_mutex);
 		int i;
 		for(i = 0;i < m_pa->size;i++) {
 			if(a == m_pa->heap[i])

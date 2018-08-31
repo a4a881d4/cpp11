@@ -10,7 +10,7 @@ class Mem {
 public:	
 	struct bar {
 		size_t pos;
-		interprocess_mutex bar_mutex; 
+		umutex bar_mutex; 
 	};
 	
 private:
@@ -27,7 +27,7 @@ public:
 	template <typename T>
 	void defaultGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
 		size_t s = sizeof(T)*n;
-		scoped_lock<interprocess_mutex> lock(m_bar->bar_mutex);
+		scoped_lock<umutex> lock(m_bar->bar_mutex);
 		if(aligned!=1) {
 			size_t m = m_bar->pos%aligned;
 			if(m!=0)
@@ -68,7 +68,7 @@ public:
 	struct fifo_pointer : Mem<AT>::bar {
 		int sp;
 		int rp;
-		interprocess_mutex fifo_mutex; 
+		umutex fifo_mutex; 
 	};
 	
 	typedef boost::mpl::size_t<((END-AT-sizeof(struct fifo_pointer)-16)/sizeof(size_t))> FIFOSIZE;
@@ -88,7 +88,7 @@ private:
 	void incsp() {inc(m_pa->sp);};
 	void incrp() {inc(m_pa->rp);};
 	void push(size_t off) {
-		scoped_lock<interprocess_mutex> lock(m_pa->fifo_mutex);
+		uscoped_lock lock(m_pa->fifo_mutex);
 		if(len()==FIFOSIZE::value-1)
 			incrp();
 		m_pa->buf[m_pa->sp] = off;
@@ -146,7 +146,7 @@ public:
 
 	template<typename T>
 	T* get() {
-		scoped_lock<interprocess_mutex> lock(m_pa->fifo_mutex);
+		scoped_lock<umutex> lock(m_pa->fifo_mutex);
 		if(len()==0)
 			return nullptr;
 		T* r = m_mem->Off2LP<T>(m_pa->buf[m_pa->rp]);

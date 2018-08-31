@@ -157,11 +157,12 @@ public:
 		return true;
 	};
 
-	void resetMutex(umetex& m) {
-		auto pm = new(&m) umetex;
+	void resetMutex(umutex& m) {
+		auto pm = new(&m) umutex;
+		pm->unlock();
 	};
 
-	bool checkMutex(umetex& m, std::string mn) {
+	bool checkMutex(umutex& m, std::string mn) {
 		int c = 10;
 		try {
 			while(!m.try_lock()) {

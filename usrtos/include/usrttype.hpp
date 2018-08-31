@@ -1,6 +1,8 @@
 #pragma once
 #include <chrono>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <usrtsync.hpp> 
 namespace usrtos {
 
 typedef std::chrono::high_resolution_clock::time_point utime_t;
@@ -17,5 +19,6 @@ inline std::ostream& operator<<(std::ostream& os,const utime_t& h)
 }
 
 typedef boost::interprocess::interprocess_mutex umutex;
+typedef boost::interprocess::scoped_lock<umutex> uscoped_lock;
 
 };
