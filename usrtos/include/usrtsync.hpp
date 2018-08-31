@@ -31,8 +31,8 @@ struct UsrtMutex {
 #endif // USRT_MUTEX_DEBUG
 
 	std::atomic_flag m_lock;
-	bool try_lock() { // return false means get the lock, the lock is true
-		return m_lock.test_and_set(); 
+	bool try_lock() { // return true means get the lock, the lock is true
+		return !m_lock.test_and_set(); 
 	};
 
 	bool lock() { // return if get the lock
