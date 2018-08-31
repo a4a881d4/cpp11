@@ -31,7 +31,6 @@ all:work/ptr_vector \
 	work/writingTrace \
 	work/namedCondSent \
 	work/namedCondRecv \
-	work/layout_test \
 	work/mem_test \
 	work/heap_test \
 	work/time \
@@ -42,7 +41,8 @@ all:work/ptr_vector \
 	work/hello_ext.so \
 	work/usrtos.so
 
-
+# work/layout_test \
+	
 USRTOSFLAG = -Iusrtos/include
 
 work/ptr_vector:ptr_container/ptr_vector.cpp

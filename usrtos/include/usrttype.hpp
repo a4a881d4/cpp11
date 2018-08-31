@@ -27,4 +27,11 @@ inline std::ostream& operator<<(std::ostream& os,const utime_t& h)
 typedef struct UsrtMutex umutex;
 typedef UsrtScopedLock uscoped_lock;
 
+
+#if USRT_MUTEX_DEBUG
+#define USRT_SCOPED_LOCK(x) uscoped_lock lock_internal(x,__FILE__,__LINE__)
+#else
+#define USRT_SCOPED_LOCK(x) uscoped_lock lock_internal(x)
+#endif
+
 };

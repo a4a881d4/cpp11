@@ -9,6 +9,8 @@ struct UsrtMutex {
 
 #if USRT_MUTEX_DEBUG
 	unsigned long m_threadid = 0;
+	char sf[64];
+	int ln;
 	void getThreadId()
     {
         std::string threadId=boost::lexical_cast<std::string>(boost::this_thread::get_id());
@@ -16,7 +18,8 @@ struct UsrtMutex {
     };
 
     void dump() {
-    	std::cout << "Locked or last locked by thread: " << m_threadid << std::endl; 
+    	sf[63] = '\0';
+    	std::cout << "Locked or last locked by thread: " << std::hex << m_threadid << "@" << ln << sf << std::endl; 
     };
 
     void delaySomeTime() {
@@ -51,7 +54,13 @@ struct UsrtMutex {
 
 class UsrtScopedLock {
 public:
+#if USRT_MUTEX_DEBUG	
+	UsrtScopedLock(UsrtMutex& mutex, const char *file=__FILE__, int lineno=__LINE__) {
+		strncpy(mutex.sf,file,63);
+		mutex.ln = lineno;
+#else
 	UsrtScopedLock(UsrtMutex& mutex) {
+#endif		
 		p_mutex = &mutex;
 		p_mutex->lock();
 	};

@@ -1,6 +1,7 @@
 #pragma once
 #include <cpblock.hpp>
 #include <boost/mpl/size_t.hpp>
+#include <usrttype.hpp>
 
 namespace usrtos {
 
@@ -27,7 +28,9 @@ public:
 	template <typename T>
 	void defaultGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
 		size_t s = sizeof(T)*n;
-		scoped_lock<umutex> lock(m_bar->bar_mutex);
+
+		USRT_SCOPED_LOCK(m_bar->bar_mutex);
+
 		if(aligned!=1) {
 			size_t m = m_bar->pos%aligned;
 			if(m!=0)
@@ -88,7 +91,7 @@ private:
 	void incsp() {inc(m_pa->sp);};
 	void incrp() {inc(m_pa->rp);};
 	void push(size_t off) {
-		uscoped_lock lock(m_pa->fifo_mutex);
+		USRT_SCOPED_LOCK(m_pa->fifo_mutex);
 		if(len()==FIFOSIZE::value-1)
 			incrp();
 		m_pa->buf[m_pa->sp] = off;
@@ -146,7 +149,7 @@ public:
 
 	template<typename T>
 	T* get() {
-		scoped_lock<umutex> lock(m_pa->fifo_mutex);
+		USRT_SCOPED_LOCK(m_pa->fifo_mutex);
 		if(len()==0)
 			return nullptr;
 		T* r = m_mem->Off2LP<T>(m_pa->buf[m_pa->rp]);
