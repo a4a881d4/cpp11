@@ -19,20 +19,32 @@ public:
 		}
 		return r;
 	};
-	Node *reverse(Node *n) {
+	pair<Node *,Node *> runK(Node *n, int k) {
+		Node *r = n;
+		while(r->next!=nullptr && k>0) {
+			k--;
+			r = n;
+			n = n->next;
+		}
+		if(k!=0)
+			cout << "Node Length < run length" << endl;
+		return pair<Node *,Node *>(r,n);
+	}
+	pair<Node *,Node *> reverse(Node *n,int k,int m) {
 		int l = len(n);
-		if(l<2) return n;
+		if(l<2) return pair<Node*,Node*>(n,nullptr);
 		Node *h = n;
 		Node *Me = h;
-		Node *Next = Me->next;
-		while(Next!=nullptr) {
-			Node *t = Next;
-			Next = Next->next;
-			t->next = Me;
-			Me = t;
+		auto Next = runK(Me,k);
+		while(Next.second!=nullptr && m>0) {
+			auto t = Next;
+			Next = runK(Next.second,k);
+			t.second->next = Me;
+			Me = t.first;
+			m--;
 		}
-		h->next = nullptr;
-		return Me;
+		h->next = Next.second;
+		return pair<Node *, Node *>(Me,Next.second);
 	};
 };
 
@@ -60,7 +72,10 @@ int main() {
 		Node *head = newL(l);
 		dump(head);
 		Solution a;
-		Node *re = a.reverse(head);
-		dump(re);
+		int k = 1;
+		int n = l/k;
+		auto re = a.reverse(head,k,n);
+		dump(re.first);
+		dump(re.second);
 	}
 }
