@@ -2,16 +2,25 @@
 
 using namespace std;
 
-class Node {
+class ListNode {
 public:
-	Node *next;
+	ListNode *next;
 	int val;
-	Node(int v) : val(v), next(nullptr){};
+	ListNode(int v) : val(v), next(nullptr){};
 };
+
+void dump(ListNode *h,int n=9) {
+	while(h != nullptr && n>0) {
+		cout << h->val << ",";
+		h = h->next;
+		n--;
+	}
+	cout << endl;
+}
 
 class Solution {
 public:
-	int len(Node *n) {
+	int len(ListNode *n) {
 		int r = 0;
 		while(n != nullptr) {
 			++r;
@@ -19,63 +28,85 @@ public:
 		}
 		return r;
 	};
-	pair<Node *,Node *> runK(Node *n, int k) {
-		Node *r = n;
+	pair<ListNode *,ListNode *> runK(ListNode *n, int k) {
+		ListNode *r = n;
 		while(r->next!=nullptr && k>0) {
 			k--;
 			r = n;
 			n = n->next;
 		}
 		if(k!=0)
-			cout << "Node Length < run length" << endl;
-		return pair<Node *,Node *>(r,n);
+			cout << "ListNode Length < run length" << endl;
+		return pair<ListNode *,ListNode *>(r,n);
 	}
-	pair<Node *,Node *> reverse(Node *n,int k,int m) {
+	ListNode * reverse(ListNode *n,int m) {
+		m--;
 		int l = len(n);
-		if(l<2) return pair<Node*,Node*>(n,nullptr);
-		Node *h = n;
-		Node *Me = h;
-		auto Next = runK(Me,k);
-		while(Next.second!=nullptr && m>0) {
+		if(l<2) return n;
+		ListNode *h = n;
+		ListNode *Me = h;
+		auto Next = Me->next;
+		while(Next!=nullptr && m>0) {
+			// cout << Me->val << " " << Next->val << endl;
 			auto t = Next;
-			Next = runK(Next.second,k);
-			t.second->next = Me;
-			Me = t.first;
+			Next = Next->next;
+			t->next = Me;
+			Me = t;
 			m--;
 		}
-		h->next = Next.second;
-		return pair<Node *, Node *>(Me,Next.second);
+		h->next = Next;
+		return Me;
 	};
+
+	ListNode * reverseN(ListNode *n,int k,int m) {
+		int l = len(n);
+		if(l<2) return n;
+		m--;
+		ListNode *h = n;
+		ListNode *Me = h;
+		auto Next = runK(Me,k);
+		ListNode *end = Next.first;
+		while(Next.second!=nullptr && m>0) {
+			// cout << Me->val << " " << Next.first->val << " " << Next.second->val << endl;
+			auto t = Next;
+			Next = runK(Next.second,k);
+			Next.first->next = Me;
+			Me = t.second;
+			end->next = Next.second;
+			m--;
+			// dump(Me,20);
+		}
+		return Me;
+	};
+	ListNode* reverseKGroup(ListNode* head, int k) {
+        int nl = len(head);
+		int n = nl/k;
+		auto re1 = reverse(head,nl-nl%k);
+		auto re = reverseN(re1,k,n);
+		return re;
+    };
 };
 
-Node *newL(int l) {
+ListNode *newL(int l) {
 	if(l==0) return nullptr;
-	Node *head = new Node(0);
-	Node *it = head;
+	ListNode *head = new ListNode(0);
+	ListNode *it = head;
 	for(int i=1;i<l;i++) {
-		it->next = new Node(i);
+		it->next = new ListNode(i);
 		it = it->next; 
 	}
 	return head;
 }
 
-void dump(Node *h) {
-	while(h != nullptr) {
-		cout << h->val << ",";
-		h = h->next;
-	}
-	cout << endl;
-}
+
 
 int main() {
 	for(int l=0;l<20;l++) {
-		Node *head = newL(l);
-		dump(head);
+		cout << l << "th" << endl;
+		ListNode *head = newL(l);
+		dump(head,20);
 		Solution a;
-		int k = 1;
-		int n = l/k;
-		auto re = a.reverse(head,k,n);
-		dump(re.first);
-		dump(re.second);
+		auto re = a.reverseKGroup(head,3);
+		dump(re,20);
 	}
 }
