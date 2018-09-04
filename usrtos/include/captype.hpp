@@ -1,4 +1,6 @@
 #pragma once
+#include <ostream>
+#include <string.h>
 
 struct sha1str {
 	char sha1[40];

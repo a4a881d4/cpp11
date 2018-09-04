@@ -3,10 +3,15 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <captype.hpp>
 #include <iomanip>
 #include <sstream>
+
+using namespace boost;
+using namespace boost::uuids;
+using namespace boost::uuids::detail;
 
 struct CapabilityMeta {
 	char name[32];
@@ -17,8 +22,7 @@ struct CapabilityMeta {
 
 class CCapability {
 public:
-	struct CapabilityMeta *meta;
-
+	
 	CCapability(){};
 	~CCapability(){};
 	
@@ -26,7 +30,7 @@ public:
 		return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); 
 	};
 	
-	uuid meta2uuid(CapabilityMeta& m = *meta) {
+	uuid meta2uuid(const CapabilityMeta& m) {
 		sha1 sha;
 		char *szMsg = (char *)(&m);
 		
@@ -40,16 +44,18 @@ public:
 			   << std::hex << digest[i];
 
 		for(int i = 0;i<40;i++) {
-			m.sha1.sha1[i] = s1[i];
+			m.sha1.sha1[i] = s1.str()[i];
 		}
 
 		name_generator ngen(CCapability::usrtosNS());
 		uuid id = ngen(s1.str().c_str());
-	
+		return id;
 	};
+
 	virtual uuid getKey() { 
 		return CCapability::usrtosNS(); 
 	};
+	
 	virtual int run( void *argv ) { return -1; };
 	virtual int destroy() { return -1; };
 
