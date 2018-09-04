@@ -1,42 +1,31 @@
 #include <iostream>
 using namespace std;
-
+const int tab[9] = {0,1,1,1,2,2,2,2,2};
     int mySqrt(int x) {
-        if(x==0) return 0;
-        if(x==1) return 1;
-        int ss = 0;
+        if(x<9) return tab[x];
+        
         long y = x;
-        while(y!=0) {
-            ss++;
-            y>>=1;
-        }
-        long up = 1<<((ss+2)/2);
         long down = 1;
-        y = x;
+        long up = 1;
+        while(x>0) {
+            x >>=2;
+            up<<=1;
+        }
         while(up-down>1) {
-            long mid;
-            if(up-down>ss)
-                mid = (y+up*down)/(up+down)+ss/2;
-            else
-                mid = (up+down)/2;
-            cout << " " << mid 
-                 <<  " " << up 
-                 <<  " " << down 
-                << endl;
-            long m2 = mid*mid;
-            if(m2==y)
-                return mid;
-            else if(m2>y)
-                up = mid;
-            else
-                down = mid;
+            down = (y+up*down)/(up+down);
+            up = (y+down*down+down)/(2*down);
+            cout << " " << up << " " << down << endl;
         }
         return down;
     }
     
-
-int main() {
-    int a = 10;//442258756;//2147395599;
+void test(int a) {
     int r = mySqrt(a);
     cout << r << " " << a-r*r << " " << a << " " << a-(r+1)*(r+1) << endl;
+}
+int main() {
+
+    int a[] = {10,442258756,2147395599};
+    for(int i=0;i<3;i++)
+        test(a[i]);
 }
