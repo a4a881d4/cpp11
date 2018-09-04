@@ -4,6 +4,67 @@
 #include <vector>
 
 using namespace std;
+class TwoPart {
+private:
+	//A = B + B
+	vector<int>& m_A;
+	vector<int>& m_B;
+public:
+	vector<int[3]>& m_R;
+	TwoPart(){};
+	TwoPart& init(vector<int>& A, vector<int>& B) {
+		m_A = A;
+		m_B = B;
+		vector<int>* pnA = new vector<int>;
+		m_R = *pnA;
+		return *this;
+	};
+	TwoPart& do() {
+		typedef pair<int,int> BC;
+		map<int,set<BC> > bc;
+	
+	};
+	virtual vector<int[3]>& result() {
+		return m_R;
+	};
+};
+
+class AnBp: public TwoPart {
+public:
+	AnBp(){};
+	AnBp& init(vector<int>& A, vector<int>& B) {
+		vector<int>* pnA = new vector<int>;
+		for( auto i : A) {
+			pnA->push_back(-i);
+		}
+		return *(AnBp *)&TwoPart::inti(*pnA,B);
+	};
+	vector<int[3]>& result() {
+		for( auto it=m_R.begin();it!=m_R.end();++it) {
+			(*it)[0] = -(*it)[0];
+		}
+		return m_R;
+	} ;
+}
+
+class ApBn: public TwoPart {
+public:
+	ApBn(){};
+	ApBn& init(vector<int>& A, vector<int>& B) {
+		vector<int>* pnB = new vector<int>;
+		for( auto i : B) {
+			pnA->push_back(-i);
+		}
+		init::(A,*pnB);
+		return *this;
+	};
+	vector<int[3]>& result() {
+		for( auto it=m_R.begin();it!=m_R.end();++it) {
+			(*it)[0] = -(*it)[0];
+		}
+		return m_R;
+	} ;
+}
 vector<vector<int> > threeSum(vector<int>& nums) {
 	typedef pair<int,int> BC;
 	map<int,set<BC> > bc;
