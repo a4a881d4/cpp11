@@ -1,2 +1,3 @@
-exec git log --pretty=format:"VERSION = b'%H'" -n 1 > usrtos/python/usrtos/version.py
-exec git log --pretty=format:"const char USRTOSVERSION[40] = \"%H\";" -n 1 > usrtos/include/version.hpp
+git log --pretty=format:"VERSION = b'%H'" -n 1 > usrtos/python/usrtos/version.py
+git log --pretty=format:"const char USRTOSVERSION[40] = \"%H\";" -n 1 > usrtos/include/version.hpp
+exec echo "change version"
