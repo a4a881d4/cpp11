@@ -27,7 +27,7 @@ public:
 		if(iter != m_logs.end())
 			return m_logs[l];
 		else {
-			std::cout << " cannot find " << l << std::endl;
+			std::cout << " cannot find " << l << " log" << std::endl;
 			return nullptr;
 		}
 	};

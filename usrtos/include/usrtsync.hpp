@@ -70,6 +70,7 @@ struct UsrtMutex {
 #if USRT_MUTEX_DEBUG
 		getThreadId();
 #endif
+        return true;
 	};
 
 	void unlock() {
