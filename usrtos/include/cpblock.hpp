@@ -102,7 +102,8 @@ public:
 
 	static bool scheckHead(std::string fn, const struct Head& s, uuid *pid = nullptr) {
 		
-		sha1 sha = UsrtKey::strn2sha1((char *)(&s),152);
+		sha1 sha;
+		UsrtKey::strn2sha1((char *)(&s),sha,152);
 		
 		std::string s1 = UsrtKey::sha2string(sha);	
 		std::string s2(sha2str(s.sha1));
@@ -113,8 +114,7 @@ public:
 					  << std::endl;
 			return false; 
 		}
-
-		uuid id = UsrtKey::sha2key(sha);
+		uuid id = UsrtKey::str2key(s1);
 		std::string stru1 = UsrtKey::key2string(id);
 		
 		auto fnLen = fn.size();

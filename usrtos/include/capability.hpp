@@ -23,9 +23,6 @@ public:
 	CCapability(){};
 	~CCapability(){};
 	
-	static const uuid usrtosNS() { 
-		return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); 
-	};
 	
 	uuid meta2uuid(const CapabilityMeta& m) {
 		sha1 sha;

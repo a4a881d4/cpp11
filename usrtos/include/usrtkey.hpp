@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string.h>
+#include <iostream>
 
 using namespace boost;
 using namespace boost::uuids;
@@ -62,18 +63,17 @@ struct UsrtKey {
 		stringstream s1;
     	for (int i = 0; i< 5; ++i)
 			s1 << setfill('0') << setw(8) << hex << digest[i];
-		return s1.str();
+		string r = s1.str();
+		return r;
 	};
 
-	static sha1 strn2sha1(char *msg, size_t len) {
-		sha1 sha;
+	static void strn2sha1(char *msg, sha1& sha, size_t len) {
 		sha.process_bytes(msg, len);
-		return sha;
 	};
 
-	static uuid sha2key(sha1& sha) {
+	static uuid str2key(string& s1) {
 		name_generator ngen(usrtosNS());
-		uuid id = ngen(sha2string(sha).c_str());
+		uuid id = ngen(s1.c_str());
 		return id;
 	};
 
