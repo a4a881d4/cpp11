@@ -1,11 +1,12 @@
 #ifndef capability_Bearer_H
 #define capability_Bearer_H
 
-#include <capability.h>
-#include <captype.h>
+#include <capability.hpp>
+#include <usrtkey.hpp>
 
 #include <dlfcn.h>
 #include <stdio.h>
+#include <dirent.h>
 
 namespace usrtos {
 
@@ -27,7 +28,7 @@ class USRTCapabilityBearer {
     uuid key;
     CCapability* item;
 
-    init()
+    void init()
     {
       mFactroy = (factroyFunc)getFunc("factroy");
       mRun = (runFunc)getFunc("run");
@@ -40,10 +41,15 @@ class USRTCapabilityBearer {
       if( mValid )
           key = mGetKey(item);
       else
-          key=0LL;
+          key=UsrtKey::keySentinel();
     }
     
-    const char *getFileName( const char *n);
+    const char *getFileName( const char *n) {
+      strcpy(mName,getWorkingDir());
+      strcat(mName,"/");
+      strcat(mName,n);
+      return mName;
+    }
     
     const char * getWorkingDir (void) {
       char *workdir;
@@ -107,10 +113,10 @@ class USRTCapabilityBearer {
       }
     };
 
-    void runGP(generalized_memory_t* gpArgv) {
-      void *lpArgv = G2L( gpArgv );
-      mRun(item,lpArgv);
-    };
+    // void runGP(generalized_memory_t* gpArgv) {
+    //   void *lpArgv = G2L( gpArgv );
+    //   mRun(item,lpArgv);
+    // };
 
     void runLP(void* lpArgv) {
       mRun(item,lpArgv);

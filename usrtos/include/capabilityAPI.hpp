@@ -1,10 +1,10 @@
 #ifdef FUNCLASS
-#include <captype.hpp>
 #include <capability.hpp>
 #include <version.hpp>
 
 #define _STR(x) #x
 #define STR(x) _STR(x)
+using namespace usrtos;
 
 class FUNCLASS : public CCapability {
 private:

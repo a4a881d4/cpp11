@@ -39,7 +39,9 @@ all:work/ptr_vector \
 	work/findblock_test \
 	work/log_test \
 	work/hello_ext.so \
-	work/usrtos.so
+	work/usrtos.so \
+	work/bearer_test
+
 
 # work/layout_test \
 	
@@ -118,6 +120,9 @@ work/findblock_test:usrtos/c++1z/findblock_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/log_test:usrtos/c++1z/log_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/bearer_test:usrtos/c++1z/bearer_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/hello_ext.so: python/hello.cpp

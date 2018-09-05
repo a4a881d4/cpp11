@@ -14,7 +14,6 @@
 using namespace boost;
 using namespace boost::uuids;
 using namespace boost::uuids::detail;
-using namespace boost::interprocess;
 
 using namespace std;
 
@@ -56,7 +55,9 @@ struct UsrtKey {
 	static const uuid usrtosNS() { 
 		return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); 
 	};
-
+	static const uuid keySentinel() { 
+		return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); 
+	};
 	static string sha2string(sha1& sha) {
 		unsigned int digest[5];
 		sha.get_digest(digest);
