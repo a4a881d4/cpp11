@@ -114,9 +114,8 @@ public:
 			return false; 
 		}
 
-		m_uuid = UsrtKey::sha2key(sha);
-		
-		std::string stru1 = UsrtKey::key2string(m_uuid);
+		uuid id = UsrtKey::sha2key(sha);
+		std::string stru1 = UsrtKey::key2string(id);
 		
 		auto fnLen = fn.size();
 		
@@ -124,7 +123,7 @@ public:
 			std::cout << stru1 << " : " << fn << std::endl;
 			return false; 
 		}
-		if(pid!=nullptr)
+		if(pid != nullptr)
 			*pid = id;
 		return true;
 	};

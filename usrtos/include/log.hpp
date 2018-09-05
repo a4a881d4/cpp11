@@ -39,7 +39,7 @@ public:
 				std::cout << "message(" << len << ") to long" << std::endl;
 				char cstr[256];
 				memcpy(cstr,str,255);
-				cstr[256]='\0';
+				cstr[255]='\0';
 				std::cout << cstr << std::endl; 
 			}
 		}

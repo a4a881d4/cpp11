@@ -5,7 +5,7 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <usrtsync.hpp> 
-#include <captype.hpp>
+#include <usrtkey.hpp>
 
 namespace usrtos {
 

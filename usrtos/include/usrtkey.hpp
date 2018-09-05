@@ -8,6 +8,7 @@
 #include <boost/uuid/sha1.hpp>
 #include <iomanip>
 #include <sstream>
+#include <string.h>
 
 using namespace boost;
 using namespace boost::uuids;
@@ -17,7 +18,7 @@ using namespace boost::interprocess;
 using namespace std;
 
 namespace usrtos {
-	
+
 struct sha1str {
 	char sha1[40];
 	sha1str(){};
@@ -29,7 +30,7 @@ struct sha1str {
 	};
 };
 
-inline std::ostream& operator<<(std::ostream& os,const struct sha1str& h)
+inline ostream& operator<<(ostream& os,const struct sha1str& h)
 {
 	char buf[50];
 	memcpy(buf,&(h.sha1),40);
@@ -43,10 +44,11 @@ inline void sha1Set(const struct sha1str& h, const char s[]) {
 	memcpy((void *)&(h.sha1),buf,40);
 };
 
-std::string sha2str(sha1str& s) {
+string sha2str(const struct sha1str& s) {
 	char buf[50];
-	strncpy(buf,s,40);
-	return std::string(buf);
+	strncpy(buf,(const char *)&s,40);
+	buf[40]='\0';
+	return string(buf);
 };
 
 struct UsrtKey {
@@ -76,7 +78,7 @@ struct UsrtKey {
 	};
 
 	static string key2string(uuid& id) {
-		string stru1 = lexical_cast<std::string>(id);
+		string stru1 = lexical_cast<string>(id);
 		return stru1;
 	};
 };
