@@ -4,7 +4,7 @@ CPPFLAG = -std=c++1z
 LDFLAG = -lboost_filesystem -lboost_system
 PYFLAG = 
 ifeq ($(UNAME),Linux)
-	LDFLAG += -lrt -lpthread -lboost_python3
+	LDFLAG += -lrt -lpthread -lboost_python3 -ldl
 	PYTHON_INCLUDE = /usr/include/python3.6m/
 endif
 ifeq ($(UNAME),Darwin)
