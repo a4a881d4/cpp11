@@ -13,7 +13,7 @@ public:
 	const struct CapabilityMeta meta = {
 			  .name = STR(FUNCLASS)
 			, .type = "USRTOS"
-			, .version = sha1str(*(sha1str*)USRTOSVERSION)
+			, .version = sha1str(USRTOSVERSION)
 		};
 	int run( void *argv );
 	uuid getKey() {

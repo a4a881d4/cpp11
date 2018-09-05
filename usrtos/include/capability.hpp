@@ -1,11 +1,8 @@
 #ifndef __capability_H
 #define __capability_H
-#include <boost/uuid/uuid.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/uuid/sha1.hpp>
 #include <captype.hpp>
+#include <usrtkey.hpp>
+
 #include <iomanip>
 #include <sstream>
 
@@ -43,9 +40,10 @@ public:
 			s1 << std::setfill('0') << std::setw(8) 
 			   << std::hex << digest[i];
 
-		for(int i = 0;i<40;i++) {
-			m.sha1.sha1[i] = s1.str()[i];
-		}
+		// for(int i = 0;i<40;i++) {
+		// 	m.sha1.sha1[i] = s1.str()[i];
+		// }
+		sha1Set(m.sha1,s1.str().c_str());
 
 		name_generator ngen(CCapability::usrtosNS());
 		uuid id = ngen(s1.str().c_str());

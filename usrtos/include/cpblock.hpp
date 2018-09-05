@@ -6,14 +6,10 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/uuid/sha1.hpp>
 #include <unistd.h>
-#include <iomanip>
+
 #include <usrttype.hpp>
+#include <usrtkey.hpp>
 
 namespace usrtos {
 
@@ -59,10 +55,6 @@ public:
 	bool m_attached = false;
 	void *m_base;
 	void *m_end;
-
-	static const uuid usrtosNS() { 
-		return lexical_cast<uuid>("8ea09e05-fd67-5949-a9ab-e722a3dae01c"); 
-	};
 	
 	void setFileName(std::string fn) { m_fileName = fn; };
 	
@@ -109,32 +101,22 @@ public:
 	};
 
 	static bool scheckHead(std::string fn, const struct Head& s, uuid *pid = nullptr) {
-		sha1 sha;
 		
-		char *szMsg = (char *)(&s);
+		sha1 sha = UsrtKey::strn2sha1((char *)(&s),152);
 		
-		sha.process_bytes(szMsg, 152);
-		unsigned int digest[5];
-		sha.get_digest(digest);
+		std::string s1 = UsrtKey::sha2string(sha);	
+		std::string s2(sha2str(s.sha1));
 		
-		std::stringstream s1,s2;
-    	
-    	for (int i = 0; i< 5; ++i)
-			s1 << std::setfill('0') << std::setw(8) << std::hex << digest[i];
-			
-		for(int i = 0;i<40;i++) {
-			s2 << s.sha1.sha1[i];
-		}
-		
-		if(s1.str()!=s2.str()) {
-			std::cout<<"s1:"<<s1.str()<<" s2:"<<s2.str()<<std::endl;
+		if(s1 != s2) {
+			std::cout << "s1:"  << s1
+					  << " s2:" << s2
+					  << std::endl;
 			return false; 
 		}
+
+		m_uuid = UsrtKey::sha2key(sha);
 		
-		name_generator ngen(CPBlock::usrtosNS());
-		uuid id = ngen(s1.str().c_str());
-		
-		std::string stru1 = lexical_cast<std::string>(id);
+		std::string stru1 = UsrtKey::key2string(m_uuid);
 		
 		auto fnLen = fn.size();
 		
@@ -199,7 +181,7 @@ public:
 	};
 	
 	bool checkUUID(uuid& id) {
-		return id==m_uuid;
+		return id == m_uuid;
 	};
 
 	bool attach(std::string fn) {
