@@ -1,15 +1,15 @@
 #define FUNCLASS capWorkersDelCapByKey
-#include <capabilityAPI.h>
+#include <capabilityAPI.hpp>
+#include <usrtworker.hpp>
 
-
-using namespace std;
+using namespace usrtos;
 
 int FUNCLASS::run( void *argv ) {
   
   struct mainWorkerCTX *ctx = (struct mainWorkerCTX *)argv;
   if( !ctx->workers )
     return -1;
-  int64 key= *(int64* )ctx->argv;
+  uuid key= *(uuid* )ctx->argv;
   ctx->workers->removeBearerByKey( key );
   return 0;
 }

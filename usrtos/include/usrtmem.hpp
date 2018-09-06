@@ -49,9 +49,10 @@ public:
 	};
 	
 	template <typename T>
-	void newGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
+	T* newGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
 		defaultGP<T>(gp,n,aligned);
 		gp.id = m_mem->m_uuid;
+		return m_mem->Off2LP<T>(gp.offset);
 	};
 	
 	void dump() {

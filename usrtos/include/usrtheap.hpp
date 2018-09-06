@@ -173,6 +173,7 @@ public:
 	void dumpHeap() {
 		int i;
 		std::cout << "Heap size: " << m_pa->size << std::endl;
+		std::cout << "Mutex: " << m_pa->heap_mutex.value() << std::endl;
 		for( int i = 0;i < m_pa->size;i++ ) {
 			std::cout << "No " << i << ": "
 				<< KEY(m_pa->heap[i])
@@ -183,6 +184,7 @@ public:
 	void dumpHeap(DumpItem d){
 		int i;
 		std::cout << "Heap size: " << m_pa->size << std::endl;
+		std::cout << "Mutex: " << m_pa->heap_mutex.value() << std::endl;
 		for( int i = 0;i < m_pa->size;i++ ) {
 			std::cout << "No " << i << ": ";
 			d(m_pa->heap[i]);
@@ -197,6 +199,9 @@ public:
 		}
 		else
 			return PointerType::Null();
+	};
+	void unlock() {
+		m_pa->heap_mutex.unlock();
 	};
 }; // class Heap
 }; // namespace usrtos

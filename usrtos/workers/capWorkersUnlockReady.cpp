@@ -1,14 +1,15 @@
 #define FUNCLASS capWorkersUnlockReady
-#include <capabilityAPI.h>
+#include <capabilityAPI.hpp>
+#include <usrtworker.hpp>
 
-using namespace std;
+using namespace usrtos;
 
 int FUNCLASS::run( void *argv ) {
   
   struct mainWorkerCTX *ctx = (struct mainWorkerCTX *)argv;
   if( !ctx->workers )
     return -1;
-  ctx->workers->tQueue()->unLockReady();
+  ctx->workers->tQueue()->ready->unlock();
   return 0;
 }
 

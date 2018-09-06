@@ -16,6 +16,7 @@ public:
 		return key;
 	};
 	FUNCLASS() {
+		memset(&meta,0,sizeof(struct CapabilityMeta));
 		strncpy((char *)meta.name,STR(FUNCLASS),32);
 		strncpy((char *)meta.type,"USRTOS",32);
 		meta.version = sha1str(USRTOSVERSION);

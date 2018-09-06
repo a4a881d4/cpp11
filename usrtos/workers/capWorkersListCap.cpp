@@ -1,7 +1,8 @@
 #define FUNCLASS capWorkersListCap
-#include <capabilityAPI.h>
+#include <capabilityAPI.hpp>
+#include <usrtworker.hpp>
 
-using namespace std;
+using namespace usrtos;
 
 int FUNCLASS::run( void *argv ) {
   

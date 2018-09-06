@@ -77,6 +77,12 @@ struct UsrtMutex {
 		m_lock.clear();
 	}; 
 
+    bool value() {
+        bool r = m_lock.test_and_set();
+        if( !r )
+            unlock();
+        return r; // true mean someone hold the mutex
+    }
 };
 
 class UsrtScopedLock {

@@ -40,7 +40,7 @@ namespace usrtos {
 
   struct WorkerKeeperCTX {
     UsrtWorkers *workers;
-    umutex keeper;
+    umutex keeper_mutex;
     };
 
   struct mainWorkerCTX {
@@ -123,7 +123,19 @@ namespace usrtos {
         pthread_create(&(tids[k]->tid), NULL, UsrtWorkers::worker, tids[k]);
         return k;
       };
-
+      template<typename T>
+      T* bindBlock(string name) {
+          auto it = m_memName.find(name);
+          T *r;
+          if(it != m_memName.end() ) {
+            r = new T(*(m_blocks[it->second]));
+          }
+          else {
+            cerr << "bind block " << name << " failure" << endl;
+            r = nullptr;
+          }
+          return r;
+      };
     public:
       typedef TaskHeap UsrtTask;
 
@@ -141,28 +153,16 @@ namespace usrtos {
         auto heads = fb.list();
         auto blocks = fb.attach(heads);
         for(auto it=blocks.begin();it != blocks.end(); ++it) {
+          cerr << it->second->getName() << endl;
           auto key = it->second->getKey();
           m_blocks[key] = it->second;
-          m_memName[it->first] = key;
+          m_memName[it->second->getName()] = key;
         }
-        delete &heads;
-        delete &blocks;
-        {
-          auto key = m_memName["capFifo"];
-          m_capFifo = new Layout::UsrtFifo(*(m_blocks[key]));
-        }
-        {
-          auto key = m_memName["taskFifo"];
-          m_capFifo = new Layout::UsrtFifo(*(m_blocks[key]));
-        }
-        {
-          auto key = m_memName["taskq"];
-          m_taskq = new UsrtTask(*(m_blocks[key]));
-        }
-        {
-          auto key = m_memName["memory"];
-          m_memory = new Layout::UsrtMem(*(m_blocks[key]));
-        }
+        
+          m_capFifo = bindBlock<Layout::UsrtFifo>("capFifo");
+          m_taskFifo = bindBlock<Layout::UsrtFifo>("taskFifo");
+          m_taskq = bindBlock<UsrtTask>("taskq");
+          m_memory = bindBlock<Layout::UsrtMem>("memory");
       };
 
       UsrtTask *tQueue() { 
@@ -282,11 +282,11 @@ namespace usrtos {
                 static_cast<void*>
                 (my->workers->G2L<char>(t->argv))
                 );
-              if(t->callbackargv.mode != CBMode::none) {
+              if(t->callbackargv.mode != CBMode::nocallback) {
                 bearer = my->workers->getBearerByKey(t->callback);
                 if(bearer != nullptr) {
                   my->monitor.callback++;
-                  t->callbackargv.pQ = my->workers->m_taskq;
+                  t->callbackargv.workers = my->workers;
                   bearer->runLP(t);
                 }
               }

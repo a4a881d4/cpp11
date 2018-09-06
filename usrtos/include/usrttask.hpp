@@ -9,13 +9,13 @@ namespace usrtos {
 
 
 
-enum CBMode { none = 0, abss, me, obj, extwait, extmulti };
+enum CBMode { nocallback = 0, noarg, abss, me, obj, extwait, extmulti };
 typedef struct __callback_argv {
   enum CBMode mode;
   int delay;
   int cnt;
   int argv;
-  void *pQ;
+  void *workers;
   CPBlock::GP gp;
 } _callback_argv_t;
 
@@ -28,11 +28,12 @@ struct task {
 	utime_t noE;
 	utime_t noL;
 	utime_t valid;
-	int state;
-	int ref;
-	int version;
-	CPBlock::GP mem;
-	uuid id;
+};
+
+struct taskdependen {
+	CPBlock::GP me;
+	umutex depend_mutex;
+	int count;
 };
 
 class OffsetPtr {
@@ -175,6 +176,17 @@ public:
         	return offp.Off2LP<task>(ready->getMem());
         else
         	return nullptr;
+    };
+
+    bool insert(task *t) {
+    	OffsetPtr t_off;
+    	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->m_head->dataSize)
+    		if(wait->insert(t_off) != OffsetPtr::Null())
+    			return true;
+    		else
+    			return false;
+    	else 
+    		return false;
     };
 };
 }; // namespace usrtos
