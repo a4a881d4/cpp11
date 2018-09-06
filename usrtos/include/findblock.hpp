@@ -79,6 +79,5 @@ public:
 			it->second->dump();
 		}
 	};
-
 };
 }; // namespace usrtos

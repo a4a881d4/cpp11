@@ -1,6 +1,8 @@
+#include <usrtkey.hpp>
 #include <cpblock.hpp>
 #include <usrtmem.hpp>
 #include <usrtheap.hpp>
+
 #include <chrono>
 
 namespace usrtos {
@@ -19,11 +21,9 @@ typedef struct __callback_argv {
 
 struct task {
 	int64 ID;
-	int64 key;
-	int64 from;
-	int64 to;
+	uuid key;
 	CPBlock::GP argv;
-	int64 callback;
+	uuid callback;
 	_callback_argv_t callbackargv;
 	utime_t noE;
 	utime_t noL;
@@ -113,6 +113,11 @@ public:
 		ready = new ReadyHeap(m);
 		tm = new TaskFifo(m);
 	};
+	
+	void dumpTask(struct task& t) {
+		std::cout << UsrtKey::key2string(t.key) << std::endl;
+		dumpTaskTime(t);
+	};
 
 	void dumpTaskTime(struct task& t) {
 		std::cout << "noE: " << t.noE << " "
@@ -130,7 +135,7 @@ public:
 			+ micro_type(us);
 	};
 
-	int adjust() {
+	int update() {
 		struct task *card = tm->newLP<task>();
 		card->noE = now();
 		int r = 0;
@@ -150,5 +155,26 @@ public:
 		}
 		return r;
 	};
+
+	void dumpHeap() {
+		auto wd = [this](OffsetPtr p) {
+			struct task * t = p.Off2LP<task>(wait->getMem());
+			dumpTask(*t);
+		};
+		wait->dumpHeap((WaitHeap::DumpItem)&wd);
+		auto rd = [this](OffsetPtr p) {
+			struct task * t = p.Off2LP<task>(ready->getMem());
+			dumpTask(*t);
+		};
+		ready->dumpHeap((ReadyHeap::DumpItem)&rd);
+	};
+
+	task* pop() {
+        auto offp = ready->pop();
+        if(offp != OffsetPtr::Null())
+        	return offp.Off2LP<task>(ready->getMem());
+        else
+        	return nullptr;
+    };
 };
 }; // namespace usrtos

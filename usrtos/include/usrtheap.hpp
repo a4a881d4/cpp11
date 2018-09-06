@@ -179,7 +179,16 @@ public:
 				<< std::endl;
 		}
 	};
-
+	typedef void(*DumpItem)(PointerType);
+	void dumpHeap(DumpItem d){
+		int i;
+		std::cout << "Heap size: " << m_pa->size << std::endl;
+		for( int i = 0;i < m_pa->size;i++ ) {
+			std::cout << "No " << i << ": ";
+			d(m_pa->heap[i]);
+			std::cout << std::endl;
+		}
+	}
 	PointerType pop() {
 		auto p = m_pa->heap[0];
 		if(m_pa->size > 0) {

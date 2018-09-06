@@ -311,6 +311,15 @@ public:
 		return off<m_head->dataSize;
 	};
 	
+	bool validAddress(void *p) {
+		return (p>=m_base) && (p<m_end);
+	};
+	uuid getKey() {
+		return m_uuid;
+	};
+	string getName() {
+		return string(m_head->name);
+	};
 	~CPBlock() {
 	};
 };

@@ -10,7 +10,7 @@
 
 namespace usrtos {
 
-class USRTCapabilityBearer {
+class UsrtCapabilityBearer {
 
   typedef CCapability*(*factroyFunc)();
   typedef uuid(*getKeyFunc)(CCapability* item);
@@ -81,7 +81,7 @@ class USRTCapabilityBearer {
     };
 
   public:
-    USRTCapabilityBearer( const char* lib )
+    UsrtCapabilityBearer( const char* lib )
     {
       mValid=0;
       if( getHandle(lib)==0 ) {
@@ -91,7 +91,7 @@ class USRTCapabilityBearer {
       }
     };
 
-    USRTCapabilityBearer(uuid k) {
+    UsrtCapabilityBearer(uuid k) {
       mValid=0;
       const char *workdir = getWorkingDir();
       struct dirent* entry;
@@ -113,11 +113,6 @@ class USRTCapabilityBearer {
       }
     };
 
-    // void runGP(generalized_memory_t* gpArgv) {
-    //   void *lpArgv = G2L( gpArgv );
-    //   mRun(item,lpArgv);
-    // };
-
     void runLP(void* lpArgv) {
       mRun(item,lpArgv);
     };
@@ -128,7 +123,7 @@ class USRTCapabilityBearer {
     
     const char *getName() { return mName; };
     
-    ~USRTCapabilityBearer() {
+    ~UsrtCapabilityBearer() {
       if (handle) {
         if( item!=NULL ) 
           mDestroy(item);

@@ -11,7 +11,7 @@ int FUNCLASS::run( void *argv ) {
 	  printf("thread %d can not get worker\n",my->id);
 	  return;
 	}
-  if( ctx->workers->tQueue() == NULL ) {    
+  if( ctx->workers->tQueue() == nullptr ) {    
 	  printf("you are into Worker Keeper\n");
 	  printf("thread %d can not get Queue\n",my->id);
 	  return;
