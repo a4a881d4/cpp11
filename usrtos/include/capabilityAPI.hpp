@@ -1,7 +1,7 @@
 #ifdef FUNCLASS
 #include <capability.hpp>
 #include <version.hpp>
-
+#include <workerhelper.hpp>
 #define _STR(x) #x
 #define STR(x) _STR(x)
 using namespace usrtos;
@@ -20,7 +20,7 @@ public:
 		strncpy((char *)meta.name,STR(FUNCLASS),32);
 		strncpy((char *)meta.type,"USRTOS",32);
 		meta.version = sha1str(USRTOSVERSION);
-		key = meta2uuid(meta);
+		key = WorkerHelper::meta2uuid(meta);
 	};
 	
 	int destroy( ) {

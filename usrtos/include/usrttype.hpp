@@ -35,4 +35,10 @@ typedef UsrtScopedLock uscoped_lock;
 #define USRT_SCOPED_LOCK(x) uscoped_lock lock_internal(x)
 #endif
 
+struct CapabilityMeta {
+	char name[32];
+	char type[32];
+	struct sha1str version;
+	struct sha1str sha1;
+};
 };
