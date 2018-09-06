@@ -10,16 +10,15 @@ class FUNCLASS : public CCapability {
 private:
 	uuid key;
 public:
-	const struct CapabilityMeta meta = {
-			  .name = STR(FUNCLASS)
-			, .type = "USRTOS"
-			, .version = sha1str(USRTOSVERSION)
-		};
+	struct CapabilityMeta meta;
 	int run( void *argv );
 	uuid getKey() {
 		return key;
 	};
 	FUNCLASS() {
+		strncpy((char *)meta.name,STR(FUNCLASS),32);
+		strncpy((char *)meta.type,"USRTOS",32);
+		meta.version = sha1str(USRTOSVERSION);
 		key = meta2uuid(meta);
 	};
 	

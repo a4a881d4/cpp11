@@ -1,0 +1,1 @@
+const char USRTOSVERSION[41] = "7c35d8b5c367971da3351f5fddf6de0e05c6b010";

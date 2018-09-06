@@ -140,7 +140,7 @@ WorkersInternalCapabilities := $(wildcard usrtos/workers/cap*.cpp)
 WorkersInternalLibs := $(patsubst %.cpp,%.so,$(subst usrtos/workers/cap,work/lib,$(WorkersInternalCapabilities)))
 
 $(WorkersInternalLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) 
-	g++ -std=c++1z ${USRTOSFLAG} -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@
 
 workers : $(WorkersInternalLibs)
 	
