@@ -12,6 +12,7 @@
 #include <findblock.hpp>
 #include <layout.hpp>
 #include <usrthardtimer.hpp>
+#include <pthread.h>
 
 using namespace std;
 
@@ -111,6 +112,7 @@ namespace usrtos {
         tids[k]->tid=0;
         delete tids[k];
         tids[k]=nullptr;
+        return k;
       };
       
       int runThread( int k ) {
@@ -118,7 +120,8 @@ namespace usrtos {
         memset( tids[k], 0, sizeof(struct structThread) );
         tids[k]->id = k;
         tids[k]->workers = this;
-        pthread_create(&(tids[k]->tid), NULL, worker, tids[k]);
+        pthread_create(&(tids[k]->tid), NULL, UsrtWorkers::worker, tids[k]);
+        return k;
       };
 
     public:
@@ -259,10 +262,10 @@ namespace usrtos {
         }
       };
       
-      static void worker(void *argv) {
+      static void* worker(void *argv) {
         struct structThread *my = (struct structThread *)argv;
         fprintf(stderr,"Thread %d is start\n", my->id);
-        my->sysid=(long int)syscall(__NR_gettid);
+        my->sysid=(long int)pthread_self();
         while( my->control!=-1 ) {
           while( my->control==1 ) {
             my->state=WAITING;
@@ -279,12 +282,12 @@ namespace usrtos {
                 static_cast<void*>
                 (my->workers->G2L<char>(t->argv))
                 );
-              if(t->callback != UsrtKey::keySentinel()) {
+              if(t->callbackargv.mode != CBMode::none) {
                 bearer = my->workers->getBearerByKey(t->callback);
                 if(bearer != nullptr) {
                   my->monitor.callback++;
                   t->callbackargv.pQ = my->workers->m_taskq;
-                  bearer->runLP( t );
+                  bearer->runLP(t);
                 }
               }
             }
@@ -297,9 +300,10 @@ namespace usrtos {
               bearer->runLP(my);
           }
         }
-        my->state=EXITING;
+        my->state = EXITING;
         fprintf(stderr,"Thread %d is stop\n", my->id);
         pthread_exit(NULL);
+        return nullptr;
       };
       
       void mainWorker()
@@ -346,9 +350,12 @@ namespace usrtos {
       
       void listCaps() {
         for(auto iter = caps.begin();iter != caps.end();++iter) {
-          if(iter->second->isValid())
-            fprintf(stderr,"%llx(%s)\n",iter->second->getKey(),iter->second->getName());
-        } 
+          if(iter->second->isValid()) {
+            auto key = iter->second->getKey();
+            cerr << UsrtKey::key2string(key) 
+              << '(' << iter->second->getName() << ")" << endl;
+          }
+         } 
       };
 
       void dumpQueue() { 

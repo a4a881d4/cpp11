@@ -196,8 +196,8 @@ public:
 		file_mapping mf(fn.c_str(), read_write);
 		mf.swap(m_file);
 
-		std::cout << "pass 0" << std::endl;
-		std::cout << std::flush;
+		// std::cout << "pass 0" << std::endl;
+		// std::cout << std::flush;
 		mapped_region mh( m_file
 			, read_write
 			, 0
@@ -211,8 +211,8 @@ public:
 			return false;
 		}
 		
-		std::cout << "pass 1" << std::endl;
-		std::cout << std::flush;
+		// std::cout << "pass 1" << std::endl;
+		// std::cout << std::flush;
 		mapped_region*  pmt = new mapped_region(
 			  m_file
 			, read_write
@@ -225,8 +225,8 @@ public:
 		}
 		m_base = pmt->get_address();
 		m_end = (void *)((char *)m_base+m_head->dataSize);
-		std::cout << "pass 2" << std::endl;
-		std::cout << std::flush;
+		// std::cout << "pass 2" << std::endl;
+		// std::cout << std::flush;
 		
 		delete pmt;
 		
@@ -237,8 +237,8 @@ public:
 			, m_base
 			);
 		md.swap(m_dataHandle);
-		std::cout << "pass 3" << std::endl;
-		std::cout << std::flush;
+		// std::cout << "pass 3" << std::endl;
+		// std::cout << std::flush;
 		
 		if( b.m_head->cpSize>0 ){
 			mapped_region mc( m_file
@@ -249,8 +249,8 @@ public:
 				);
 			mc.swap(m_cpHandle);
 		}
-		std::cout << "pass 4" << std::endl;
-		std::cout << std::flush;
+		// std::cout << "pass 4" << std::endl;
+		// std::cout << std::flush;
 		m_attached = checkHead()&&checkCP()&&checkLock();
 		
 		return m_attached;

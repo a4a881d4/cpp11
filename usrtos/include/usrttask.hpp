@@ -9,7 +9,7 @@ namespace usrtos {
 
 
 
-enum CBMode { none, abss, me, obj, extwait, extmulti };
+enum CBMode { none = 0, abss, me, obj, extwait, extmulti };
 typedef struct __callback_argv {
   enum CBMode mode;
   int delay;
