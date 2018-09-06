@@ -25,7 +25,7 @@ int main(int argc,char *argv[])
 		std::cout << "Check meta size ok" << std::endl;
 
 	TaskHeap h(b);
-	auto adj = h.adjust();
+	auto adj = h.update();
 	std::cout << "1. move " << adj << " from wait to ready " << std::endl;
 	for(int i=0;i<129;i++){
 		auto p = h.tm->newLP<task>();
@@ -46,7 +46,7 @@ int main(int argc,char *argv[])
 	}
 	OffsetPtr p;
 	int c;
-	adj = h.adjust();
+	adj = h.update();
 	std::cout << "2. move " << adj << " from wait to ready " << std::endl;
 
 /*	if(h.wait->check(h.wait->HeapSize()) == 0) {
@@ -66,7 +66,7 @@ int main(int argc,char *argv[])
 			c++;
 		}
 	}
-	adj = h.adjust();
+	adj = h.update();
 	std::cout << "3. move " << adj << " from wait to ready " << std::endl;
 	
 }
