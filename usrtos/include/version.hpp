@@ -1,1 +1,0 @@
-const char USRTOSVERSION[41] = "743f3a7cdf36cd1a3b41281cd78b623454fe8438";
