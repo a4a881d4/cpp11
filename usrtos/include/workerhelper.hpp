@@ -58,7 +58,6 @@ struct WorkerHelper {
 	};
 
 	static uuid cap2key(std::string capname) {
-		std::cout << capname << std::endl;
 		struct CapabilityMeta keeper_meta;
 		memset(&keeper_meta,0,sizeof(struct CapabilityMeta));
 		strncpy((char *)keeper_meta.name,capname.c_str(),31);

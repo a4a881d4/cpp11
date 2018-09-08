@@ -78,6 +78,11 @@ struct UsrtKey {
 		return id;
 	};
 
+	static uuid string2key(string& s1) {
+		uuid id = lexical_cast<uuid>(s1);
+		return id;
+	};
+
 	static string key2string(uuid& id) {
 		string stru1 = lexical_cast<string>(id);
 		return stru1;
