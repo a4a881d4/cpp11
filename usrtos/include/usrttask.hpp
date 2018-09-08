@@ -2,6 +2,7 @@
 #include <cpblock.hpp>
 #include <usrtmem.hpp>
 #include <usrtheap.hpp>
+#include <task.hpp>
 
 #include <chrono>
 
@@ -9,32 +10,6 @@ namespace usrtos {
 
 
 
-enum CBMode { nocallback = 0, noarg, abss, me, obj, extwait, extmulti };
-typedef struct __callback_argv {
-  enum CBMode mode;
-  int delay;
-  int cnt;
-  int argv;
-  void *workers;
-  CPBlock::GP gp;
-} _callback_argv_t;
-
-struct task {
-	int64 ID;
-	uuid key;
-	CPBlock::GP argv;
-	uuid callback;
-	_callback_argv_t callbackargv;
-	utime_t noE;
-	utime_t noL;
-	utime_t valid;
-};
-
-struct taskdependen {
-	CPBlock::GP me;
-	umutex depend_mutex;
-	int count;
-};
 
 class OffsetPtr {
 public:

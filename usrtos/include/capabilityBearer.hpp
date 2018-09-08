@@ -93,6 +93,8 @@ class UsrtCapabilityBearer {
 
     UsrtCapabilityBearer(uuid k) {
       mValid=0;
+      std::string ks = UsrtKey::key2string(k);
+          
       const char *workdir = getWorkingDir();
       struct dirent* entry;
       DIR* dir = opendir(workdir);
@@ -101,7 +103,7 @@ class UsrtCapabilityBearer {
         handle = dlopen(getFileName(entry->d_name), RTLD_LAZY);
         if(!handle) {
           fprintf(stderr," check lib %s fail\n",entry->d_name);
-          fprintf (stderr, "%s\n", dlerror());
+          fprintf (stderr, "%s:%s\n", ks.c_str(), dlerror());
           continue;
         }
         mValid=1;

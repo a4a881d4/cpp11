@@ -1,6 +1,6 @@
 #pragma once
-#include<log.hpp>
-#include<layout.hpp>
+#include <log.hpp>
+#include <layout.hpp>
 
 namespace usrtos {
 using usrtlog = Layout::UsrtLog;
@@ -40,5 +40,6 @@ public:
 		else
 			return false;
 	};
+
 };
 }; // namespace usrtos
