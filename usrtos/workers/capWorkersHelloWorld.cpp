@@ -10,7 +10,7 @@ int FUNCLASS::run( void *argv ) {
   if( !ctx->workers )
     return -1;
 
-  ctx->workers->sys_log->printf("Hello World");
+  ctx->workers->SYSLOG("Hello World");
   return 0;
 }
 

@@ -150,20 +150,19 @@ namespace usrtos {
       UsrtTask            *m_taskq;
       Layout::UsrtMem    *m_memory;
       logs                 *m_logs;
-      usrtlog             *sys_log;
-      usrtlog           *debug_log;
-      usrtlog            *info_log;
-      usrtlog            *warn_log;
-      usrtlog           *error_log;
-      usrtlog           *fatal_log;
       
       LogLevel              SYSLOG;
+      LogLevel               DEBUG;
+      LogLevel                INFO;
+      LogLevel                WARN;
+      LogLevel               ERROR;
+      LogLevel               FATAL;
+      
       UsrtWorkers( const char* dir ) {
         FindBlock fb(dir);
         auto heads = fb.list();
         auto blocks = fb.attach(heads);
         for(auto it=blocks.begin();it != blocks.end(); ++it) {
-          cerr << it->second->getName() << endl;
           auto key = it->second->getKey();
           m_blocks[key] = it->second;
           m_memName[it->second->getName()] = key;
@@ -174,23 +173,13 @@ namespace usrtos {
           m_taskq = bindBlock<UsrtTask>("taskq");
           m_memory = bindBlock<Layout::UsrtMem>("memory");
           m_logs = new logs(blocks);
-          std::set<std::string> logName{"log0","log1","log2","log3","log4","log5"};
-          for(auto l : logName) {
-            if(m_logs->has(l)) {
-              std::cout << "find " << l << "!" << std::endl;
-            }
-            else {
-              std::cout << "miss " << l << "!" << std::endl;
-            }
-          }
-          sys_log = (*m_logs)["log0"];
-          debug_log = (*m_logs)["log1"]; 
-          info_log = (*m_logs)["log2"]; 
-          warn_log = (*m_logs)["log3"];
-          error_log = (*m_logs)["log4"];
-          fatal_log = (*m_logs)["log5"];
-
+          
           SYSLOG = LogLevel(*m_logs,0);
+          DEBUG  = LogLevel(*m_logs,1);
+          INFO   = LogLevel(*m_logs,2);
+          WARN   = LogLevel(*m_logs,3);
+          ERROR  = LogLevel(*m_logs,4);
+          FATAL  = LogLevel(*m_logs,5);
       };
 
       UsrtTask *tQueue() { 
