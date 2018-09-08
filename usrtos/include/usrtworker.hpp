@@ -6,6 +6,8 @@
 #include <capability.hpp>
 #include <usrttype.hpp>
 #include <usrttask.hpp>
+#include <logs.hpp>
+#include <loglevel.hpp>
 #include <capabilityBearer.hpp>
 #include <unistd.h>
 #include <sys/syscall.h>
@@ -147,7 +149,15 @@ namespace usrtos {
       Layout::UsrtFifo *m_taskFifo;
       UsrtTask            *m_taskq;
       Layout::UsrtMem    *m_memory;
-
+      logs                 *m_logs;
+      usrtlog             *sys_log;
+      usrtlog           *debug_log;
+      usrtlog            *info_log;
+      usrtlog            *warn_log;
+      usrtlog           *error_log;
+      usrtlog           *fatal_log;
+      
+      LogLevel              SYSLOG;
       UsrtWorkers( const char* dir ) {
         FindBlock fb(dir);
         auto heads = fb.list();
@@ -163,6 +173,24 @@ namespace usrtos {
           m_taskFifo = bindBlock<Layout::UsrtFifo>("taskFifo");
           m_taskq = bindBlock<UsrtTask>("taskq");
           m_memory = bindBlock<Layout::UsrtMem>("memory");
+          m_logs = new logs(blocks);
+          std::set<std::string> logName{"log0","log1","log2","log3","log4","log5"};
+          for(auto l : logName) {
+            if(m_logs->has(l)) {
+              std::cout << "find " << l << "!" << std::endl;
+            }
+            else {
+              std::cout << "miss " << l << "!" << std::endl;
+            }
+          }
+          sys_log = (*m_logs)["log0"];
+          debug_log = (*m_logs)["log1"]; 
+          info_log = (*m_logs)["log2"]; 
+          warn_log = (*m_logs)["log3"];
+          error_log = (*m_logs)["log4"];
+          fatal_log = (*m_logs)["log5"];
+
+          SYSLOG = LogLevel(*m_logs,0);
       };
 
       UsrtTask *tQueue() { 
