@@ -34,7 +34,7 @@
     "latitude": 40.0,
     "longitude": 120.0,
     "metaSize": 16,
-    "name": "taskFifo",
+    "name": "configFifo",
     "sha1": "",
     "type": "MemFifo"
   },

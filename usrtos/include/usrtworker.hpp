@@ -50,6 +50,9 @@ namespace usrtos {
     void *argv;
     };
 
+/**
+ * @brief The UsrtWorkers
+ */
   class UsrtWorkers {
     private:
       void dumpMonitor( struct structThreadMonitor& m ) {
@@ -146,8 +149,8 @@ namespace usrtos {
       map<uuid,CPBlock*>  m_blocks;
       map<string,uuid>   m_memName;
       Layout::UsrtFifo  *m_capFifo;
-      Layout::UsrtFifo *m_taskFifo;
-      UsrtTask            *m_taskq;
+      Layout::UsrtFifo *m_configFifo; ///< the config task in this 
+      UsrtTask            *m_taskq; ///< the usrt task in this queue which has two heap (wait,ready)
       Layout::UsrtMem    *m_memory;
       logs                 *m_logs;
       
@@ -169,7 +172,7 @@ namespace usrtos {
         }
         
           m_capFifo = bindBlock<Layout::UsrtFifo>("capFifo");
-          m_taskFifo = bindBlock<Layout::UsrtFifo>("taskFifo");
+          m_configFifo = bindBlock<Layout::UsrtFifo>("configFifo");
           m_taskq = bindBlock<UsrtTask>("taskq");
           m_memory = bindBlock<Layout::UsrtMem>("memory");
           m_logs = new logs(blocks);
@@ -329,16 +332,16 @@ namespace usrtos {
         struct mainWorkerCTX mCtx;
         mCtx.workers = this;
         
-        while( this->control==0 ) {
-          if( this->m_taskFifo->len()>0 ) {
-            task *t = this->m_taskFifo->get<task>();
+        while(this->control == 0) {
+          if(this->m_configFifo->len() > 0) {
+            task *t = this->m_configFifo->get<task>();
             bearer = this->getBearerByKey(t->key);
-            if( bearer==nullptr ) {
+            if(bearer == nullptr) {
               if(this->setCap(t->key))
                 bearer = this->getBearerByKey(t->key);
             }
-            if( bearer != NULL ) {
-              if( t->ID == 0LL ) {  // system task
+            if(bearer != NULL) {
+              if(t->ID == 0LL) {  // system task
                 mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
                 bearer->runLP(&(mCtx));
               }

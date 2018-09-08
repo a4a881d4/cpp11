@@ -40,6 +40,7 @@ all:work/ptr_vector \
 	work/log_test \
 	work/hello_ext.so \
 	work/usrtos.so \
+	work/usrtconfig.so \
 	work/bearer_test \
 	work/workers
 
@@ -134,6 +135,9 @@ work/hello_ext.so: python/hello.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared python/hello.cpp -o work/hello_ext.so $(PYFLAG) $(LDFLAG)
 
 work/usrtos.so: usrtos/c++1z/usrt.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared $^ -o $@ $(LDFLAG) $(PYFLAG)
+
+work/usrtconfig.so: usrtos/c++1z/config.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared $^ -o $@ $(LDFLAG) $(PYFLAG)
 
 clean:
