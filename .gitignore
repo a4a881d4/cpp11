@@ -32,4 +32,7 @@
 *.app
 
 work/*
+__pycache__
+version.py
+_version.hpp
 
