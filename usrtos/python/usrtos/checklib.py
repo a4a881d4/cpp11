@@ -9,3 +9,15 @@ a.dump()
 
 a.dumpHead();
 
+aGp = a.newGP()
+
+print(aGp.offset,aGp.objsize)
+
+a.dump()
+
+bp = a.GPandLP(aGp)
+
+print(aGp.offset,aGp.objsize)
+
+a.dump()
+

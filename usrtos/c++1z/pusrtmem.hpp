@@ -25,5 +25,15 @@ public:
 		m_mem->dumpHead();
 	};
 
+	CPBlock::GP newGP() {
+		CPBlock::GP gp;
+		m_obj->newGP<int>(gp);
+		return gp;
+	};
+
+	size_t GPandLP(CPBlock::GP& gp) {
+		return (size_t)(m_obj->newGP<int>(gp));
+	};
+
 };
 };
