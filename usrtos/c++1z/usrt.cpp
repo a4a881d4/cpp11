@@ -1,32 +1,10 @@
-#include <usrtworker.hpp>
+#include "pusrtmem.hpp"
+#include "pusrtconfig.hpp"
 
 #include <boost/python.hpp>
 using namespace boost::python;
 
 namespace usrtos {
-
-class _usrtos_mem_obj {
-private:
-	CPBlock *m_mem;
-	Layout::UsrtMem *m_obj;
-	bool m_attached = false;
-public:
-	_usrtos_mem_obj(std::string fn) {
-		m_mem = new CPBlock;
-		m_attached = m_mem->attach(fn);
-		if(m_attached)
-			m_obj = new typename Layout::UsrtMem(*m_mem);
-	};
-	
-	void dump() {
-		m_obj->dump();
-	};
-
-	void dumpHead() {
-		m_mem->dumpHead();
-	};
-
-};
 
 BOOST_PYTHON_MODULE(usrtos)
 {
@@ -37,6 +15,16 @@ BOOST_PYTHON_MODULE(usrtos)
 
 	class_<CPBlock::GP>("gp")
 	;
+
+	class_<UsrtConfig>("UsrtConfig", init<std::string>())
+		.def("HelloWorld", &UsrtConfig::HelloWorld)
+		.def("byKeyInt", &UsrtConfig::byKeyInt)
+		.def("byKeyStr", &UsrtConfig::byKeyStr)
+		.def("byKeyKey", &UsrtConfig::byKeyKey)
+		.def("byKey", &UsrtConfig::byKey)
+		.def("getKey", &UsrtConfig::getKey)
+	;
+
 }
 };
 
