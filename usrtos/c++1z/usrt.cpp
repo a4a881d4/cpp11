@@ -26,15 +26,14 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("byKeyKey", &UsrtConfig::byKeyKey)
 		.def("byKey", &UsrtConfig::byKey)
 		.def("getKey", &UsrtConfig::getKey)
+		.def("getWorkerKey", &UsrtConfig::getWorkerKey)
 	;
 
 	class_<UsrtTaskAPI>("UsrtTaskAPI", init<std::string>())
 		.def("HelloWorld", &UsrtTaskAPI::HelloWorld)
-		// .def("byKeyInt", &UsrtConfig::byKeyInt)
-		// .def("byKeyStr", &UsrtConfig::byKeyStr)
-		// .def("byKeyKey", &UsrtConfig::byKeyKey)
-		// .def("byKey", &UsrtConfig::byKey)
-		// .def("getKey", &UsrtConfig::getKey)
+		.def("byKeyInt", &UsrtTaskAPI::byKeyInt)
+		.def("byKeyStr", &UsrtTaskAPI::byKeyStr)
+		.def("getKey", &UsrtTaskAPI::getKey)
 	;
 }
 };

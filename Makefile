@@ -146,5 +146,12 @@ WorkersInternalLibs := $(patsubst %.cpp,%.so,$(subst usrtos/workers/cap,work/lib
 $(WorkersInternalLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) 
 	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@ $(LDFLAG)
 
+UserCapabilities := $(wildcard usrtos/examples/cap*.cpp)
+UserLibs := $(patsubst %.cpp,%.so,$(subst usrtos/examples/cap,work/lib,$(UserCapabilities)))
+
+$(UserLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) 
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) -o $@ $(LDFLAG)
+
 workers : $(WorkersInternalLibs)
 	
+examples : $(UserLibs)

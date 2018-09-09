@@ -21,11 +21,15 @@ int main(int argc,char *argv[])
 	if(b.checkType("block"))
 		std::cout << "Check type ok" << std::endl;
 
-	if(b.checkMetaSize<4096>())
+	if(b.checkMetaSize<65536>())
 		std::cout << "Check meta size ok" << std::endl;
 
 	TaskHeap h(b);
+	h.dumpHeap();
 	auto adj = h.update();
+	h.dumpHeap();
+	
+	/*
 	std::cout << "1. move " << adj << " from wait to ready " << std::endl;
 	for(int i=0;i<129;i++){
 		auto p = h.tm->newLP<task>();
@@ -49,7 +53,7 @@ int main(int argc,char *argv[])
 	adj = h.update();
 	std::cout << "2. move " << adj << " from wait to ready " << std::endl;
 
-/*	if(h.wait->check(h.wait->HeapSize()) == 0) {
+	if(h.wait->check(h.wait->HeapSize()) == 0) {
 		std::cout << "wait heap check success" << std::endl;
 		c = 0;
 		while((p = h.wait->pop()) != h.wait->NullOffset() && c < 10) {
@@ -57,7 +61,6 @@ int main(int argc,char *argv[])
 			c++;
 		}
 	}
-*/
 	if(h.ready->check(h.ready->HeapSize()) == 0) {
 		std::cout << "ready heap check success" << std::endl;
 		c = 0;
@@ -68,5 +71,5 @@ int main(int argc,char *argv[])
 	}
 	adj = h.update();
 	std::cout << "3. move " << adj << " from wait to ready " << std::endl;
-	
+*/	
 }

@@ -133,6 +133,7 @@ public:
 	};
 
 	void dumpHeap() {
+		std::cout << "Wait Heap" << std::endl;
 		wait->dumpHeap();
 		size_t s;
 		OffsetPtr *h = wait->getHeap(s);
@@ -141,6 +142,7 @@ public:
 			struct task * t = p.Off2LP<task>(wait->getMem());
 			dumpTask(*t);
 		}
+		std::cout << "Ready Heap" << std::endl;
 		ready->dumpHeap();
 		h = ready->getHeap(s);
 		for(int i = 0;i < s;i++) {

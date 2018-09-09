@@ -12,8 +12,14 @@ public:
 		m_workers = new UsrtWorkers(dir.c_str());
 	};
 	
-	std::string getKey(std::string capName) {
+	std::string getWorkerKey(std::string capName) {
 		uuid key = WorkerHelper::cap2key(std::string("capWorkers") + capName);
+		std::string ks = UsrtKey::key2string(key);
+		return ks;
+	};
+
+	std::string getKey(std::string capName) {
+		uuid key = WorkerHelper::cap2key(capName);
 		std::string ks = UsrtKey::key2string(key);
 		return ks;
 	};

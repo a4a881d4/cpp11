@@ -1,1 +1,2 @@
-const char USRTOSVERSION[41] = "0228a888fd092a1b7066a4574d660fe276013c38";
+#pragma once
+#include <_version.hpp>
