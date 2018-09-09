@@ -1,5 +1,8 @@
+#include <version.hpp>
+
 #include "pusrtmem.hpp"
 #include "pusrtconfig.hpp"
+#include "pusrttask.hpp"
 
 #include <boost/python.hpp>
 using namespace boost::python;
@@ -25,6 +28,14 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("getKey", &UsrtConfig::getKey)
 	;
 
+	class_<UsrtTaskAPI>("UsrtTaskAPI", init<std::string>())
+		.def("HelloWorld", &UsrtTaskAPI::HelloWorld)
+		// .def("byKeyInt", &UsrtConfig::byKeyInt)
+		// .def("byKeyStr", &UsrtConfig::byKeyStr)
+		// .def("byKeyKey", &UsrtConfig::byKeyKey)
+		// .def("byKey", &UsrtConfig::byKey)
+		// .def("getKey", &UsrtConfig::getKey)
+	;
 }
 };
 

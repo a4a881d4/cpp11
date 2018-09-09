@@ -72,12 +72,18 @@ namespace usrtos {
           , t->sysid
           );
         dumpMonitor( t->monitor );
+        if( t->workers != this ) {
+          fprintf(stderr,"Workers miss %p : %p\n"
+            , t->workers
+            , this
+            );
+        }
       };
       
       void dumpThread() {
         for(int i=0;i<threadNum;i++ )
           dumpThread( tids[i] );
-          m_taskq->dumpHeap();
+        m_taskq->dumpHeap();
       };
     private:
       uuid keeperKey;
@@ -183,6 +189,7 @@ namespace usrtos {
           WARN   = LogLevel(*m_logs,3);
           ERROR  = LogLevel(*m_logs,4);
           FATAL  = LogLevel(*m_logs,5);
+          ctx.workers = this;
       };
 
       UsrtTask *tQueue() { 
@@ -288,9 +295,9 @@ namespace usrtos {
         my->sysid=(long int)pthread_self();
         while( my->control!=-1 ) {
           while( my->control==1 ) {
-            my->state=WAITING;
+            my->state = WAITING;
           }
-          my->state=RUNNING;
+          my->state = RUNNING;
           task *t = my->workers->m_taskq->pop();
           UsrtCapabilityBearer *bearer;
           if(t != nullptr) {

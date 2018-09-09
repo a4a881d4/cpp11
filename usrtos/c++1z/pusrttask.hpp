@@ -4,23 +4,30 @@
 
 namespace usrtos {
 
-class UsrtConfig {
+class UsrtTaskAPI {
 private:
 	UsrtWorkers *m_workers;
 public:
-	UsrtConfig(std::string dir) {
+	UsrtTaskAPI(std::string dir) {
 		m_workers = new UsrtWorkers(dir.c_str());
 	};
 	
 	std::string getKey(std::string capName) {
-		uuid key = WorkerHelper::cap2key(std::string("capWorkers") + capName);
+		uuid key = WorkerHelper::cap2key(std::string("cap") + capName);
 		std::string ks = UsrtKey::key2string(key);
 		return ks;
 	};
 
 	void HelloWorld() {
-		task *pTask = WorkerHelper::newConfig(m_workers,std::string("HelloWorld"));
-		m_workers->m_configFifo->push<task>(pTask);
+		CPBlock::GP gpTask;
+		auto t = m_workers->tQueue();
+		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
+			->setKey(WorkerHelper::cap2key(std::string("capWorkersHelloWorld")))
+			-> setReady(t->now())
+			-> setDeadline(t->after(10))
+			-> setValid(t->after(20));
+		if(!t->insert(pTask))
+			std::cerr << "insert HelloWorld failure" << std::endl;
 	};
 
 	void byKeyInt(std::string key, int k) {
