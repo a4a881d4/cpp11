@@ -6,41 +6,49 @@ namespace usrtos {
 template<size_t AT, size_t END>
 class log : public Fifo<AT,END> {
 public:
+	struct logitem {
+		size_t s;
+		char buf[256-8];
+	};
 	log(CPBlock& m) : Fifo<AT,END>(m) {};
 	void printf(const char * format, ...) {
-	    char buffer[1024];
-    	va_list args;
+	    logitem *gb = Mem<AT>::template newLP<logitem>(1);
+	    va_list args;
     	va_start (args, format);
-    	int r = vsnprintf (buffer,1023,format, args);
+    	int r = vsnprintf (gb->buf,240,format, args);
     	va_end (args);
     	if(r<0) {
     		std::cout << "vsnprintf error" << std::endl;
     	} else {
-	    	int lenLog = strnlen(buffer,1023);
+	    	int lenLog = strnlen(gb->buf,240);
 	    	if(r!=lenLog) {
 	    		std::cout << "length of message error" << std::endl;
 	    	}
-	    	buffer[lenLog]='\0';
-	    	char *gb = Mem<AT>::template newLP<char>(lenLog+1);
-	    	memcpy(gb,buffer,lenLog+1);
-	    	Fifo<AT,END>::template push<char>(gb);
+	    	gb->buf[lenLog]='\0';
+	    	gb->s = lenLog;
+	    	Fifo<AT,END>::template push<logitem>(gb);
     	}
 	};
 	void init() { Fifo<AT,END>::local_reset(); };
-	char *getLog() { return Fifo<AT,END>::template local_get<char>(); };
+	logitem *getLog() { return Fifo<AT,END>::template local_get<logitem>(); };
 	void dump() {
 		int l = Fifo<AT,END>::local_len();
 		for(int i=0;i<l;i++) {
-			const char * str = getLog();
-			int len = strnlen(str,256);
-			if( len<255 ) {
-				std::cout << str <<std::endl;		
-			} else {
-				std::cout << "message(" << len << ") to long" << std::endl;
-				char cstr[256];
-				memcpy(cstr,str,255);
-				cstr[255]='\0';
-				std::cout << cstr << std::endl; 
+			const logitem * str = getLog();
+			char cstr[240];
+			char *s = (char *)str->buf,*o = cstr;
+			int c = str->s;
+			if(c > 239) {
+				cout << "too long" << endl;
+			}
+			else {
+				while(*s != '\0' && c > 0) {
+					*o++ = *s++;
+					c--;
+				}
+				*o = '\0';
+				cstr[240]='\0';
+				std::cout << l << "(" << str->s << "):" << cstr << std::endl; 
 			}
 		}
 	};

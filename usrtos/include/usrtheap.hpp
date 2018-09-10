@@ -79,7 +79,7 @@ private:
 public:
 	Heap(CPBlock& m) {
 		m_mem = &m;
-		m_pa = static_cast<struct _shared*>((void *)((char *)(m_mem->m_head)+AT));
+		m_pa = static_cast<struct _shared*>((void *)((char *)m_mem->getHead()+AT));
 		name = Compare::_type();
 		m_mem->checkMutex(m_pa->heap_mutex,"heap_mutex"+name); 
 		m_less.set(&m);
@@ -180,10 +180,16 @@ public:
 				<< std::endl;
 		}
 	};
+	
+	PointerType* getHeap(size_t & size) {
+		size = m_pa->size;
+		return &m_pa->heap[0];
+	};
+
 	typedef void(*DumpItem)(PointerType);
 	void dumpHeap(DumpItem d){
 		int i;
-		std::cout << "Heap size: " << m_pa->size << std::endl;
+		std::cout << "2-Heap size: " << m_pa->size << std::endl;
 		std::cout << "Mutex: " << m_pa->heap_mutex.value() << std::endl;
 		for( int i = 0;i < m_pa->size;i++ ) {
 			std::cout << "No " << i << ": ";

@@ -51,7 +51,7 @@ class TaskHeap {
 		struct key {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			utime_t operator()(OffsetPtr a) { 
+			utime_t operator()(OffsetPtr a) {
 				return a.Off2LP<task>(mem)->noE; 
 			};
 		};
@@ -133,16 +133,23 @@ public:
 	};
 
 	void dumpHeap() {
-		auto wd = [this](OffsetPtr p) {
+		std::cout << "Wait Heap" << std::endl;
+		wait->dumpHeap();
+		size_t s;
+		OffsetPtr *h = wait->getHeap(s);
+		for(int i = 0;i < s;i++) {
+			OffsetPtr p = h[i];
 			struct task * t = p.Off2LP<task>(wait->getMem());
 			dumpTask(*t);
-		};
-		wait->dumpHeap((WaitHeap::DumpItem)&wd);
-		auto rd = [this](OffsetPtr p) {
+		}
+		std::cout << "Ready Heap" << std::endl;
+		ready->dumpHeap();
+		h = ready->getHeap(s);
+		for(int i = 0;i < s;i++) {
+			OffsetPtr p = h[i];
 			struct task * t = p.Off2LP<task>(ready->getMem());
 			dumpTask(*t);
-		};
-		ready->dumpHeap((ReadyHeap::DumpItem)&rd);
+		}
 	};
 
 	task* pop() {
@@ -155,7 +162,7 @@ public:
 
     bool insert(task *t) {
     	OffsetPtr t_off;
-    	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->m_head->dataSize)
+    	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->getHead()->dataSize)
     		if(wait->insert(t_off) != OffsetPtr::Null())
     			return true;
     		else

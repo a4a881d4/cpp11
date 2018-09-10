@@ -10,6 +10,7 @@
 
 #include <usrttype.hpp>
 #include <usrtkey.hpp>
+#include <gp.hpp>
 
 namespace usrtos {
 
@@ -37,24 +38,27 @@ using namespace boost::interprocess;
 class CPBlock {
 public:
 
-	typedef struct _globe_pointer {
-		uuid id;
-		long long offset;
-		long long objsize;
-		
-	} GP;
+	typedef struct _globe_pointer GP;
+	typedef struct _memory_region MemRegion;
+	typedef _memory_region::MemoryMap MemoryMap;
 
-	struct Head* m_head;
-	CPBlock(){};
+private:
+
 	std::string m_fileName;
 	file_mapping m_file;
 	mapped_region m_headHandle;
 	mapped_region m_dataHandle;
 	mapped_region m_cpHandle;
-	uuid m_uuid;
-	bool m_attached = false;
-	void *m_base;
-	void *m_end;
+	MemRegion m_region;
+	struct Head* m_head;
+
+public:
+
+	CPBlock(){};
+	// uuid m_region.id;
+	// bool m_region.attached = false;
+	// void *m_region.base;
+	// void *m_region.end;
 	
 	void setFileName(std::string fn) { m_fileName = fn; };
 	
@@ -97,7 +101,7 @@ public:
 
 	virtual bool checkHead() {
 		const struct Head& s = *m_head;
-		return CPBlock::scheckHead(m_fileName, s, &m_uuid);
+		return CPBlock::scheckHead(m_fileName, s, &m_region.id);
 	};
 
 	static bool scheckHead(std::string fn, const struct Head& s, uuid *pid = nullptr) {
@@ -180,7 +184,7 @@ public:
 	};
 	
 	bool checkUUID(uuid& id) {
-		return id == m_uuid;
+		return id == m_region.id;
 	};
 
 	bool attach(std::string fn) {
@@ -223,8 +227,8 @@ public:
 			std::cout << "error 2 " << pmt->get_size() << std::endl;
 			return false;
 		}
-		m_base = pmt->get_address();
-		m_end = (void *)((char *)m_base+m_head->dataSize);
+		m_region.base = pmt->get_address();
+		m_region.end = (void *)((char *)m_region.base+m_head->dataSize);
 		// std::cout << "pass 2" << std::endl;
 		// std::cout << std::flush;
 		
@@ -234,7 +238,7 @@ public:
 			, read_write
 			, b.m_head->metaSize
 			, b.m_head->dataSize
-			, m_base
+			, m_region.base
 			);
 		md.swap(m_dataHandle);
 		// std::cout << "pass 3" << std::endl;
@@ -245,15 +249,15 @@ public:
 				, read_write
 				, b.m_head->metaSize
 				, b.m_head->cpSize
-				, static_cast<char*>(m_base) + (size_t)b.m_head->dataSize
+				, static_cast<char*>(m_region.base) + (size_t)b.m_head->dataSize
 				);
 			mc.swap(m_cpHandle);
 		}
 		// std::cout << "pass 4" << std::endl;
 		// std::cout << std::flush;
-		m_attached = checkHead()&&checkCP()&&checkLock();
+		m_region.attached = checkHead()&&checkCP()&&checkLock();
 		
-		return m_attached;
+		return m_region.attached;
 	};
 
 	bool checkType(const char* type) {
@@ -275,7 +279,7 @@ public:
 	T* GP2LP(GP& gp) {
 		if(!checkUUID(gp.id))
 			return nullptr;
-		if(gp.objsize!=(long long)sizeof(T))
+		if(gp.objsize != (long long)sizeof(T) && sizeof(T) != 1)
 			std::cout << "invalid size" << std::endl;
 		T* r = Off2LP<T>(gp.offset);
 		return r;
@@ -283,14 +287,14 @@ public:
 
 	template <typename T>
 	T* Off2LP(size_t offset) {
-		return static_cast<T*>((void *)((char *)m_base+(offset%m_head->dataSize)));
+		return static_cast<T*>((void *)((char *)m_region.base+(offset%m_head->dataSize)));
 	};
 
 	template <typename T>
 	size_t LP2offset(T* p) {
 		void *vp = static_cast<void *>(p);
-		if(vp>=m_base && vp<m_end) {
-			return (char *)vp-(char *)m_base;
+		if(vp>=m_region.base && vp<m_region.end) {
+			return (char *)vp-(char *)m_region.base;
 		}
 		else
 			return m_head->dataSize;
@@ -301,7 +305,7 @@ public:
 		auto off = LP2offset<T>(p);
 		if(off==m_head->dataSize)
 			return false;
-		gp.id = m_uuid;
+		gp.id = m_region.id;
 		gp.offset = off;
 		gp.objsize = sizeof(T);
 		return true;
@@ -312,14 +316,19 @@ public:
 	};
 	
 	bool validAddress(void *p) {
-		return (p>=m_base) && (p<m_end);
+		return m_region.validAddress(p);
 	};
-	uuid getKey() {
-		return m_uuid;
-	};
-	string getName() {
-		return string(m_head->name);
-	};
+
+	bool attached() { return m_region.attached; };
+
+	MemRegion * getRegion() { return &m_region; };
+
+	uuid getKey() { return m_region.id; };
+	
+	string getName() { return string(m_head->name); };
+	
+	struct Head* getHead() { return m_head; };
+
 	~CPBlock() {
 	};
 };

@@ -23,6 +23,9 @@ public:
 			m_log->printf(format, args);
 			va_end (args);
 		}
+		else {
+			std::cerr << "miss log " << m_level << std::endl;
+		}
 	};
 };
 }; // namespace usrtos

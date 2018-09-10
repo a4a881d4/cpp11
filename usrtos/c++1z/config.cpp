@@ -1,29 +1,17 @@
-#include <usrtworker.hpp>
-#include <workerhelper.hpp>
+#include "usrtconfig.hpp"
+
 #include <boost/python.hpp>
 using namespace boost::python;
 
 namespace usrtos {
 
-class UsrtConfig {
-private:
-	UsrtWorkers *m_workers;
-public:
-	UsrtConfig(std::string dir) {
-		m_workers = new UsrtWorkers(dir.c_str());
-	};
-	
-	void HelloWorld() {
-		task *pTask = WorkerHelper::newConfig(m_workers,std::string("HelloWorld"));
-		std::cout << "in config" << UsrtKey::key2string(pTask->key) << endl;
-		m_workers->m_configFifo->push<task>(pTask);
-	};
-};
-
-BOOST_PYTHON_MODULE(usrtconfig)
+BOOST_PYTHON_MODULE(usrtos)
 {
 	class_<UsrtConfig>("UsrtConfig", init<std::string>())
 		.def("HelloWorld", &UsrtConfig::HelloWorld)
+		.def("byKeyInt", &UsrtConfig::byKeyInt)
+		.def("byKey", &UsrtConfig::byKey)
+		.def("getKey", &UsrtConfig::getKey)
 	;
 
 }

@@ -70,7 +70,7 @@ class UsrtCapabilityBearer {
 
     int getHandle(const char* lib) {
       const char *path = getFileName(lib);
-      handle = dlopen ( path, RTLD_LAZY);
+      handle = dlopen (path, RTLD_LAZY);
       if ( handle==NULL ) {
           fprintf (stderr, "load %s(%s) error : ", lib, path);
           fprintf (stderr, "%s\n", dlerror());
@@ -100,6 +100,8 @@ class UsrtCapabilityBearer {
       DIR* dir = opendir(workdir);
       while((entry = readdir(dir)) != NULL) {
         dlerror();
+        if(strncmp(entry->d_name,"lib",3) != 0)
+          continue;
         handle = dlopen(getFileName(entry->d_name), RTLD_LAZY);
         if(!handle) {
           fprintf(stderr," check lib %s fail\n",entry->d_name);
@@ -112,6 +114,9 @@ class UsrtCapabilityBearer {
           break;
         mValid=0;
         dlclose(handle);
+      }
+      if(key != k) {
+        std::cout << ks << " no find " << std::endl;
       }
     };
 
