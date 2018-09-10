@@ -32,4 +32,8 @@
 *.app
 
 work/*
+__pycache__
+usrtos/python/usrtos/version.py
+usrtos/include/_version.hpp
 
+*.pyc
