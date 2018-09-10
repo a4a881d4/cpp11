@@ -21,7 +21,7 @@ private:
 public:
 	Mem(CPBlock& m) { 
 		m_mem = &m;
-		m_bar = static_cast<struct bar*>((void *)((char *)(m_mem->m_head)+AT));
+		m_bar = static_cast<struct bar*>((void *)((char *)m_mem->getHead()+AT));
 		m_mem->checkMutex(m_bar->bar_mutex,"bar_mutex"); 
 	};
 
@@ -51,7 +51,7 @@ public:
 	template <typename T>
 	T* newGP(CPBlock::GP& gp, size_t n=1, size_t aligned=1) {
 		defaultGP<T>(gp,n,aligned);
-		gp.id = m_mem->m_uuid;
+		gp.id = m_mem->getKey();
 		return m_mem->Off2LP<T>(gp.offset);
 	};
 	
@@ -102,9 +102,11 @@ public:
 
 	Fifo(CPBlock& m) : Mem<AT>(m){
 		m_mem = &m;
-		m_pa = static_cast<struct fifo_addons*>((void *)((char *)(m_mem->m_head)+AT));
+		m_pa = static_cast<struct fifo_addons*>((void *)((char *)m_mem->getHead()+AT));
 		m_mem->checkMutex(m_pa->fifo_mutex,"fifo_mutex"); 
 	};
+	
+	CPBlock *getMem() { return m_mem; };
 
 	size_t len() {
 		return (m_pa->sp-m_pa->rp+FIFOSIZE::value)%FIFOSIZE::value;

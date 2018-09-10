@@ -13,8 +13,8 @@ public:
 
 	logs(std::map<std::string,CPBlock*>& blocks) {
 		for(auto it = blocks.begin();it != blocks.end();++it) {
-			if(memcmp("log",it->second->m_head->name,3)==0) {
-				std::string bn(it->second->m_head->name);
+			if(memcmp("log",it->second->getHead()->name,3)==0) {
+				std::string bn(it->second->getHead()->name);
 				usrtlog *l = new usrtlog(*(it->second));
 				l->init();
 				m_logs[bn] = l;

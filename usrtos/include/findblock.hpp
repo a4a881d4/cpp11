@@ -58,7 +58,7 @@ public:
 		for(auto it = m_heads.begin();it != m_heads.end(); ++it) {
 			auto pb = new CPBlock;
 			if(!pb->attach((full_path/it->first).string()))
-				std::cout << pb->m_head->name << " attach failure" << std::endl;
+				std::cout << pb->getName() << " attach failure" << std::endl;
 			else
 				(*p_blocks)[it->first] = pb;
 		}

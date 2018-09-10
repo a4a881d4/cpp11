@@ -79,7 +79,7 @@ private:
 public:
 	Heap(CPBlock& m) {
 		m_mem = &m;
-		m_pa = static_cast<struct _shared*>((void *)((char *)(m_mem->m_head)+AT));
+		m_pa = static_cast<struct _shared*>((void *)((char *)m_mem->getHead()+AT));
 		name = Compare::_type();
 		m_mem->checkMutex(m_pa->heap_mutex,"heap_mutex"+name); 
 		m_less.set(&m);

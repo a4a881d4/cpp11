@@ -39,6 +39,8 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("byKeyInt", &UsrtTaskAPI::byKeyInt)
 		.def("byKeyStr", &UsrtTaskAPI::byKeyStr)
 		.def("getKey", &UsrtTaskAPI::getKey)
+		.def("newTask", &UsrtTaskAPI::newTask)
+		.def("emitTask", &UsrtTaskAPI::emitTask)
 	;
 }
 };

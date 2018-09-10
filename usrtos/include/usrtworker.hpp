@@ -156,6 +156,8 @@ namespace usrtos {
 			
 			map<uuid,CPBlock*>	  m_blocks;
 			map<string,uuid>	 m_memName;
+			CPBlock::MemoryMap	  m_memmap;
+			
 			Layout::UsrtFifo	*m_capFifo;
 			Layout::UsrtFifo *m_configFifo; ///< the config task in this 
 			UsrtTask			  *m_taskq; ///< the usrt task in this queue which has two heap (wait,ready)
@@ -168,7 +170,6 @@ namespace usrtos {
 			LogLevel				  WARN;
 			LogLevel				 ERROR;
 			LogLevel				 FATAL;
-			
 			UsrtWorkers( const char* dir ) {
 				FindBlock fb(dir);
 				auto heads = fb.list();
@@ -176,6 +177,7 @@ namespace usrtos {
 				for(auto it=blocks.begin();it != blocks.end(); ++it) {
 					auto key = it->second->getKey();
 					m_blocks[key] = it->second;
+					m_memmap[key] = it->second->getRegion();
 					m_memName[it->second->getName()] = key;
 				}
 				

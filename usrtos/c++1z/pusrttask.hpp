@@ -34,6 +34,31 @@ public:
 			std::cerr << "insert HelloWorld failure" << std::endl;
 	};
 
+	CPBlock::GP newTask(std::string key, size_t argSize) {
+		CPBlock::GP gpTask;
+		auto t = m_workers->tQueue();
+		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
+			-> setID(1)
+			-> setKey(UsrtKey::string2key(key))
+			-> setReady(t->now())
+			-> setDeadline(t->after(10))
+			-> setValid(t->after(20));
+		CPBlock::GP& argv = pTask->getArgv();
+		char *a = m_workers->m_memory->newGP<char>(argv,argSize);
+		return gpTask;
+	};
+
+	void emitTask(CPBlock::GP& gp) {
+		auto t = m_workers->tQueue();
+		task *pTask = t->tm->getMem()->GP2LP<task>(gp);
+		if(pTask == nullptr) {
+			std::cerr << "task memory gp to lp failure" << std::endl;
+			return;
+		}
+		if(!t->insert(pTask))
+			std::cerr << "emit task failure" << std::endl;
+	};
+
 	void byKeyInt(std::string key, int k) {
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();

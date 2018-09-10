@@ -162,7 +162,7 @@ public:
 
     bool insert(task *t) {
     	OffsetPtr t_off;
-    	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->m_head->dataSize)
+    	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->getHead()->dataSize)
     		if(wait->insert(t_off) != OffsetPtr::Null())
     			return true;
     		else

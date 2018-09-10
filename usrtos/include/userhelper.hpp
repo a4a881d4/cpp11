@@ -1,6 +1,8 @@
 #pragma once
 
 #include <usrtkey.hpp>
+#include <gp.hpp>
+
 namespace usrtos {
 
 struct CapabilityMeta {
@@ -12,6 +14,7 @@ struct CapabilityMeta {
 
 class UserHelper {
 public:
+	typedef struct _globe_pointer GP;
 	static uuid meta2uuid(const CapabilityMeta& m) {
 		sha1 sha;
 		UsrtKey::strn2sha1((char *)(&m),sha,32+32+40);

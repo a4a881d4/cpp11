@@ -63,6 +63,12 @@ parse.add_option("-k", "--keys",
                 default= False,
                 help= "dump keys")
 
+parse.add_option("-t", "--test",
+                dest= "test",
+                action= "store_true",
+                default= False,
+                help= "test hello world")
+
 (option, arges) = parse.parse_args()
 
 aAPI = UserAPI(option.dir)
@@ -76,3 +82,8 @@ else:
 if option.k:
 	aAPI.dumpKeys()
 
+if option.test:
+	k = aAPI.keys["ExamplesHelloWorld"]['k']
+	print(k)
+	gpTask = aAPI.newTask(k,8)
+	aAPI.emitTask(gpTask)
