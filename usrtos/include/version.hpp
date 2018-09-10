@@ -1,1 +1,1 @@
-const char USRTOSVERSION[41] = "be430bd87b827ef04e7b6f2cfbe43ca7203a63c2";
+const char USRTOSVERSION[41] = "b81e52949f5f1f4c74a897d068eccf24476d8d69";
