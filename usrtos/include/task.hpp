@@ -20,31 +20,32 @@ typedef struct __callback_argv {
 	int argv;
 	void *workers; 	 ///< point to the workers
 	CPBlock::GP gp;	 ///< callback task gp
-	
-	__callback_argv *setMode(enum CBMode m) {
+} _callback_argv_t;
+
+class CallBackArgv : public __callback_argv {
+public:
+	CallBackArgv *setMode(enum CBMode m) {
 		mode = m;
 		return this;
 	};
 	
-	__callback_argv *setDelay(int d) {
+	CallBackArgv *setDelay(int d) {
 		delay = d;
 		return this;
 	};
 	
-	__callback_argv *setCnt(int c) {
+	CallBackArgv *setCnt(int c) {
 		cnt = c;
 		return this;
 	};
-	__callback_argv *setGP(CPBlock::GP& t) {
+	CallBackArgv *setGP(CPBlock::GP& t) {
 		gp = t;
 		return this;
 	};
 	CPBlock::GP& getGP() {
 		return gp;
 	};
-
-} _callback_argv_t;
-
+};
 struct task {
 	int64 ID;
 	uuid key;
@@ -94,8 +95,8 @@ struct task {
 		return this;
 	};
 
-	_callback_argv_t *getCallBackArgv() {
-		return &callbackargv;
+	CallBackArgv *getCallBackArgv() {
+		return (CallBackArgv *)&callbackargv;
 	};
 };
 

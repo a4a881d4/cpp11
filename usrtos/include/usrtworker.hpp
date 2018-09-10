@@ -306,10 +306,6 @@ namespace usrtos {
 					task *t = my->workers->m_taskq->pop();
 					UsrtCapabilityBearer *bearer;
 					if(t != nullptr) {
-						std::string ks = UserHelper::dumpMem(static_cast<void*>(t),32);
-						std::cout << " Running " << std::endl << ks << std::endl;
-						my->workers->SYSLOG("cap key: %s",ks.c_str());
-						
 						my->monitor.run++;
 						auto capKey = t->key;
 						bearer = my->workers->getBearerByKey(capKey);

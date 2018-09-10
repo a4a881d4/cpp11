@@ -75,7 +75,15 @@ class TaskHeap {
 			};
 		};
 	};
-
+	bool checkCard() {
+		int64 * c = (int64*)card;
+		if((c[0]|c[1]|c[2]|c[3]) != 0) {
+			card = tm->newLP<task>();
+			memset(card,0,sizeof(task));
+			return false;
+		}
+		return true;
+	}
 public:
 	typedef Fifo<0x1000,0x2000> TaskFifo;
 	typedef Heap<task,OffsetPtr,Wait<task>,0x2000,0xa000> WaitHeap;
@@ -83,13 +91,17 @@ public:
 	WaitHeap *wait;
 	ReadyHeap *ready;
 	TaskFifo *tm;
+	struct task *card;
 
 	TaskHeap(CPBlock& m) {
 		wait = new WaitHeap(m);
 		ready = new ReadyHeap(m);
 		tm = new TaskFifo(m);
+		card = tm->newLP<task>();
+		memset(card,0,sizeof(task));
 	};
 	
+
 	void dumpTask(struct task& t) {
 		std::cout << UsrtKey::key2string(t.key) << std::endl;
 		dumpTaskTime(t);
@@ -112,7 +124,9 @@ public:
 	};
 
 	int update() {
-		struct task *card = tm->newLP<task>();
+		if(!checkCard())
+			std::cout << "new card" << std::endl;
+
 		card->noE = now();
 		int r = 0;
 		

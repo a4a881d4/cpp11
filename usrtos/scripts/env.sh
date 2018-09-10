@@ -9,5 +9,6 @@ make clean
 
 make all
 make workers
+make examples
 
 

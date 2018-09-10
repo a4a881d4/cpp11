@@ -56,46 +56,50 @@ class Config(cfg):
 		for k in self.keys:
 			print(k,":",self.keys[k]['k'])
 
+def main():
+	parse = OptionParser()
 
-parse = OptionParser()
+	parse.add_option("-n", "--integer",
+	                dest= "n",
+	                help= "integer agrv")
 
-parse.add_option("-n", "--integer",
-                dest= "n",
-                help= "integer agrv")
+	parse.add_option("-s", "--string",
+	                dest= "str",
+	                help= "string agrv")
 
-parse.add_option("-s", "--string",
-                dest= "str",
-                help= "string agrv")
+	parse.add_option("-d", "--dir",
+	                dest= "dir",
+	                default= "/tmp/usrtos",
+	                help= "memory block directory")
 
-parse.add_option("-d", "--dir",
-                dest= "dir",
-                default= "/tmp/usrtos",
-                help= "memory block directory")
+	parse.add_option("-u", "--userkey",
+	                dest= "ucap",
+	                help= "get user capability key")
 
-parse.add_option("-u", "--userkey",
-                dest= "ucap",
-                help= "get user capability key")
+	parse.add_option("-k", "--keys",
+	                dest= "k",
+	                action= "store_true",
+	                default= False,
+	                help= "memory block directory")
 
-parse.add_option("-k", "--keys",
-                dest= "k",
-                action= "store_true",
-                default= False,
-                help= "memory block directory")
+	(option, arges) = parse.parse_args()
 
-(option, arges) = parse.parse_args()
+	aCfg = Config(option.dir)
 
-aCfg = Config(option.dir)
+	if option.n != None:
+		aCfg.done(arges[0],int(option.n))
+	elif option.str != None:
+		aCfg.done(arges[0],option.str)
+	else:
+		aCfg.done(arges[0])
 
-if option.n != None:
-	aCfg.done(arges[0],int(option.n))
-elif option.str != None:
-	aCfg.done(arges[0],option.str)
-else:
-	aCfg.done(arges[0])
+	if option.k:
+		aCfg.dumpKeys()
 
-if option.k:
-	aCfg.dumpKeys()
+	if option.ucap:
+		print(option.ucap,":",aCfg.getKey(option.ucap))
 
-if option.ucap:
-	print(option.ucap,":",aCfg.getKey(option.ucap))
-	
+if __name__ == '__main__':
+	main()
+
+		

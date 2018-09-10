@@ -76,6 +76,12 @@ public:
 			std::cerr << "task memory gp to lp failure: in emitTask" << std::endl;
 			return;
 		}
+		std::string ks = UserHelper::dumpMem(static_cast<void*>(pTask),sizeof(task));
+			std::cout << " emit " << std::endl 
+					  << ks << std::endl;
+		ks = UserHelper::dumpMem(static_cast<void*>(&gp),sizeof(CPBlock::GP));
+			std::cout << " gp " << std::endl 
+					  << ks << std::endl;
 		if(!t->insert(pTask))
 			std::cerr << "emit task failure" << std::endl;
 	};
