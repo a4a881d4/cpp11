@@ -96,7 +96,7 @@ def main():
 		aAPI.setCallBack(agpTask
 			, aAPI.keys["CallBackLunchTask"]['k']
 			, 2
-			, 10
+			, int(option.n)
 			, 100000
 			, agpTask
 			)
