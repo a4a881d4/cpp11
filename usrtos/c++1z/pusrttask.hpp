@@ -41,18 +41,39 @@ public:
 			-> setID(1)
 			-> setKey(UsrtKey::string2key(key))
 			-> setReady(t->now())
-			-> setDeadline(t->after(10))
-			-> setValid(t->after(20));
+			-> setDeadline(t->after(100))
+			-> setValid(t->after(200));
 		CPBlock::GP& argv = pTask->getArgv();
 		char *a = m_workers->m_memory->newGP<char>(argv,argSize);
 		return gpTask;
+	};
+
+	void setCallBack( CPBlock::GP& gp
+					, std::string cbkey
+					, int mode
+					, int cnt
+					, int delay
+					, CPBlock::GP& cbgp
+					) {
+		auto t = m_workers->tQueue();
+		task *pTask = t->tm->getMem()->GP2LP<task>(gp);
+		if(pTask == nullptr) {
+			std::cerr << "task memory gp to lp failure: in setCallBack" << std::endl;
+			return;
+		}
+		pTask->setCallBack(UsrtKey::string2key(cbkey))
+			 ->getCallBackArgv()
+			 ->setMode(static_cast<CBMode>(mode))
+			 ->setCnt(cnt)
+			 ->setDelay(delay)
+			 ->setGP(cbgp);
 	};
 
 	void emitTask(CPBlock::GP& gp) {
 		auto t = m_workers->tQueue();
 		task *pTask = t->tm->getMem()->GP2LP<task>(gp);
 		if(pTask == nullptr) {
-			std::cerr << "task memory gp to lp failure" << std::endl;
+			std::cerr << "task memory gp to lp failure: in emitTask" << std::endl;
 			return;
 		}
 		if(!t->insert(pTask))

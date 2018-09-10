@@ -41,6 +41,7 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("getKey", &UsrtTaskAPI::getKey)
 		.def("newTask", &UsrtTaskAPI::newTask)
 		.def("emitTask", &UsrtTaskAPI::emitTask)
+		.def("setCallBack", &UsrtTaskAPI::setCallBack)
 	;
 }
 };

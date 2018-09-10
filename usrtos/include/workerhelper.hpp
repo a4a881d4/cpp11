@@ -9,6 +9,10 @@ struct WorkerHelper {
 	static void pushTask(UsrtWorkers *w, CPBlock::GP& t) {
 		UsrtWorkers::UsrtTask *q = w->tQueue();
 		task *pTask = w->G2L<task>(t);
+		if(t.id == q->tm->getMem()->getKey()) {
+			q->insert(pTask);
+			return;
+		};
 		if(pTask != nullptr) {
 			CPBlock::GP gp;
 			task *vgp = q->tm->newGP<task>(gp);

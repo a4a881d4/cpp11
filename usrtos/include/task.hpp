@@ -3,14 +3,23 @@
 #include <cpblock.hpp>
 
 namespace usrtos {
-enum CBMode { nocallback = 0, noarg, abss, me, obj, extwait, extmulti };
+enum CBMode { 
+	  nocallback = 0 ///< no callback
+	, noarg			 ///< no callback args
+	, abss			 ///< delay callback->delay us then exec immediately
+	, me 			 ///< relative ref delay callback->delay us
+	, obj 			 ///< add callback->delay us
+	, extwait 		 ///< dec the related task, if cnt == 0, wake up it
+	, extmulti 		 ///< emit multi task
+};
+
 typedef struct __callback_argv {
 	enum CBMode mode;
-	int delay;
-	int cnt;
+	int delay;		 ///< delay us
+	int cnt;		 ///< callback count, if count>0, emit callback task 
 	int argv;
-	void *workers;
-	CPBlock::GP gp;
+	void *workers; 	 ///< point to the workers
+	CPBlock::GP gp;	 ///< callback task gp
 	
 	__callback_argv *setMode(enum CBMode m) {
 		mode = m;
@@ -26,8 +35,11 @@ typedef struct __callback_argv {
 		cnt = c;
 		return this;
 	};
-
-	CPBlock::GP& getArgv() {
+	__callback_argv *setGP(CPBlock::GP& t) {
+		gp = t;
+		return this;
+	};
+	CPBlock::GP& getGP() {
 		return gp;
 	};
 

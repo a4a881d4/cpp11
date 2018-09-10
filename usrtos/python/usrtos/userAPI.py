@@ -17,7 +17,7 @@ class UserAPI(api):
 		"ExamplesArgvStr"
 	]
 	system = [
-		"capCallBackLunchTask"
+		"CallBackLunchTask"
 	]
 	def __init__(self,mdir):
 		api.__init__(self,mdir)
@@ -84,6 +84,13 @@ if option.k:
 
 if option.test:
 	k = aAPI.keys["ExamplesHelloWorld"]['k']
-	print(k)
-	gpTask = aAPI.newTask(k,8)
-	aAPI.emitTask(gpTask)
+	agpTask = aAPI.newTask(k,8)
+	bgpTask = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
+	aAPI.setCallBack(agpTask
+		, aAPI.keys["CallBackLunchTask"]['k']
+		, 1
+		, 2
+		, 10000000
+		, bgpTask
+		)
+	aAPI.emitTask(agpTask)

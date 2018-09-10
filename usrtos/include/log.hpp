@@ -47,7 +47,7 @@ public:
 					c--;
 				}
 				*o = '\0';
-				cstr[240]='\0';
+				cstr[239]='\0';
 				std::cout << l << "(" << str->s << "):" << cstr << std::endl; 
 			}
 		}
