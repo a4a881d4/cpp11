@@ -25,9 +25,19 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 		break;
 		case abss: {
 			pTask = w->G2L<task>(callback->gp);
-			pTask->noE = w->tQueue()->after(callback->delay);
-			pTask->noL = pTask->noE;
-			WorkerHelper::pushTask(w,callback->gp);
+			if(pTask == ref) {
+				CPBlock::GP gp;
+				pTask = WorkerHelper::copyUserTask(w,gp,*pTask);
+				pTask->noE = w->tQueue()->after(callback->delay);
+				pTask->noL = pTask->noE;
+				pTask->callbackargv.gp = gp;
+				WorkerHelper::pushTask(w,gp);
+			} 
+			else {
+				pTask->noE = w->tQueue()->after(callback->delay);
+				pTask->noL = pTask->noE;
+				WorkerHelper::pushTask(w,callback->gp);
+			}
 		}
 		break;
 		case me: {

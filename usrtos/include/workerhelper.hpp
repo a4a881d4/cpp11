@@ -6,7 +6,7 @@ using namespace usrtos;
 
 struct WorkerHelper {
 
-	static void pushTask(UsrtWorkers *w, CPBlock::GP& t) {
+	static void pushTask(UsrtWorkers *w, CPBlock::GP& t) { // must copy
 		UsrtWorkers::UsrtTask *q = w->tQueue();
 		task *pTask = w->G2L<task>(t);
 		if(t.id == q->tm->getMem()->getKey()) {
@@ -40,6 +40,18 @@ struct WorkerHelper {
 
 		if(pTask != nullptr) {
 			memset(pTask,0,sizeof(task));
+		}
+		return pTask;
+	};
+
+	static task *copyUserTask(UsrtWorkers *w, CPBlock::GP& t, task& src) { // in taskq->tm
+		task *pTask = w
+			->tQueue()
+			->tm
+			->newGP<task>(t);
+
+		if(pTask != nullptr) {
+			memcpy(pTask,&src,sizeof(task));
 		}
 		return pTask;
 	};

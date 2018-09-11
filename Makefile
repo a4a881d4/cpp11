@@ -155,3 +155,9 @@ $(UserLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@
 workers : $(WorkersInternalLibs)
 	
 examples : $(UserLibs)
+
+reworker : 
+	rm -f $(WorkersInternalLibs)
+	rm -f work/workers
+	make all
+	make workers

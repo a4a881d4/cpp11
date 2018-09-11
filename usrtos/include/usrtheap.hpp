@@ -110,15 +110,16 @@ public:
 	PointerType del(PointerType a)
 	{
 		PointerType ret = PointerType::Null();
+		USRT_SCOPED_LOCK(m_pa->heap_mutex);
 		if(m_pa->size == 0) 
 			return ret;
 
-		USRT_SCOPED_LOCK(m_pa->heap_mutex);
 		int i;
 		for(i = 0;i < m_pa->size;i++) {
 			if(a == m_pa->heap[i])
 				break;
 		}
+		
 		if(i != m_pa->size) {
 			m_pa->size--;
 			m_pa->heap[i]=m_pa->heap[m_pa->size];
@@ -176,7 +177,8 @@ public:
 		std::cout << "Mutex: " << m_pa->heap_mutex.value() << std::endl;
 		for( int i = 0;i < m_pa->size;i++ ) {
 			std::cout << "No " << i << ": "
-				<< KEY(m_pa->heap[i])
+				<< KEY(m_pa->heap[i]) << ": "
+				<< m_pa->heap[i]
 				<< std::endl;
 		}
 	};
@@ -198,13 +200,7 @@ public:
 		}
 	}
 	PointerType pop() {
-		auto p = m_pa->heap[0];
-		if(m_pa->size > 0) {
-			del(p);
-			return p;
-		}
-		else
-			return PointerType::Null();
+		return del(m_pa->heap[0]);
 	};
 	void unlock() {
 		m_pa->heap_mutex.unlock();

@@ -324,7 +324,7 @@ namespace usrtos {
 							}
 						}
 					}
-					else /*if( my->id==0)*/ {
+					else if( my->id==0) {
 						my->monitor.keeper++;
 						if(!(my->monitor.keeper&0xfffff)) {
 							std::stringstream s1;

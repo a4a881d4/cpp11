@@ -33,6 +33,12 @@ public:
 
 };
 
+inline std::ostream& operator<<(std::ostream& os,const OffsetPtr& h)
+{
+	os << h.p;
+	return os;
+};
+
 inline bool operator==(OffsetPtr a, OffsetPtr b) { return (a.p == b.p); };
 inline bool operator!=(OffsetPtr a, OffsetPtr b) { return (a.p != b.p); };
 
