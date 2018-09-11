@@ -27,5 +27,8 @@ public:
 			std::cerr << "miss log " << m_level << std::endl;
 		}
 	};
+	void put(std::string& s) {
+		m_log->put(s);
+	};
 };
 }; // namespace usrtos

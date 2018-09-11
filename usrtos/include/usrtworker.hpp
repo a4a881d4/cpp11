@@ -326,8 +326,12 @@ namespace usrtos {
 					}
 					else /*if( my->id==0)*/ {
 						my->monitor.keeper++;
-						// if(!(my->monitor.keeper&0xfffff))
-						// 	my->workers->SYSLOG("In Thread %d\n", my->id);
+						if(!(my->monitor.keeper&0xfffff)) {
+							std::stringstream s1;
+							s1 << "In Thread " << my->id << std::endl;
+							std::string ks = s1.str();
+							my->workers->SYSLOG.put(ks);
+						}
 						my->state=KEEPER;
 						bearer = my->workers->getBearerByKey(my->workers->keeperKey);
 						if(bearer != nullptr)

@@ -29,27 +29,37 @@ public:
 	    	Fifo<AT,END>::template push<logitem>(gb);
     	}
 	};
+	void put(std::string& s) {
+	    logitem *gb = Mem<AT>::template newLP<logitem>();
+	    int size = s.size();
+	    if(size > 240)
+	    	size = 240;
+	    	
+	    strncpy(gb->buf,s.c_str(),size-1);
+	    gb->buf[239] = '\0';
+	   	gb->s = s.size();
+	    Fifo<AT,END>::template push<logitem>(gb);
+    };
 	void init() { Fifo<AT,END>::local_reset(); };
 	logitem *getLog() { return Fifo<AT,END>::template local_get<logitem>(); };
 	void dump() {
 		int l = Fifo<AT,END>::local_len();
 		for(int i=0;i<l;i++) {
 			const logitem * str = getLog();
-			char cstr[240];
+			char cstr[256];
 			char *s = (char *)str->buf,*o = cstr;
 			int c = str->s;
-			if(c > 239) {
-				cout << "too long" << endl;
+			if(c > 240) {
+				cout << "too long " << c << endl;
+				c = 239;
 			}
-			else {
-				while(*s != '\0' && c > 0) {
-					*o++ = *s++;
-					c--;
-				}
-				*o = '\0';
-				cstr[239]='\0';
-				std::cout << l << "(" << str->s << "):" << cstr << std::endl; 
+			while(*s != '\0' && c > 0) {
+				*o++ = *s++;
+				c--;
 			}
+			*o = '\0';
+			cstr[239]='\0';
+			std::cout << l << "(" << str->s << "):" << cstr << std::endl; 
 		}
 	};
 };
