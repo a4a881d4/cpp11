@@ -135,5 +135,15 @@ public:
 		int *a = m_workers->G2L<int>(m_workers->G2L<task>(gpTask)->getArgv());
 		*a = k;
 	};
+
+	CPBlock::GP allocDepend(CPBlock::GP& gpTask, int cnt) {
+		auto t = new utask(m_workers);
+		return t->attach(gpTask)->allocDepend(cnt);
+	};
+
+	string dumpTask(CPBlock::GP& gpTask) {
+		auto t = new utask(m_workers);
+		return t->attach(gpTask)->dumpTask();
+	};
 };
 };

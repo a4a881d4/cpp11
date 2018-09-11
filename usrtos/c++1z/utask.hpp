@@ -78,7 +78,29 @@ public:
 		return pTask->getCallBackArgv()->gp;
 	};
 	
-}; // class pytask
+	CPBlock::GP allocDepend(int cnt) {
+		CPBlock::GP gp;
+		auto t = m_workers->m_memory->newGP<taskdependen>(gp);
+		auto pm = new(&(t->depend_mutex)) umutex;
+		pm->unlock();
+		t->count = cnt;
+		t->me = *pgpTask;
+		return gp; 
+	};
+
+	string dumpTask() {
+		stringstream s1;
+		s1 << pTask->key << " " << pTask->ID << endl
+		   << "noE: " << pTask->noE << " "
+		   << "noL: " << pTask->noL << " "
+		   << "valid: " << pTask->valid
+		   << endl 
+		   << "callback" << endl
+		   << *(pTask->getCallBackArgv())
+		   << endl;
+		return s1.str();  
+	};
+}; // class utask
 }; // namespace usrtos
 
 /*

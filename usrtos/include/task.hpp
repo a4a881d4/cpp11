@@ -46,6 +46,31 @@ public:
 		return gp;
 	};
 };
+
+static const char CallbackModeName[8][32] = {
+	  "nocallback"
+	, "noarg"
+	, "abss"
+	, "me"
+	, "obj"
+	, "extwait"
+	, "extmulti"
+};
+
+inline std::ostream& operator<<(std::ostream& os,const enum CBMode& mode) {
+	os << CallbackModeName[mode];
+	return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os,const CallBackArgv& argv)
+{
+	os << "mode: " << argv.mode 
+	   << "delay: " << argv.delay
+	   << "count: " << argv.cnt
+	   << "gp.size: " << argv.gp.objsize;
+	return os;
+}
+
 struct task {
 	int64 ID;
 	uuid key;

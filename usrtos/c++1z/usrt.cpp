@@ -45,6 +45,8 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("allocMulti", &UsrtTaskAPI::allocMulti)
 		.def("setMulti", &UsrtTaskAPI::setMulti)
 		.def("setIntArgv", &UsrtTaskAPI::setIntArgv)
+		.def("allocDepend", &UsrtTaskAPI::allocDepend)
+		.def("dumpTask", &UsrtTaskAPI::dumpTask)
 	;
 }
 };

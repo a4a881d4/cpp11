@@ -88,4 +88,10 @@ struct UsrtKey {
 		return stru1;
 	};
 };
+inline ostream& operator<<(ostream& os,const uuid& id)
+{
+	uuid a = id;
+	os << UsrtKey::key2string(a);
+	return os;
+}
 }; //namesapce usrtos

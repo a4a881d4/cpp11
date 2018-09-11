@@ -118,10 +118,20 @@ def main():
 			, 0
 			, mainTask
 			)
+		depTask = aAPI.newTask(k,8)
+		gpDepend = aAPI.allocDepend(depTask,n)
 		aAPI.allocMulti(mainTask,n)
 		for i in range(n):
 			other = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
-			aAPI.setIntArgv(other,i+16)
+			aAPI.setIntArgv(other,i+8)
+			aAPI.setCallBack(other
+			, aAPI.keys["CallBackLunchTask"]['k']
+			, 5
+			, 0
+			, 0
+			, gpDepend
+			)
+			print(aAPI.dumpTask(other))
 			aAPI.setMulti(mainTask,other,i)
 		aAPI.emitTask(mainTask)
 

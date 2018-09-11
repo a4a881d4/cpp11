@@ -61,18 +61,19 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 			WorkerHelper::pushTask(w,gp);
 		}
 		break;
-		case extwait: {
-			auto wait = w->G2L<struct taskdependen>(callback->gp);
-			size_t n = callback->gp.objsize/sizeof(struct taskdependen);
+		case extwait: { // callback gp stored taskdependen gp
+			CPBlock::GP *multi = w->G2L<CPBlock::GP>(callback->gp);
+			size_t n = callback->gp.objsize/sizeof(CPBlock::GP);
 			for(int i = 0;i < n;i++) {
+				auto wait = w->G2L<struct taskdependen>(multi[i]);
 				int cnt = 0;
 				{
-					uscoped_lock lock(wait[i].depend_mutex);
-					cnt = wait[i].count;
-					wait[i].count--;
+					USRT_SCOPED_LOCK(wait->depend_mutex);
+					cnt = wait->count;
+					wait->count--;
 				}
 				if(cnt <= 1) {
-					WorkerHelper::pushTask(w,wait[i].me);
+					WorkerHelper::pushTask(w,wait->me);
 				}
 			}
 		}
