@@ -323,10 +323,14 @@ namespace usrtos {
 								}
 							}
 						}
+						else {
+							std::string bug = std::string("bad cap key: ") + UsrtKey::key2string(capKey);
+							my->workers->SYSLOG.put(bug);
+						}
 					}
-					else if( my->id==0) {
+					else /*if( my->id==0)*/ {
 						my->monitor.keeper++;
-						if(!(my->monitor.keeper&0xfffff)) {
+						if(!(my->monitor.keeper&0xffffff)) {
 							std::stringstream s1;
 							s1 << "In Thread " << my->id << std::endl;
 							std::string ks = s1.str();

@@ -32,10 +32,10 @@ public:
 	void put(std::string& s) {
 	    logitem *gb = Mem<AT>::template newLP<logitem>();
 	    int size = s.size();
-	    if(size > 240)
-	    	size = 240;
+	    if(size > 239)
+	    	size = 239;
 	    	
-	    strncpy(gb->buf,s.c_str(),size-1);
+	    strncpy(gb->buf,s.c_str(),size);
 	    gb->buf[239] = '\0';
 	   	gb->s = s.size();
 	    Fifo<AT,END>::template push<logitem>(gb);

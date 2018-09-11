@@ -42,7 +42,7 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 		break;
 		case me: {
 			pTask = w->G2L<task>(callback->gp);
-			if( ref==nullptr ) 
+			if(ref == nullptr) 
 				ref=pTask;
 			pTask->noE = ref->noE + micro_type(callback->delay);
 			pTask->noL = ref->noL + micro_type(callback->delay);
@@ -50,10 +50,15 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 		}
 		break;
 		case obj: {
-			pTask = w->G2L<task>(callback->gp);
+			CPBlock::GP gp = callback->gp;
+			pTask = w->G2L<task>(gp);
+			if(pTask == ref) {
+				pTask = WorkerHelper::copyUserTask(w,gp,*pTask);
+				pTask->callbackargv.gp = gp;
+			}
 			pTask->noE += micro_type(callback->delay);
 			pTask->noL += micro_type(callback->delay);
-			WorkerHelper::pushTask(w,callback->gp);
+			WorkerHelper::pushTask(w,gp);
 		}
 		break;
 		case extwait: {
