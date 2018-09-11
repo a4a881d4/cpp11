@@ -1,7 +1,7 @@
 #pragma once
 
 #include <workerhelper.hpp>
-
+#include "utask.hpp"
 namespace usrtos {
 
 class UsrtTaskAPI {
@@ -102,16 +102,6 @@ public:
 			std::cerr << "insert by key with Int argv failure" << std::endl;
 	};
 	
-	void byKeyKey(std::string key, std::string k) {
-		CPBlock::GP gpTask;
-		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
-			-> setKey(UsrtKey::string2key(key));
-		CPBlock::GP& argv = pTask->getArgv();
-		uuid *a = m_workers->m_memory->newGP<uuid>(argv);
-		*a = UsrtKey::string2key(k);
-		m_workers->m_configFifo->push<task>(pTask);
-	};
 	void byKeyStr(std::string key, std::string k) {
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();
@@ -128,12 +118,22 @@ public:
 		if(!t->insert(pTask))
 			std::cerr << "insert by key with String argv failure" << std::endl;
 	};
-	void byKey(std::string key) {
-		CPBlock::GP gpTask;
-		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
-			-> setKey(UsrtKey::string2key(key));
-		m_workers->m_configFifo->push<task>(pTask);
+
+	void allocMulti(CPBlock::GP& gpTask, size_t n) {
+		auto t = new utask(m_workers);
+		m_workers->m_memory->newGP<CPBlock::GP>(t->attach(gpTask)->eximultiGP(),n);
+	};
+
+	void setMulti(CPBlock::GP& gpTask, CPBlock::GP& other, size_t i) {
+		auto t = new utask(m_workers);
+		CPBlock::GP *multi = m_workers->G2L<CPBlock::GP>(t->attach(gpTask)->eximultiGP());
+		multi[i] = other;
+	};
+
+	void setIntArgv(CPBlock::GP& gpTask, int k) {
+		auto t = new utask(m_workers);
+		int *a = m_workers->G2L<int>(m_workers->G2L<task>(gpTask)->getArgv());
+		*a = k;
 	};
 };
 };

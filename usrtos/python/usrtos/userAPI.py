@@ -50,6 +50,10 @@ def main():
 	                dest= "n",
 	                help= "integer agrv")
 
+	parse.add_option("-m", "--multi",
+	                dest= "multi",
+	                help= "multi callback")
+
 	parse.add_option("-s", "--string",
 	                dest= "str",
 	                help= "string agrv")
@@ -102,6 +106,24 @@ def main():
 			, agpTask
 			)
 		aAPI.emitTask(agpTask)
+
+	if option.multi:
+		k = aAPI.keys["ExamplesHelloWorld"]['k']
+		mainTask = aAPI.newTask(k,8)
+		n = int(option.multi)
+		aAPI.setCallBack(mainTask
+			, aAPI.keys["CallBackLunchTask"]['k']
+			, 6
+			, 0
+			, 0
+			, mainTask
+			)
+		aAPI.allocMulti(mainTask,n)
+		for i in range(n):
+			other = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
+			aAPI.setIntArgv(other,i+16)
+			aAPI.setMulti(mainTask,other,i)
+		aAPI.emitTask(mainTask)
 
 	if option.cap:
 		aCfg = config.Config(option.dir)

@@ -10,7 +10,13 @@ private:
 	UsrtWorkers *m_workers;
 	utask *next;
 public:
-	utask(UsrtWorkers *w) : m_workers(&w) {};
+	utask(UsrtWorkers *w) : m_workers(w) {};
+	utask *attach(CPBlock::GP& gpTask) {
+		pgpTask = &gpTask;
+		auto t = m_workers->tQueue();
+		pTask = t->tm->getMem()->GP2LP<task>(gpTask);
+		return this;
+	};
 	utask *newTask(uuid key, CPBlock::GP& gpTask) {
 		auto t = m_workers->tQueue();
 		pTask = WorkerHelper::newUserTask(m_workers,gpTask)
@@ -28,13 +34,14 @@ public:
 	};
 	
 	void emitTask() {
+		auto t = m_workers->tQueue();
 		if(!t->insert(pTask))
 			std::cerr << "emit task failure" << std::endl;
 	};
 	
 	utask* setTime(   utime_t ready
 					, utime_t deadline
-					, utime_t vaild
+					, utime_t valid
 					) {
 		pTask-> setReady(ready)
 			 -> setDeadline(deadline)
@@ -43,6 +50,7 @@ public:
 	};
 
 	utask* immediately() {
+		auto t = m_workers->tQueue();
 		pTask-> setReady(t->now())
 			 -> setDeadline(t->after(100))
 			 -> setValid(t->after(200));
@@ -64,6 +72,10 @@ public:
 			 ->setGP(cbgp);
 
 		return this;
+	};
+
+	CPBlock::GP& eximultiGP() {
+		return pTask->getCallBackArgv()->gp;
 	};
 	
 }; // class pytask
