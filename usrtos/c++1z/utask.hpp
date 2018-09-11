@@ -85,6 +85,7 @@ public:
 		pm->unlock();
 		t->count = cnt;
 		t->me = m_gp;
+		cout << *t <<endl;
 		return gp; 
 	};
 
