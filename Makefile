@@ -41,7 +41,8 @@ all:work/ptr_vector \
 	work/hello_ext.so \
 	work/usrtos.so \
 	work/bearer_test \
-	work/workers
+	work/workers \
+	work/dag_test
 
 
 
@@ -127,6 +128,12 @@ work/log_test:usrtos/c++1z/log_test.cpp
 work/bearer_test:usrtos/c++1z/bearer_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
+usrtos/c++1z/dag_test.cpp:usrtos/include/dag/nodes.hpp
+	touch usrtos/c++1z/dag_test.cpp
+
+work/dag_test:usrtos/c++1z/dag_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
 work/workers:usrtos/c++1z/workers.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
@@ -161,3 +168,7 @@ reworker :
 	rm -f work/workers
 	make all
 	make workers
+
+dag : work/dag_test
+	work/dag_test > work/gr.dot
+	dot work/gr.dot -Tpng -o work/gr.png
