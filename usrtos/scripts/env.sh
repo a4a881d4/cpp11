@@ -2,6 +2,7 @@
 sh usrtos/scripts/post-commit
 
 mkdir -p /tmp/usrtos
+rm /tmp/usrtos/*
 
 python3 usrtos/python/usrtos/layout.py usrtos/memory.json
 

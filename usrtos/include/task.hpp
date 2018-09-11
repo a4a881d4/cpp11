@@ -130,4 +130,12 @@ struct taskdependen {
 	umutex depend_mutex;
 	int count;
 };
+inline std::ostream& operator<<(std::ostream& os,const taskdependen& dep)
+{
+	os << "GP: " << dep.me.id 
+	   << "off: " << dep.me.offset
+	   << "count: " << dep.count
+	   << "gp.size: " << dep.me.objsize;
+	return os;
+}
 };

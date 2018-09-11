@@ -5,14 +5,14 @@
 namespace usrtos {
 class utask {
 private:
-	CPBlock::GP *pgpTask;
+	CPBlock::GP m_gp;
 	task *pTask;
 	UsrtWorkers *m_workers;
 	utask *next;
 public:
 	utask(UsrtWorkers *w) : m_workers(w) {};
 	utask *attach(CPBlock::GP& gpTask) {
-		pgpTask = &gpTask;
+		m_gp = gpTask;
 		auto t = m_workers->tQueue();
 		pTask = t->tm->getMem()->GP2LP<task>(gpTask);
 		return this;
@@ -22,7 +22,7 @@ public:
 		pTask = WorkerHelper::newUserTask(m_workers,gpTask)
 			-> setID(1)
 			-> setKey(key);
-		pgpTask = &gpTask;
+		m_gp = gpTask;
 		return this;
 	};
 	
@@ -84,7 +84,7 @@ public:
 		auto pm = new(&(t->depend_mutex)) umutex;
 		pm->unlock();
 		t->count = cnt;
-		t->me = *pgpTask;
+		t->me = m_gp;
 		return gp; 
 	};
 
@@ -97,7 +97,13 @@ public:
 		   << endl 
 		   << "callback" << endl
 		   << *(pTask->getCallBackArgv())
+		   << endl
+		   << "GP" << endl
+		   << "id: " << m_gp.id 
+		   << "off: " << m_gp.offset
+		   << "sz: " << m_gp.objsize
 		   << endl;
+
 		return s1.str();  
 	};
 }; // class utask
