@@ -96,7 +96,7 @@ def main():
 		bgpTask = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
 		aAPI.setCallBack(agpTask
 			, aAPI.keys["CallBackLunchTask"]['k']
-			, 4
+			, 1
 			, int(option.n)
 			, 1
 			, agpTask
