@@ -10,7 +10,8 @@ class UserAPI(api):
 		  "ExamplesHelloWorld"
 		]
 	withInt = [
-		"ExamplesArgvInt"
+		  "ExamplesArgvInt"
+		, "ExamplesIncInt"
 	]
 	withKey = [
 	]
@@ -90,7 +91,7 @@ def main():
 		aAPI.dumpKeys()
 
 	if option.test:
-		k = aAPI.keys["ExamplesHelloWorld"]['k']
+		k = aAPI.keys["ExamplesIncInt"]['k']
 		agpTask = aAPI.newTask(k,8)
 		bgpTask = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
 		aAPI.setCallBack(agpTask
@@ -105,7 +106,7 @@ def main():
 	if option.cap:
 		aCfg = config.Config(option.dir)
 		for cap in aAPI.keys:
-			print(aAPI.keys[cap]['k'])
+			print(cap,":",aAPI.keys[cap]['k'])
 			aCfg.done("SetCapByKey",aAPI.keys[cap]['k'])
 
 if __name__ == '__main__':

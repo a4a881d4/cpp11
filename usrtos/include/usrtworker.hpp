@@ -326,11 +326,11 @@ namespace usrtos {
 					}
 					else /*if( my->id==0)*/ {
 						my->monitor.keeper++;
-						if(!(my->monitor.keeper&0xfffff))
-							my->workers->SYSLOG("In Thread %d\n", my->id);
+						// if(!(my->monitor.keeper&0xfffff))
+						// 	my->workers->SYSLOG("In Thread %d\n", my->id);
 						my->state=KEEPER;
 						bearer = my->workers->getBearerByKey(my->workers->keeperKey);
-						if( bearer!=nullptr )
+						if(bearer != nullptr)
 							bearer->runLP(my);
 					}
 				}

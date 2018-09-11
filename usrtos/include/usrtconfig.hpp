@@ -1,3 +1,3 @@
 #pragma once
 
-#define USRT_MUTEX_DEBUG 1
+#define USRT_MUTEX_DEBUG 0
