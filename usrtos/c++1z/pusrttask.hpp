@@ -73,8 +73,7 @@ public:
 		auto t = m_workers->tQueue();
 		task *pTask = t->tm->getMem()->GP2LP<task>(gp);
 		if(pTask == nullptr) {
-			std::cerr << "task memory gp to lp failure: in emitTask" << std::endl;
-			return;
+			return string("task memory gp to lp failure: in emitTask");
 		}
 		stringstream ss;
 		std::string ks = UserHelper::dumpMem(static_cast<void*>(pTask),sizeof(task));
@@ -84,8 +83,9 @@ public:
 			ss << " gp " << std::endl 
 					  << ks << std::endl;
 		if(!t->insert(pTask))
-			std::cerr << "emit task failure" << std::endl;
-		return move(ss.str());
+			ss << "emit task failure" << std::endl;
+		string r = ss.str();
+		return r;
 	};
 
 	void byKeyInt(std::string key, int k) {
