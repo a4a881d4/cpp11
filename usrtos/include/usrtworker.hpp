@@ -330,7 +330,7 @@ namespace usrtos {
 					}
 					else /*if( my->id==0)*/ {
 						my->monitor.keeper++;
-						if(!(my->monitor.keeper&0xffffff)) {
+						if(!(my->monitor.keeper&0xfffffff)) {
 							std::stringstream s1;
 							s1 << "In Thread " << my->id << std::endl;
 							std::string ks = s1.str();

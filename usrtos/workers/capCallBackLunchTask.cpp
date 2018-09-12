@@ -72,10 +72,10 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 					cnt = wait->count;
 					wait->count--;
 				}
-				stringstream s1;
-				s1 << cnt << " " << *wait;
-				string s = s1.str();
-				w->SYSLOG.put(s);
+				// stringstream s1;
+				// s1 << cnt << " " << *wait;
+				// string s = s1.str();
+				// w->SYSLOG.put(s);
 				if(cnt <= 1) {
 					auto p = w->G2L<task>(wait->me);
 					w->tQueue()->dumpTask(*p);

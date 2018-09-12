@@ -85,9 +85,6 @@ public:
 		pm->unlock();
 		t->count = cnt;
 		t->me = m_gp;
-		cout << "depend: " << endl;
-		cout << *t << endl;
-		cout << endl;
 		return gp; 
 	};
 
@@ -112,8 +109,3 @@ public:
 }; // class utask
 }; // namespace usrtos
 
-/*
-callback chain
-A->B->C->D->E
-agp->callback_argv->gp
-*/

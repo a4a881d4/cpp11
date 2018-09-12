@@ -69,21 +69,23 @@ public:
 			 ->setGP(cbgp);
 	};
 
-	void emitTask(CPBlock::GP& gp) {
+	string emitTask(CPBlock::GP& gp) {
 		auto t = m_workers->tQueue();
 		task *pTask = t->tm->getMem()->GP2LP<task>(gp);
 		if(pTask == nullptr) {
 			std::cerr << "task memory gp to lp failure: in emitTask" << std::endl;
 			return;
 		}
+		stringstream ss;
 		std::string ks = UserHelper::dumpMem(static_cast<void*>(pTask),sizeof(task));
-			std::cout << " emit " << std::endl 
+			ss << " emit " << std::endl 
 					  << ks << std::endl;
 		ks = UserHelper::dumpMem(static_cast<void*>(&gp),sizeof(CPBlock::GP));
-			std::cout << " gp " << std::endl 
+			ss << " gp " << std::endl 
 					  << ks << std::endl;
 		if(!t->insert(pTask))
 			std::cerr << "emit task failure" << std::endl;
+		return move(ss.str());
 	};
 
 	void byKeyInt(std::string key, int k) {
