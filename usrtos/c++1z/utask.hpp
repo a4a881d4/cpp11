@@ -85,7 +85,9 @@ public:
 		pm->unlock();
 		t->count = cnt;
 		t->me = m_gp;
-		cout << *t <<endl;
+		cout << "depend: " << endl;
+		cout << *t << endl;
+		cout << endl;
 		return gp; 
 	};
 
@@ -97,12 +99,12 @@ public:
 		   << "valid: " << pTask->valid
 		   << endl 
 		   << "callback" << endl
-		   << *(pTask->getCallBackArgv())
+		   << *(pTask->getCallBackArgv()) << " "
 		   << endl
 		   << "GP" << endl
-		   << "id: " << m_gp.id 
-		   << "off: " << m_gp.offset
-		   << "sz: " << m_gp.objsize
+		   << "id: " << m_gp.id  << " "
+		   << "off: " << m_gp.offset << " "
+		   << "sz: " << m_gp.objsize << " "
 		   << endl;
 
 		return s1.str();  

@@ -126,7 +126,6 @@ def main():
 		for i in range(n):
 			other = aAPI.newTask(aAPI.keys["ExamplesArgvInt"]['k'],8)
 			aAPI.setIntArgv(other,i+8)
-			aAPI.allocMulti(other,1)
 			aAPI.setCallBack(other
 				, aAPI.keys["CallBackLunchTask"]['k']
 				, 5
@@ -134,6 +133,7 @@ def main():
 				, 0
 				, gpDepend
 			)
+			aAPI.allocMulti(other,1)
 			aAPI.setMulti(other,gpDepend,0)
 			# print(aAPI.dumpTask(other))
 			aAPI.setMulti(mainTask,other,i)
