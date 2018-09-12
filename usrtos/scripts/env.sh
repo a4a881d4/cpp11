@@ -1,6 +1,7 @@
 #!/bin/sh
 sh usrtos/scripts/post-commit
 
+mkdir work
 mkdir -p /tmp/usrtos
 rm /tmp/usrtos/*
 
