@@ -4,64 +4,79 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <stdint.h>
+#include "BasicTypes.h"
+#include <gp.hpp>
+
+using namespace boost::uuids
 
 namespace usrtos {
 namespace vm {
-typedef uint8_t nop_t;
-typedef uint8_t num_t;
-typedef uint8_t op_t;
-typedef uint8_t regN_t;
-typedef uint32_t memSZ_t;
-typedef uint64_t memNOff_t;
-typedef uint16_t memSOff_t;
-typedef boost::uuids::uuid memid_t;
 
-struct _load_imm {  ///< load imm gp address
-	memid_t id;
-	memNOff_t off;
-	memSZ_t objsize;
-	nop_t nop[2];
-	regN_t reg;
-	op_t op;
+enum opnum { 
+	  zero = 0
+	, unary
+	, binary
+	, ternary 
 };
 
-union regAndSize {
-	struct _op {
-		byte s3z[3];
-		regN_t r;
-	} subRSZ;
-	uint32_t RSZ;
-	size_t getSZ() {
-		return static_cast<size_t>((RSZ>>8)&0xfff);
-	};
-	regN_t getRN() {
-		return subRSZ.r;
-	};
+enum optype { 
+	  sz08
+	, sz16
+	, sz32
+	, sz64
 };
 
-struct _alloc_mem { ///< alloc gp mem and save point into reg
-	regAndSize sub[7];
-	nop_t nop[2];
-	num_t num;
-	op_t op;
+enum opcode = {
+	  setseg = 0x00 ///< binary op1 -> segnum<sz08>, op2 -> uuid<sz08> 
+	, allocm = 0x10 ///< ternary op1 -> segnum<sz08>, op2 -> regnum<sz08> 
+					///< op3 -> size<sz08,sz16,sz32,sz64>
+	, savegp = 0x20 ///< gp
+					///< ternary op1(address) -> regnum<sz08>, op2 -> offset<sz08,sz16> 
+					///< op3(content) -> regnum<sz08>
+					///< binary op1(address) -> regnum<sz08>, op2(content) -> regnum<sz08>
+	, savelp = 0x21 ///< lp	same as above			
+	, savevl = 0x22 ///< vl	same as above			
+	, loadgp = 0x30 ///< gp
+					///< ternary op1(address) -> regnum<sz08>, op2 -> offset<sz08,sz16> 
+					///< op3(dest) -> regnum<sz08>
+					///< binary op1(address) -> regnum<sz08>, op2(dest) -> regnum<sz08>
+	, loadlp = 0x31 ///< lp	same as above			
+	, loadvl = 0x32 ///< vl	same as above			
+	, immeid = 0x40 ///< gp.id binary op1 -> regnum<sz08>, op2 -> uuid<sz08>
+	, immeos = 0x41 ///< gp.offset binary op1 -> regnum<sz08>, op2 -> offset<sz08,sz16,sz32,sz64>
+	, immesz = 0x42 ///< gp.objsize binary op1 -> regnum<sz08>, op2 -> size<sz08,sz16,sz32,sz64>
+	, immevl = 0x43 ///< value binary op1 -> regnum<sz08>, op2 -> size<sz08,sz16,sz32,sz64>
+	, immelp = 0x44 ///< lp binary op1 -> regnum<sz08>, op2 -> void *<sz64>
+	, selfrd = 0x50 ///< unary op1 -> regnum<sz08>
+					///< binary op1 -> regnum<sz08>, op2 -> offset<sz08,sz16,sz32,sz64>
+	, selfwr = 0x51 ///< unary op1 -> regnum<sz08>
+					///< binary op1 -> regnum<sz08>, op2 -> offset<sz08,sz16,sz32,sz64>
+	, selfst = 0x52 ///< unary op1 -> regnum<sz08>
+					///< binary op1 -> regnum<sz08>, op2 -> offset<sz08,sz16,sz32,sz64>
+	, selfgl = 0x53 ///< unary op1 -> regnum<sz08>
+	, selflg = 0x54 ///< unary op1 -> regnum<sz08>
+	, pushxx = 0x60 ///< binary op1 -> regnum<sz08>, op2 -> segnum<sz08>
+	, callcp = 0x70 ///< binary op1(argv) -> regnum<sz08>, op2 -> uuid<sz08>
+	, movegp = 0x80 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
+	, movelp = 0x81 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
+	, movevl = 0x82 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
+	, movesz = 0x83 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 };
 
-union AOffB {
-	struct _op {
-		memLOff off;
-		regN_t rA;
-		regN_t rB;
-	} subAOB;
-	uint32_t AOB;
+enum segment = {
+	  task = 0x0
+	, temp = 0x1
+	, log0 = 0x2
+	, log1
+	, log2
+	, log3
+	, log4
+	, log5
 };
 
-struct _load_gp { ///< load rA + offset gp to rB
-	AOffB sub[7];
-	nop_t nop[2];
-	num_t num;
-	op_t op;			
-};
+template<int c>
+class opfunc {
 
+}
 };
 };
