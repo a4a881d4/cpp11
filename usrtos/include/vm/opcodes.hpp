@@ -27,7 +27,7 @@ enum optype {
 };
 
 enum opcode = {
-	  setseg = 0x00 ///< binary op1 -> segnum<sz08>, op2 -> uuid<sz08> 
+	  setseg = 0x02 ///< binary op1 -> segnum<sz08>, op2 -> uuid<sz08> 
 	, allocm = 0x10 ///< ternary op1 -> segnum<sz08>, op2 -> regnum<sz08> 
 					///< op3 -> size<sz08,sz16,sz32,sz64>
 	, savegp = 0x20 ///< gp
@@ -62,6 +62,18 @@ enum opcode = {
 	, movevl = 0x82 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 	, movesz = 0x83 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 };
+#define ENUM_NONCONTROL_NONPARAMETRIC_OPERATORS(visitOp) \
+		visitOp(0x01,nop,"nop",NoImm,NULLARY(none)) \
+		\
+		visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID)) \
+		visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x22,savevl,"save_value",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x30,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x31,savelp,"save_local_pointer",TERNARY(U8,U8,ANYSIZE)) \
+		visitOp(0x32,savevl,"save_value",TERNARY(U8,U8,ANYSIZE)) \
+
 
 enum segment = {
 	  task = 0x0
@@ -74,9 +86,5 @@ enum segment = {
 	, log5
 };
 
-template<int c>
-class opfunc {
-
-}
 };
 };
