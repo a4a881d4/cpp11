@@ -5,11 +5,105 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "BasicTypes.h"
+#include <vector>
 
 using namespace boost::uuids;
 #include <gp.hpp>
 
 namespace usrtos{ namespace vm{
+typedef uuid UUID;
+
+struct ANYTYPE {
+	enum class ValueType : U8 {
+		  i8
+		, u8
+		, i16
+		, u16
+		, i32
+		, u32
+		, i64
+		, u64
+		, f32
+		, f64
+		, v128
+		, id
+	};
+
+	ValueType type;
+	U8* pvalue;
+
+	template<typename ostream>
+	put(ostream& os) {
+		U8 *head = os.advance(sizeof(ValueType));
+		*head = static_cast<U8>(type);
+		switch(type) {
+			case i8:
+			case u8: {
+				memcpy(os.advance(1),pvalue,1);
+				break;
+			}
+			case i16:
+			case u16: {
+				memcpy(os.advance(2),pvalue,2);
+				break;
+			}
+			case i32:
+			case u32:
+			case f32: {
+				memcpy(os.advance(4),pvalue,4);
+				break;
+			}
+			case i64:
+			case u64:
+			case f64: {
+				memcpy(os.advance(8),pvalue,8);
+				break;
+			}
+			case id:
+			case v128: {
+				memcpy(os.advance(16),pvalue,16);
+				break;
+			}
+			default:
+				break;
+		}
+	};
+	template<typename istream>
+	get(istream& is) {
+
+	}
+	ANYTYPE(U8& i) : type(u8) , pvalue(&i) {};
+	ANYTYPE(U16& i) : type(u16) , pvalue(static_cast<U8*>(&i)) {};
+	ANYTYPE(U32& i) : type(u32) , pvalue(static_cast<U8*>(&i)) {};
+	ANYTYPE(U64& i) : type(u64) , pvalue(static_cast<U8*>(&i)) {};
+	ANYTYPE(UUID& i) : type(id) , pvalue(static_cast<U8*>(&i)) {};
+	ANYTYPE() {};
+	ANYTYPE& operator()(U64& x) {
+		type = u64;
+		pvalue = static_cast<U8*>(&x);
+		return *this;
+	};
+	ANYTYPE& operator()(U32& x) {
+		type = u32;
+		pvalue = static_cast<U8*>(&x);
+		return *this;
+	};
+	ANYTYPE& operator()(U16& x) {
+		type = u16;
+		pvalue = static_cast<U8*>(&x);
+		return *this;
+	};
+	ANYTYPE& operator()(U8& x) {
+		type = u8;
+		pvalue = &x;
+		return *this;
+	};
+	ANYTYPE& operator()(UUID& x) {
+		type = id;
+		pvalue = static_cast<U8*>(&x);
+		return *this;
+	};
+}
 
 enum opnum { 
 	  zero = 0
@@ -71,20 +165,20 @@ enum opcode {
 	\
 	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID)) \
 	\
-	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYSIZE)) \
+	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYTYPE)) \
 	\
-	visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYSIZE)) \
-	visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYSIZE)) \
-	visitOp(0x22,savevl,"save_value",TERNARY(U8,U8,ANYSIZE)) \
+	visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x22,savevl,"save_value",TERNARY(U8,U8,ANYTYPE)) \
 	\
-	visitOp(0x30,loadgp,"load_globe_pointer",TERNARY(U8,U8,ANYSIZE)) \
-	visitOp(0x31,loadlp,"load_local_pointer",TERNARY(U8,U8,ANYSIZE)) \
-	visitOp(0x32,loadvl,"load_value",TERNARY(U8,U8,ANYSIZE)) \
+	visitOp(0x30,loadgp,"load_globe_pointer",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x31,loadlp,"load_local_pointer",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x32,loadvl,"load_value",TERNARY(U8,U8,ANYTYPE)) \
 	\
 	visitOp(0x40,immeid,"set_gp.id",BINARY(U8,UUID)) \
-	visitOp(0x41,immeos,"set_gp.offset",BINARY(U8,ANYSIZE)) \
-	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYSIZE)) \
-	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYSIZE)) \
+	visitOp(0x41,immeos,"set_gp.offset",BINARY(U8,ANYTYPE)) \
+	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYTYPE)) \
+	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYTYPE)) \
 	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,U64)) \
 	\
 	visitOp(0x50,selfrd,"self_read",UNARY(U8)) \
@@ -93,9 +187,9 @@ enum opcode {
 	visitOp(0x53,selfgl,"self_gp2lp",UNARY(U8)) \
 	visitOp(0x54,selflg,"self_lp2gp",UNARY(U8)) \
 	\
-	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYSIZE)) \
-	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYSIZE)) \
-	visitOp(0x5a,selfso,"self_set_with_offset",TERNARY(U8,U8,ANYSIZE)) \
+	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYTYPE)) \
+	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYTYPE)) \
+	visitOp(0x5a,selfso,"self_set_with_offset",TERNARY(U8,U8,ANYTYPE)) \
 	\
 	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8)) \
 	\
@@ -105,7 +199,7 @@ enum opcode {
 	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8)) \
 	visitOp(0x82,movevl,"move_vl_fromAtoB",BINARY(U8,U8)) \
 	visitOp(0x83,movesz,"move_sz_fromAtoB",BINARY(U8,U8)) \
-	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8)) \
+	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8)) 
 	
 		
 #define ENUM_NONCONTROL_OPERATORS(visitOp) \
@@ -142,5 +236,42 @@ enum segment {
 	, log4
 	, log5
 };
+struct OperatorDecoderStream {
+	OperatorDecoderStream(const std::vector<U8>& codeBytes)
+	: nextByte(codeBytes.data()), end(codeBytes.data()+codeBytes.size()) {}
 
+	operator bool() const { return nextByte < end; }
+
+	template<typename Visitor>
+	typename Visitor::Result decodeOp(Visitor& visitor) {
+		Opcode opcode = *(Opcode*)nextByte;
+		switch(opcode) {
+		#define VISIT_OPCODE(opcode,name,nameString,Imm,...) \
+			case Opcode::name: { \
+				OpcodeAndImm<Imm>* encodedOperator = (OpcodeAndImm<Imm>*)nextByte; \
+				nextByte += sizeof(OpcodeAndImm<Imm>); \
+				return visitor.name(encodedOperator->imm); \
+			}
+		ENUM_OPERATORS(VISIT_OPCODE)
+		#undef VISIT_OPCODE
+		default:
+			nextByte += sizeof(Opcode);
+			return visitor.unknown(opcode);
+		}
+	}
+
+	template<typename Visitor>
+	typename Visitor::Result decodeOpWithoutConsume(Visitor& visitor)
+	{
+		const U8* savedNextByte = nextByte;
+		typename Visitor::Result result = decodeOp(visitor);
+		nextByte = savedNextByte;
+		return result;
+	}
+
+private:
+
+	const U8* nextByte;
+	const U8* end;
+};
 }} // namespace
