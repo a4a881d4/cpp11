@@ -211,7 +211,7 @@ namespace usrtos {
 			};
 			uuid getMemKey(string name) {
 				auto it = m_memName.find(name);
-				return it->second->getKey();
+				return it->second;
 			};
 			UsrtTask *tQueue() { 
 				return m_taskq; 

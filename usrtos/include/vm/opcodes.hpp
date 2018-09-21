@@ -4,15 +4,18 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include "BasicTypes.h"
+#include <vm/BasicTypes.h>
+#include <vm/regs.hpp>
 #include <vector>
 #include <tuple>
 
+
+
 using namespace boost::uuids;
 #include <gp.hpp>
+#include <usrtworker.hpp>
 
 namespace usrtos{ namespace vm{
-typedef uuid UUID;
 
 enum opnum { 
 	  zero = 0
@@ -148,20 +151,11 @@ inline const char* asString(Opcode c) {
 	}
 };
 
-enum class segment : U8 {
-	  task = 0x0
-	, temp = 0x1
-	, log0 = 0x2
-	, log1
-	, log2
-	, log3
-	, log4
-	, log5
-};
+
 
 struct OperatorStream {
 	OperatorStream(const std::vector<U8>& codeBytes)
-	: nextByte(codeBytes.data()), end(codeBytes.data()+codeBytes.size()) {}
+	: nextByte((U8*)codeBytes.data()), end(codeBytes.data()+codeBytes.size()) {}
 
 	operator bool() const { return nextByte < end; }
 
@@ -174,23 +168,62 @@ struct OperatorStream {
 		return r;
 	};
 
+	template<typename T>
+	T* get() {
+		return (T*)(advance(sizeof(T)));
+	};
+
+	
+	// template<typename T>
+	// std::tuple<T> tget<T>() {
+	// 	T a;
+	// 	a = *(get<T>());
+	// 	return make_tuple(a);
+	// };
+
 private:
 
-	const U8* nextByte;
+	U8* nextByte;
 	const U8* end;
+};
+
+template<size_t N, typename T0, typename ...other>
+struct TGet {
+	TGet(OperatorStream& s) : is(s) {};
+	typedef std::tuple<T0,other...> resultType;
+	resultType tget() {
+		T0 a;
+		a = *(is.get<T0>());
+		return std::tuple_cat(make_tuple(a),TGet<N-1,other...>(is).tget());
+	};
+private:
+	OperatorStream& is;
+};
+
+template <size_t 1, typename T>
+struct  TGet<1,T> {
+	TGet(OperatorStream& s) : is(s) {};
+	typedef std::tuple<T> resultType;
+	resultType tget() {
+		T a;
+		a = *(is.get<T>());
+		return make_tuple(a);
+	};
+private:
+	OperatorStream& is;
 };
 
 struct VMContext {
 	VMContext(UsrtWorkers& w) {
 		workers = &w;
-		rfile.setSeg(segment::task, w->getMemKey("taskq"))
-			 .setSeg(segment::temp, w->getMemKey("memory"))
-			 .setSeg(segment::log0, w->getMemKey("log0"))
-			 .setSeg(segment::log1, w->getMemKey("log1"))
-			 .setSeg(segment::log2, w->getMemKey("log2"))
-			 .setSeg(segment::log3, w->getMemKey("log3"))
-			 .setSeg(segment::log4, w->getMemKey("log4"))
-			 .setSeg(segment::log5, w->getMemKey("log5"))
+		rfile.setSeg(segment::task, workers->getMemKey("taskq"))
+			 .setSeg(segment::temp, workers->getMemKey("memory"))
+			 .setSeg(segment::log0, workers->getMemKey("log0"))
+			 .setSeg(segment::log1, workers->getMemKey("log1"))
+			 .setSeg(segment::log2, workers->getMemKey("log2"))
+			 .setSeg(segment::log3, workers->getMemKey("log3"))
+			 .setSeg(segment::log4, workers->getMemKey("log4"))
+			 .setSeg(segment::log5, workers->getMemKey("log5"))
 			 ;
 	};
 	RegFile<256> rfile;
@@ -200,14 +233,14 @@ struct VMContext {
 struct JITVisitor {
 	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
 	void nop() {};
-	void setseg(U8 s, UUID& id) {
-		ctx->rfile.setSeg(s,id);
+	void setseg(U8 s, UUID id) {
+		ctx->rfile.setSeg((segment)s,std::move(id));
 	};
 	void allocm(U8 s, U8 r, size_t sz) {
 		if(ctx->rfile.mem[s] == nullptr) {
 			ctx->rfile.mem[s] = ctx->workers
-				.bindBlockByKey<Layout::UsrtMem>(
-					ctx->rfile.seg[i]);
+				->bindBlockByKey<Layout::UsrtMem>(
+					ctx->rfile.seg[s]);
 		}
 		Reg& R = ctx->rfile.reg[r];
 		R.lp = ctx->rfile.mem[s]
@@ -216,38 +249,38 @@ struct JITVisitor {
 	void loadgp(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		memcpy(&(Ra.gp),p,sizeof(Ra.gp));
 	};
 	void loadlp(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		memcpy(&(Ra.lp),p,sizeof(void*));
 	};
 	void loadvl(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		auto sz = Ra.value.size();
 		memcpy(Ra.value.pvalue,p,sz);
 	};
 	void savegp(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		memcpy(p,&(Ra.gp),sizeof(Ra.gp));
 	};
 	void savelp(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		memcpy(p,&(Ra.lp),sizeof(void*));
 	};
 	void savevl(U8 ra, U8 rb, size_t offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>Rb.lp)+offset;
+		char *p = (static_cast<char*>(Rb.lp))+offset;
 		auto sz = Ra.value.size();
 		memcpy(p,Ra.value.pvalue,sz);
 	};
@@ -269,7 +302,7 @@ struct JITVisitor {
 	};
 	void immelp(U8 r, size_t p) {
 		Reg& R = ctx->rfile.reg[r];
-		R.lp = static_cast<void*>(p);
+		R.lp = (void*)(p);
 	};
 	void selfrd(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -297,16 +330,16 @@ struct JITVisitor {
 	void selfro(U8 r, size_t off) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
-		memcpy(R.value.pvalue,R.lp+off,sz);	
+		memcpy(R.value.pvalue,R.addOff(off),sz);	
 	};
 	void selfwo(U8 r, size_t off) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
-		memcpy(R.lp+off,R.value.pvalue,sz);	
+		memcpy(R.addOff(off),R.value.pvalue,sz);	
 	};
 	void selfso(U8 r, size_t off) {
 		Reg& R = ctx->rfile.reg[r];
-		auto pm = new(R.lp+off) umutex;
+		auto pm = new(R.addOff(off)) umutex;
 		pm->unlock();
 	};
 	void pushof(U8 r) {
@@ -353,10 +386,8 @@ struct JITVisitor {
 		Rb.value();
 		Rb.value(Ra.value);
 	};
-
+private:
+	VMContext* ctx;
 };
-struct JIT {
-
-}
 
 }} // namespace

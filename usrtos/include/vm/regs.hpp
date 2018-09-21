@@ -5,12 +5,15 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "BasicTypes.h"
+#include <layout.hpp>
 #include <gp.hpp>
 
-using namespace boost::uuids
+using namespace boost::uuids;
 
-namespace usrtos {
-namespace vm {
+namespace usrtos{ namespace vm{
+
+typedef uuid UUID;
+
 struct ANYTYPE {
 	enum class ValueType : U8 {
 		  none
@@ -34,19 +37,19 @@ struct ANYTYPE {
 
 	size_t size() {
 		switch(type) {
-			case none: return 0;
-			case  i8:
-			case  u8: return 1;
-			case i16:
-			case u16: return 2;
-			case i32:
-			case u32:
-			case f32: return 4;
-			case i64:
-			case u64:
-			case f64: return 8;
-			case v128:
-			case  id: return 16;
+			case ValueType::none: return 0;
+			case ValueType::i8:
+			case ValueType::u8: return 1;
+			case ValueType::i16:
+			case ValueType::u16: return 2;
+			case ValueType::i32:
+			case ValueType::u32:
+			case ValueType::f32: return 4;
+			case ValueType::i64:
+			case ValueType::u64:
+			case ValueType::f64: return 8;
+			case ValueType::v128:
+			case ValueType::id: return 16;
 			default: return 0;
 		}
 	};
@@ -71,44 +74,44 @@ struct ANYTYPE {
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
-	size_t operator=() {
-		return toOffset();
-	};
-	ANYTYPE(U8& i) : type(u8) , pvalue(&i) {};
-	ANYTYPE(U16& i) : type(u16) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(U32& i) : type(u32) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(U64& i) : type(u64) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(UUID& i) : type(id) , pvalue(static_cast<U8*>(&i)) {};
+	// size_t operator=() {
+	// 	return toOffset();
+	// };
+	ANYTYPE(U8& i) : type(ValueType::u8) , pvalue(&i) {};
+	ANYTYPE(U16& i) : type(ValueType::u16) , pvalue((U8*)(&i)) {};
+	ANYTYPE(U32& i) : type(ValueType::u32) , pvalue((U8*)(&i)) {};
+	ANYTYPE(U64& i) : type(ValueType::u64) , pvalue((U8*)(&i)) {};
+	ANYTYPE(UUID& i) : type(ValueType::id) , pvalue((U8*)(&i)) {};
 	ANYTYPE() { pvalue = &buf[0]; };
 	ANYTYPE& operator()(U64& x) {
-		type = u64;
-		pvalue = static_cast<U8*>(&x);
+		type = ValueType::u64;
+		pvalue = (U8*)(&x);
 		return *this;
 	};
 	ANYTYPE& operator()(U32& x) {
-		type = u32;
-		pvalue = static_cast<U8*>(&x);
+		type = ValueType::u32;
+		pvalue = (U8*)(&x);
 		return *this;
 	};
 	ANYTYPE& operator()(U16& x) {
-		type = u16;
-		pvalue = static_cast<U8*>(&x);
+		type = ValueType::u16;
+		pvalue = (U8*)(&x);
 		return *this;
 	};
 	ANYTYPE& operator()(U8& x) {
-		type = u8;
+		type = ValueType::u8;
 		pvalue = &x;
 		return *this;
 	};
 	ANYTYPE& operator()(UUID& x) {
-		type = id;
-		pvalue = static_cast<U8*>(&x);
+		type = ValueType::id;
+		pvalue = (U8*)(&x);
 		return *this;
 	};
 	ANYTYPE& operator()(ANYTYPE& x) {
-		type = id;
-		sz = x.size();
-		memcpy(pvalue,x/pvalue,sz);
+		type = x.type;
+		auto sz = x.size();
+		memcpy(pvalue,x.pvalue,sz);
 		return *this;
 	};
 	ANYTYPE& operator()() {
@@ -141,16 +144,31 @@ struct Reg {
 	_globe_pointer& getGP() {
 		return gp;
 	};
+	void *addOff(size_t off) {
+		char *p = static_cast<char*>(lp);
+		return static_cast<void*>(p+off);
+	};
+};
+
+enum class segment : U8 {
+	  task = 0x0
+	, temp = 0x1
+	, log0 = 0x2
+	, log1
+	, log2
+	, log3
+	, log4
+	, log5
 };
 
 template<int SZ>
 struct RegFile {
-	reg r[SZ];
+	Reg  reg[SZ];
 	uuid seg[SZ];
-	UsrtMem *mem[SZ];
-	RegFile& setSeg(int i, uuid& id) {
-		seg[i] = id;
-		mem[i] = nullptr;
+	Layout::UsrtMem *mem[SZ];
+	RegFile& setSeg(segment i, uuid&& id) {
+		seg[(size_t)i] = id;
+		mem[(size_t)i] = nullptr;
 		return *this;
 	};
 };
