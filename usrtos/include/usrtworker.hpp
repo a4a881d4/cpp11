@@ -87,6 +87,33 @@ namespace usrtos {
 					dumpThread( tids[i] );
 				m_taskq->dumpHeap();
 			};
+
+			template<typename T>
+			T* bindBlock(string name) {
+					auto it = m_memName.find(name);
+					T *r;
+					if(it != m_memName.end() ) {
+						r = new T(*(m_blocks[it->second]));
+					}
+					else {
+						cerr << "bind block " << name << " failure" << endl;
+						r = nullptr;
+					}
+					return r;
+			};
+			template<typename T>
+			T* bindBlockByKey(uuid id) {
+					auto it = m_blocks.find(id);
+					T *r;
+					if(it != m_blocks.end() ) {
+						r = new T(*(it->second));
+					}
+					else {
+						cerr << "bind block by key " << id << " failure" << endl;
+						r = nullptr;
+					}
+					return r;
+			};
 		private:
 			uuid keeperKey;
 			map<uuid,UsrtCapabilityBearer *> caps;
@@ -136,19 +163,6 @@ namespace usrtos {
 				pthread_create(&(tids[k]->tid), NULL, UsrtWorkers::worker, tids[k]);
 				return k;
 			};
-			template<typename T>
-			T* bindBlock(string name) {
-					auto it = m_memName.find(name);
-					T *r;
-					if(it != m_memName.end() ) {
-						r = new T(*(m_blocks[it->second]));
-					}
-					else {
-						cerr << "bind block " << name << " failure" << endl;
-						r = nullptr;
-					}
-					return r;
-			};
 		public:
 			typedef TaskHeap UsrtTask;
 
@@ -195,7 +209,10 @@ namespace usrtos {
 				FATAL	= LogLevel(*m_logs,5);
 				ctx.workers = this;
 			};
-
+			uuid getMemKey(string name) {
+				auto it = m_memName.find(name);
+				return it->second->getKey();
+			};
 			UsrtTask *tQueue() { 
 				return m_taskq; 
 			};

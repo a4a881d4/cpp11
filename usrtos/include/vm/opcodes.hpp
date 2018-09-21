@@ -13,97 +13,6 @@ using namespace boost::uuids;
 namespace usrtos{ namespace vm{
 typedef uuid UUID;
 
-struct ANYTYPE {
-	enum class ValueType : U8 {
-		  i8
-		, u8
-		, i16
-		, u16
-		, i32
-		, u32
-		, i64
-		, u64
-		, f32
-		, f64
-		, v128
-		, id
-	};
-
-	ValueType type;
-	U8* pvalue;
-
-	template<typename ostream>
-	put(ostream& os) {
-		U8 *head = os.advance(sizeof(ValueType));
-		*head = static_cast<U8>(type);
-		switch(type) {
-			case i8:
-			case u8: {
-				memcpy(os.advance(1),pvalue,1);
-				break;
-			}
-			case i16:
-			case u16: {
-				memcpy(os.advance(2),pvalue,2);
-				break;
-			}
-			case i32:
-			case u32:
-			case f32: {
-				memcpy(os.advance(4),pvalue,4);
-				break;
-			}
-			case i64:
-			case u64:
-			case f64: {
-				memcpy(os.advance(8),pvalue,8);
-				break;
-			}
-			case id:
-			case v128: {
-				memcpy(os.advance(16),pvalue,16);
-				break;
-			}
-			default:
-				break;
-		}
-	};
-	template<typename istream>
-	get(istream& is) {
-
-	}
-	ANYTYPE(U8& i) : type(u8) , pvalue(&i) {};
-	ANYTYPE(U16& i) : type(u16) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(U32& i) : type(u32) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(U64& i) : type(u64) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE(UUID& i) : type(id) , pvalue(static_cast<U8*>(&i)) {};
-	ANYTYPE() {};
-	ANYTYPE& operator()(U64& x) {
-		type = u64;
-		pvalue = static_cast<U8*>(&x);
-		return *this;
-	};
-	ANYTYPE& operator()(U32& x) {
-		type = u32;
-		pvalue = static_cast<U8*>(&x);
-		return *this;
-	};
-	ANYTYPE& operator()(U16& x) {
-		type = u16;
-		pvalue = static_cast<U8*>(&x);
-		return *this;
-	};
-	ANYTYPE& operator()(U8& x) {
-		type = u8;
-		pvalue = &x;
-		return *this;
-	};
-	ANYTYPE& operator()(UUID& x) {
-		type = id;
-		pvalue = static_cast<U8*>(&x);
-		return *this;
-	};
-}
 
 enum opnum { 
 	  zero = 0
@@ -161,7 +70,7 @@ enum opcode {
 #define ENUM_PARAMETRIC_OPERATORS(visitOp)
 
 #define ENUM_NONCONTROL_NONPARAMETRIC_OPERATORS(visitOp) \
-	visitOp(0x01,nop,"nop",NoImm,NULLARY(none)) \
+	visitOp(0x01,nop,"nop",NULLARY(none)) \
 	\
 	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID)) \
 	\
@@ -226,7 +135,7 @@ inline const char* asString(Opcode c) {
 	}
 };
 
-enum segment {
+enum class segment : U8 {
 	  task = 0x0
 	, temp = 0x1
 	, log0 = 0x2
@@ -236,42 +145,200 @@ enum segment {
 	, log4
 	, log5
 };
-struct OperatorDecoderStream {
-	OperatorDecoderStream(const std::vector<U8>& codeBytes)
+
+struct OperatorStream {
+	OperatorStream(const std::vector<U8>& codeBytes)
 	: nextByte(codeBytes.data()), end(codeBytes.data()+codeBytes.size()) {}
 
 	operator bool() const { return nextByte < end; }
 
-	template<typename Visitor>
-	typename Visitor::Result decodeOp(Visitor& visitor) {
-		Opcode opcode = *(Opcode*)nextByte;
-		switch(opcode) {
-		#define VISIT_OPCODE(opcode,name,nameString,Imm,...) \
-			case Opcode::name: { \
-				OpcodeAndImm<Imm>* encodedOperator = (OpcodeAndImm<Imm>*)nextByte; \
-				nextByte += sizeof(OpcodeAndImm<Imm>); \
-				return visitor.name(encodedOperator->imm); \
-			}
-		ENUM_OPERATORS(VISIT_OPCODE)
-		#undef VISIT_OPCODE
-		default:
-			nextByte += sizeof(Opcode);
-			return visitor.unknown(opcode);
+	U8* advance(size_t n) {
+		U8* r = nextByte;
+		nextByte += n;
+		if(nextByte > end) {
+			std::cout << "Decoder Stream overflow" << std::endl;
 		}
-	}
-
-	template<typename Visitor>
-	typename Visitor::Result decodeOpWithoutConsume(Visitor& visitor)
-	{
-		const U8* savedNextByte = nextByte;
-		typename Visitor::Result result = decodeOp(visitor);
-		nextByte = savedNextByte;
-		return result;
-	}
+		return r;
+	};
 
 private:
 
 	const U8* nextByte;
 	const U8* end;
+};
+
+struct VMContext {
+	VMContext(UsrtWorkers& w) {
+		workers = &w;
+		rfile.setSeg(segment::task, w->getMemKey("taskq"))
+			 .setSeg(segment::temp, w->getMemKey("memory"))
+			 .setSeg(segment::log0, w->getMemKey("log0"))
+			 .setSeg(segment::log1, w->getMemKey("log1"))
+			 .setSeg(segment::log2, w->getMemKey("log2"))
+			 .setSeg(segment::log3, w->getMemKey("log3"))
+			 .setSeg(segment::log4, w->getMemKey("log4"))
+			 .setSeg(segment::log5, w->getMemKey("log5"))
+			 ;
+	};
+	RegFile<256> rfile;
+	UsrtWorkers *workers;
+};
+
+struct JITVisitor {
+	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
+	void nop() {};
+	void setseg(U8 s, UUID& id) {
+		ctx->rfile.setSeg(s,id);
+	};
+	void allocm(U8 s, U8 r, size_t sz) {
+		if(ctx->rfile.mem[s] == nullptr) {
+			ctx->rfile.mem[s] = ctx->workers
+				.bindBlockByKey<Layout::UsrtMem>(
+					ctx->rfile.seg[i]);
+		}
+		Reg& R = ctx->rfile.reg[r];
+		R.lp = ctx->rfile.mem[s]
+			->newGP<char>(R.gp,sz,16);
+	};
+	void loadgp(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		memcpy(&(Ra.gp),p,sizeof(Ra.gp));
+	};
+	void loadlp(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		memcpy(&(Ra.lp),p,sizeof(void*));
+	};
+	void loadvl(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		auto sz = Ra.value.size();
+		memcpy(Ra.value.pvalue,p,sz);
+	};
+	void savegp(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		memcpy(p,&(Ra.gp),sizeof(Ra.gp));
+	};
+	void savelp(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		memcpy(p,&(Ra.lp),sizeof(void*));
+	};
+	void savevl(U8 ra, U8 rb, size_t offset) {
+		Reg& Ra = ctx->rfile.reg[ra];
+		Reg& Rb = ctx->rfile.reg[rb];
+		char *p = (static_cast<char*>Rb.lp)+offset;
+		auto sz = Ra.value.size();
+		memcpy(p,Ra.value.pvalue,sz);
+	};
+	void immeid(U8 r, UUID id) {
+		Reg& R = ctx->rfile.reg[r];
+		R.gp.id = id;
+	};
+	void immeos(U8 r, size_t off) {
+		Reg& R = ctx->rfile.reg[r];
+		R.gp.offset = off;
+	};
+	void immesz(U8 r, size_t sz) {
+		Reg& R = ctx->rfile.reg[r];
+		R.gp.objsize = sz;
+	};
+	void immevl(U8 r, ANYTYPE v) {
+		Reg& R = ctx->rfile.reg[r];
+		R.value(v);
+	};
+	void immelp(U8 r, size_t p) {
+		Reg& R = ctx->rfile.reg[r];
+		R.lp = static_cast<void*>(p);
+	};
+	void selfrd(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		auto sz = R.value.size();
+		memcpy(R.value.pvalue,R.lp,sz);	
+	};
+	void selfwr(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		auto sz = R.value.size();
+		memcpy(R.lp,R.value.pvalue,sz);	
+	};
+	void selfst(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		auto pm = new(R.lp) umutex;
+		pm->unlock();
+	};
+	void selfgl(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		R.lp = static_cast<void*>(ctx->workers->G2L<char>(R.gp));
+	};
+	void selflg(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		ctx->workers->L2G<void>(R.gp,R.lp);
+	};
+	void selfro(U8 r, size_t off) {
+		Reg& R = ctx->rfile.reg[r];
+		auto sz = R.value.size();
+		memcpy(R.value.pvalue,R.lp+off,sz);	
+	};
+	void selfwo(U8 r, size_t off) {
+		Reg& R = ctx->rfile.reg[r];
+		auto sz = R.value.size();
+		memcpy(R.lp+off,R.value.pvalue,sz);	
+	};
+	void selfso(U8 r, size_t off) {
+		Reg& R = ctx->rfile.reg[r];
+		auto pm = new(R.lp+off) umutex;
+		pm->unlock();
+	};
+	void pushof(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		if(R.gp.id == ctx->rfile.seg[0]) {
+			ctx ->workers
+				->tQueue()
+				->insert(static_cast<task*>(R.lp));
+		}
+	};
+	void callcp(U8 r, UUID capKey) {
+		Reg& R = ctx->rfile.reg[r];
+		auto bearer = ctx->workers->getBearerByKey(capKey);
+		if(bearer != nullptr) {
+			bearer->runLP(R.lp);
+		}
+	};
+	void movegp(U8 src, U8 des) {
+		Reg& Ra = ctx->rfile.reg[src];
+		Reg& Rb = ctx->rfile.reg[des];
+		memcpy(&(Rb.gp),&(Ra.gp),sizeof(Ra.gp));
+	};
+	void movelp(U8 src, U8 des) {
+		Reg& Ra = ctx->rfile.reg[src];
+		Reg& Rb = ctx->rfile.reg[des];
+		Rb.lp = Ra.lp;
+	};
+	void movevl(U8 src, U8 des) {
+		Reg& Ra = ctx->rfile.reg[src];
+		Reg& Rb = ctx->rfile.reg[des];
+		Rb.value();
+		Rb.value(Ra.value);
+	};
+	void movesz(U8 src, U8 des) {
+		Reg& Ra = ctx->rfile.reg[src];
+		Reg& Rb = ctx->rfile.reg[des];
+		Rb.gp.objsize = Ra.gp.objsize;
+	};
+	void moveal(U8 src, U8 des) {
+		Reg& Ra = ctx->rfile.reg[src];
+		Reg& Rb = ctx->rfile.reg[des];
+		memcpy(&(Rb.gp),&(Ra.gp),sizeof(Ra.gp));
+		Rb.lp = Ra.lp;
+		Rb.value();
+		Rb.value(Ra.value);
+	};
 };
 }} // namespace
