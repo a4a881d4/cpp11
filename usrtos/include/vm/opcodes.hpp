@@ -6,13 +6,13 @@
 #include <boost/uuid/uuid_io.hpp>
 #include "BasicTypes.h"
 #include <vector>
+#include <tuple>
 
 using namespace boost::uuids;
 #include <gp.hpp>
 
 namespace usrtos{ namespace vm{
 typedef uuid UUID;
-
 
 enum opnum { 
 	  zero = 0
@@ -65,6 +65,19 @@ enum opcode {
 	, movesz = 0x83 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 };
 
+#define BINARY(A,B) \
+	{	\
+		A op1; \
+		B op2; \
+		op1 = is.get<A>(); \
+		op2 = is.get<B>(); \
+		visitor.name(op1,op2); \
+	};
+
+#define NULLARY(A) {};
+#define UNARY(A) {};
+#define TERNARY(A,B,C) {};
+
 #define ENUM_CONTROL_OPERATORS(visitOp)
 
 #define ENUM_PARAMETRIC_OPERATORS(visitOp)
@@ -72,43 +85,43 @@ enum opcode {
 #define ENUM_NONCONTROL_NONPARAMETRIC_OPERATORS(visitOp) \
 	visitOp(0x01,nop,"nop",NULLARY(none)) \
 	\
-	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID)) \
+	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
-	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
 	\
-	visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYTYPE)) \
-	visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYTYPE)) \
-	visitOp(0x22,savevl,"save_value",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
+	visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
+	visitOp(0x22,savevl,"save_value",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
 	\
-	visitOp(0x30,loadgp,"load_globe_pointer",TERNARY(U8,U8,ANYTYPE)) \
-	visitOp(0x31,loadlp,"load_local_pointer",TERNARY(U8,U8,ANYTYPE)) \
-	visitOp(0x32,loadvl,"load_value",TERNARY(U8,U8,ANYTYPE)) \
+	visitOp(0x30,loadgp,"load_globe_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
+	visitOp(0x31,loadlp,"load_local_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
+	visitOp(0x32,loadvl,"load_value",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
 	\
-	visitOp(0x40,immeid,"set_gp.id",BINARY(U8,UUID)) \
-	visitOp(0x41,immeos,"set_gp.offset",BINARY(U8,ANYTYPE)) \
-	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYTYPE)) \
-	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYTYPE)) \
-	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,U64)) \
+	visitOp(0x40,immeid,"set_gp.id",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	visitOp(0x41,immeos,"set_gp.offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
+	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
+	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
+	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,U64),std::tuple<U8,U64>) \
 	\
-	visitOp(0x50,selfrd,"self_read",UNARY(U8)) \
-	visitOp(0x51,selfwr,"self_write",UNARY(U8)) \
-	visitOp(0x52,selfst,"self_set",BINARY(U8,U8)) \
-	visitOp(0x53,selfgl,"self_gp2lp",UNARY(U8)) \
-	visitOp(0x54,selflg,"self_lp2gp",UNARY(U8)) \
+	visitOp(0x50,selfrd,"self_read",UNARY(U8),std::tuple<U8>) \
+	visitOp(0x51,selfwr,"self_write",UNARY(U8),std::tuple<U8>) \
+	visitOp(0x52,selfst,"self_set",BINARY(U8,U8),std::tuple<U8,U8>) \
+	visitOp(0x53,selfgl,"self_gp2lp",UNARY(U8),std::tuple<U8>) \
+	visitOp(0x54,selflg,"self_lp2gp",UNARY(U8),std::tuple<U8>) \
 	\
-	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYTYPE)) \
-	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYTYPE)) \
+	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
+	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x5a,selfso,"self_set_with_offset",TERNARY(U8,U8,ANYTYPE)) \
 	\
-	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8)) \
+	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8),std::tuple<U8>) \
 	\
-	visitOp(0x70,callcp,"call_capability",BINARY(U8,UUID)) \
+	visitOp(0x70,callcp,"call_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
-	visitOp(0x80,movegp,"move_gp_fromAtoB",BINARY(U8,U8)) \
-	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8)) \
-	visitOp(0x82,movevl,"move_vl_fromAtoB",BINARY(U8,U8)) \
-	visitOp(0x83,movesz,"move_sz_fromAtoB",BINARY(U8,U8)) \
-	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8)) 
+	visitOp(0x80,movegp,"move_gp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
+	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
+	visitOp(0x82,movevl,"move_vl_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
+	visitOp(0x83,movesz,"move_sz_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
+	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) 
 	
 		
 #define ENUM_NONCONTROL_OPERATORS(visitOp) \
@@ -340,5 +353,10 @@ struct JITVisitor {
 		Rb.value();
 		Rb.value(Ra.value);
 	};
+
 };
+struct JIT {
+
+}
+
 }} // namespace

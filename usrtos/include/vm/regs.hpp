@@ -71,6 +71,9 @@ struct ANYTYPE {
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
+	size_t operator=() {
+		return toOffset();
+	};
 	ANYTYPE(U8& i) : type(u8) , pvalue(&i) {};
 	ANYTYPE(U16& i) : type(u16) , pvalue(static_cast<U8*>(&i)) {};
 	ANYTYPE(U32& i) : type(u32) , pvalue(static_cast<U8*>(&i)) {};
