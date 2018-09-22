@@ -178,15 +178,22 @@ struct OperatorStream {
 	template<typename T>
 	OperatorStream& put(T& a);
 	
-	void tput() {};
 	std::tuple<> tget() {
 		return std::tuple<>();
 	};
 	
+	void mput() {};
 	template<typename T0, typename... Other>
-	void tput(T0& a, Other& ... o) {
+	void mput(T0& a, Other& ... o) {
 		put<T0>(a);
-		tput(o...);
+		mput(o...);
+	};
+
+	void mget() {};
+	template<typename T0, typename... Other>
+	void mget(T0& a, Other& ... o) {
+		get<T0>(a);
+		mget(o...);
 	};
 	
 	template<typename T0, typename... Other>
@@ -194,30 +201,12 @@ struct OperatorStream {
 		get<T0>(a);
 		return std::tuple_cat(make_tuple(a),tget(o...));
 	};
-	// template<typename T0, typename... Other>
-	// std::tuple<T0,Other ...> mget();
-	// template<typename T0>
-	// std::tuple<T0> mget();
 
 private:
 
 	U8* nextByte;
 	const U8* end;
 };
-
-// template<typename T0, typename... Other>
-// std::tuple<T0,Other ...> OperatorStream::mget() {
-// 	T0 a;
-// 	a = *(get<T0>());
-// 	return std::tuple_cat(make_tuple(a),mget<Other...>());
-// };
-
-// template<typename T0> 
-// std::tuple<T0> OperatorStream::mget() {
-// 	T0 a;
-// 	a = *(get<T0>());
-// 	return std::make_tuple(a);
-// };
 
 template<typename T>
 T* OperatorStream::get(T& a) {
@@ -231,52 +220,15 @@ OperatorStream& OperatorStream::put(T& a) {
 };
 template<>
 ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
-	std::cout << "In get any type" << std::endl;
 	a.get<OperatorStream>(*this);
 	return &a;
 };
 template<> 
 OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
-	std::cout << "In put any type" << std::endl;
 	a.put<OperatorStream>(*this);
 	return *this;
 };
 
-
-// template<size_t N, typename T0, typename ...other>
-// struct TGet {
-// 	TGet(OperatorStream& s) : is(s) {};
-// 	typedef std::tuple<T0,other...> resultType;
-// 	resultType tget() {
-// 		T0 a;
-// 		a = *(is.get<T0>());
-// 		return std::tuple_cat(make_tuple(a),TGet<N-1,other...>(is).tget());
-// 	};
-// private:
-// 	OperatorStream& is;
-// };
-
-// template <size_t 1, typename T>
-// struct  TGet<1,T> {
-// 	TGet(OperatorStream& s) : is(s) {};
-// 	typedef std::tuple<T> resultType;
-// 	resultType tget() {
-// 		T a;
-// 		a = *(is.get<T>());
-// 		return make_tuple(a);
-// 	};
-// private:
-// 	OperatorStream& is;
-// };
-
-// template<>
-// struct TGet<0,> {
-// 	TGet(OperatorStream& s) {};
-// 	typedef std::tuple<> resultType;
-// 	resultType tget() {
-// 		return resultType();
-// 	};
-// };
 
 struct VMContext {
 	VMContext(UsrtWorkers& w) {
@@ -295,6 +247,17 @@ struct VMContext {
 	UsrtWorkers *workers;
 };
 
+struct VMOffset {
+	size_t offset;
+	VMOffset(ANYTYPE& a) {
+		offset = a.toOffset();
+	};
+	void *add(void *lp) {
+		char *p = (static_cast<char*>(lp))+offset;
+		return static_cast<void*>(p);
+	};
+};
+
 struct JITVisitor {
 	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
 	void nop() {};
@@ -311,41 +274,41 @@ struct JITVisitor {
 		R.lp = ctx->rfile.mem[s]
 			->newGP<char>(R.gp,sz,16);
 	};
-	void loadgp(U8 ra, U8 rb, size_t offset) {
+	void loadgp(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		memcpy(&(Ra.gp),p,sizeof(Ra.gp));
 	};
-	void loadlp(U8 ra, U8 rb, size_t offset) {
+	void loadlp(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		memcpy(&(Ra.lp),p,sizeof(void*));
 	};
-	void loadvl(U8 ra, U8 rb, size_t offset) {
+	void loadvl(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		auto sz = Ra.value.size();
 		memcpy(Ra.value.pvalue,p,sz);
 	};
-	void savegp(U8 ra, U8 rb, size_t offset) {
+	void savegp(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		memcpy(p,&(Ra.gp),sizeof(Ra.gp));
 	};
-	void savelp(U8 ra, U8 rb, size_t offset) {
+	void savelp(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		memcpy(p,&(Ra.lp),sizeof(void*));
 	};
-	void savevl(U8 ra, U8 rb, size_t offset) {
+	void savevl(U8 ra, U8 rb, VMOffset& offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
-		char *p = (static_cast<char*>(Rb.lp))+offset;
+		void *p = offset.add(Rb.lp);
 		auto sz = Ra.value.size();
 		memcpy(p,Ra.value.pvalue,sz);
 	};
@@ -353,21 +316,24 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		R.gp.id = id;
 	};
-	void immeos(U8 r, size_t off) {
+	void immeos(U8 r, ANYTYPE& off) {
 		Reg& R = ctx->rfile.reg[r];
-		R.gp.offset = off;
+		VMOffset o(off);
+		R.gp.offset = o.offset;
 	};
-	void immesz(U8 r, size_t sz) {
+	void immesz(U8 r, ANYTYPE& sz) {
 		Reg& R = ctx->rfile.reg[r];
-		R.gp.objsize = sz;
+		VMOffset o(sz);
+		R.gp.objsize = o.offset;
 	};
-	void immevl(U8 r, ANYTYPE v) {
+	void immevl(U8 r, ANYTYPE& v) {
 		Reg& R = ctx->rfile.reg[r];
 		R.value(v);
 	};
-	void immelp(U8 r, size_t p) {
+	void immelp(U8 r, ANYTYPE& p) {
 		Reg& R = ctx->rfile.reg[r];
-		R.lp = (void*)(p);
+		VMOffset o(p);
+		R.lp = (void*)(o.offset);
 	};
 	void selfrd(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -392,19 +358,19 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		ctx->workers->L2G<void>(R.gp,R.lp);
 	};
-	void selfro(U8 r, size_t off) {
+	void selfro(U8 r, VMOffset& offset) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
-		memcpy(R.value.pvalue,R.addOff(off),sz);	
+		memcpy(R.value.pvalue,offset.add(R.lp),sz);	
 	};
-	void selfwo(U8 r, size_t off) {
+	void selfwo(U8 r, VMOffset& offset) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
-		memcpy(R.addOff(off),R.value.pvalue,sz);	
+		memcpy(offset.add(R.lp),R.value.pvalue,sz);	
 	};
-	void selfso(U8 r, size_t off) {
+	void selfso(U8 r, VMOffset& offset) {
 		Reg& R = ctx->rfile.reg[r];
-		auto pm = new(R.addOff(off)) umutex;
+		auto pm = new(offset.add(R.lp)) umutex;
 		pm->unlock();
 	};
 	void pushof(U8 r) {
