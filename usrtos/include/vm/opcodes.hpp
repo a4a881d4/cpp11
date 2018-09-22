@@ -172,14 +172,32 @@ struct OperatorStream {
 	T* get() {
 		return (T*)(advance(sizeof(T)));
 	};
-
 	
-	// template<typename T>
-	// std::tuple<T> tget<T>() {
-	// 	T a;
-	// 	a = *(get<T>());
-	// 	return make_tuple(a);
-	// };
+	template<typename T>
+	T* get(T& a);
+	template<typename T>
+	OperatorStream& put(T& a);
+	
+	void tput() {};
+	std::tuple<> tget() {
+		return std::tuple<>();
+	};
+	
+	template<typename T0, typename... Other>
+	void tput(T0& a, Other& ... o) {
+		put<T0>(a);
+		tput(o...);
+	};
+	
+	template<typename T0, typename... Other>
+	std::tuple<T0,Other ...> tget(T0& a, Other& ... o) {
+		get<T0>(a);
+		return std::tuple_cat(make_tuple(a),tget(o...));
+	};
+	// template<typename T0, typename... Other>
+	// std::tuple<T0,Other ...> mget();
+	// template<typename T0>
+	// std::tuple<T0> mget();
 
 private:
 
@@ -187,31 +205,78 @@ private:
 	const U8* end;
 };
 
-template<size_t N, typename T0, typename ...other>
-struct TGet {
-	TGet(OperatorStream& s) : is(s) {};
-	typedef std::tuple<T0,other...> resultType;
-	resultType tget() {
-		T0 a;
-		a = *(is.get<T0>());
-		return std::tuple_cat(make_tuple(a),TGet<N-1,other...>(is).tget());
-	};
-private:
-	OperatorStream& is;
+// template<typename T0, typename... Other>
+// std::tuple<T0,Other ...> OperatorStream::mget() {
+// 	T0 a;
+// 	a = *(get<T0>());
+// 	return std::tuple_cat(make_tuple(a),mget<Other...>());
+// };
+
+// template<typename T0> 
+// std::tuple<T0> OperatorStream::mget() {
+// 	T0 a;
+// 	a = *(get<T0>());
+// 	return std::make_tuple(a);
+// };
+
+template<typename T>
+T* OperatorStream::get(T& a) {
+	a = *(T*)(advance(sizeof(T)));
+	return &a;
+};
+template<typename T>
+OperatorStream& OperatorStream::put(T& a) {
+	memcpy(advance(sizeof(T)),&a,sizeof(T));
+	return *this;
+};
+template<>
+ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
+	std::cout << "In get any type" << std::endl;
+	a.get<OperatorStream>(*this);
+	return &a;
+};
+template<> 
+OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
+	std::cout << "In put any type" << std::endl;
+	a.put<OperatorStream>(*this);
+	return *this;
 };
 
-template <size_t 1, typename T>
-struct  TGet<1,T> {
-	TGet(OperatorStream& s) : is(s) {};
-	typedef std::tuple<T> resultType;
-	resultType tget() {
-		T a;
-		a = *(is.get<T>());
-		return make_tuple(a);
-	};
-private:
-	OperatorStream& is;
-};
+
+// template<size_t N, typename T0, typename ...other>
+// struct TGet {
+// 	TGet(OperatorStream& s) : is(s) {};
+// 	typedef std::tuple<T0,other...> resultType;
+// 	resultType tget() {
+// 		T0 a;
+// 		a = *(is.get<T0>());
+// 		return std::tuple_cat(make_tuple(a),TGet<N-1,other...>(is).tget());
+// 	};
+// private:
+// 	OperatorStream& is;
+// };
+
+// template <size_t 1, typename T>
+// struct  TGet<1,T> {
+// 	TGet(OperatorStream& s) : is(s) {};
+// 	typedef std::tuple<T> resultType;
+// 	resultType tget() {
+// 		T a;
+// 		a = *(is.get<T>());
+// 		return make_tuple(a);
+// 	};
+// private:
+// 	OperatorStream& is;
+// };
+
+// template<>
+// struct TGet<0,> {
+// 	TGet(OperatorStream& s) {};
+// 	typedef std::tuple<> resultType;
+// 	resultType tget() {
+// 		return resultType();
+// 	};
+// };
 
 struct VMContext {
 	VMContext(UsrtWorkers& w) {

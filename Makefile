@@ -42,7 +42,8 @@ all:work/ptr_vector \
 	work/usrtos.so \
 	work/bearer_test \
 	work/workers \
-	work/dag_test
+	work/dag_test \
+	work/vm_test
 
 
 
@@ -126,6 +127,9 @@ work/log_test:usrtos/c++1z/log_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/bearer_test:usrtos/c++1z/bearer_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/vm_test:usrtos/c++1z/vm_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 usrtos/c++1z/dag_test.cpp:usrtos/include/dag/nodes.hpp
