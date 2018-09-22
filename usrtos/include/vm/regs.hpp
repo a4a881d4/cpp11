@@ -69,14 +69,14 @@ struct ANYTYPE {
 		memcpy(pvalue,is.advance(s),s);
 	};
 	size_t toOffset() {
-		size_t mask = (1LL<<(size()*8))-1;
+		if(size() > 8)
+			return 0;
+		size_t mask = (1LL<<(size()*8)) - 1LL;
 		unsigned long long r;
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
-	// size_t operator=() {
-	// 	return toOffset();
-	// };
+	
 	ANYTYPE(U8& i) : type(ValueType::u8) , pvalue(&i) {};
 	ANYTYPE(U16& i) : type(ValueType::u16) , pvalue((U8*)(&i)) {};
 	ANYTYPE(U32& i) : type(ValueType::u32) , pvalue((U8*)(&i)) {};

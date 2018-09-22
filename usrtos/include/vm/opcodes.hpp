@@ -356,7 +356,8 @@ struct JITVisitor {
 	};
 	void selflg(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
-		ctx->workers->L2G<void>(R.gp,R.lp);
+		ctx->workers->L2G<char>(
+			R.gp,static_cast<char*>(R.lp));
 	};
 	void selfro(U8 r, VMOffset& offset) {
 		Reg& R = ctx->rfile.reg[r];
