@@ -118,8 +118,28 @@ struct ANYTYPE {
 		pvalue = &buf[0];
 		return *this;
 	};
+	ANYTYPE& pack(size_t s) {
+		if(s < (1<<8)) type = ValueType::u8;
+		else if(s < (1<<16)) type = ValueType::u16;
+		else if(s < (1LL<<32)) type = ValueType::u32;
+		else type = ValueType::u64;
+		pvalue = &buf[0];
+		memcpy(pvalue,&s,sizeof(size_t));
+		return *this;
+	};
 };
 
+inline std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)
+{
+	auto x = h.toOffset();
+	os << x << "(" << h.size() << ")";
+	return os;
+}
+inline std::ostream& operator<<(std::ostream& os,U8& h)
+{
+	os << (int)h;
+	return os;
+}
 struct Reg {
 	_globe_pointer gp;
 	ANYTYPE value;

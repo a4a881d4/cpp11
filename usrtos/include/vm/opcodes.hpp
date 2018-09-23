@@ -96,7 +96,7 @@ enum opcode {
 	visitOp(0x41,immeos,"set_gp.offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
-	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,U64),std::tuple<U8,U64>) \
+	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,size_t),std::tuple<U8,size_t>) \
 	\
 	visitOp(0x50,selfrd,"self_read",UNARY(U8),std::tuple<U8>) \
 	visitOp(0x51,selfwr,"self_write",UNARY(U8),std::tuple<U8>) \
@@ -251,12 +251,13 @@ struct VMOffset {
 };
 
 struct JITVisitor {
+	JITVisitor() {};
 	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
-	void nop() {};
+	void nop(U8 a) {};
 	void setseg(U8 s, UUID id) {
 		ctx->rfile.setSeg((segment)s,std::move(id));
 	};
-	void allocm(U8 s, U8 r, size_t sz) {
+	void allocm(U8 s, U8 r, VMOffset sz) {
 		if(ctx->rfile.mem[s] == nullptr) {
 			ctx->rfile.mem[s] = ctx->workers
 				->bindBlockByKey<Layout::UsrtMem>(
@@ -264,40 +265,40 @@ struct JITVisitor {
 		}
 		Reg& R = ctx->rfile.reg[r];
 		R.lp = ctx->rfile.mem[s]
-			->newGP<char>(R.gp,sz,16);
+			->newGP<char>(R.gp,sz.offset,16);
 	};
-	void loadgp(U8 ra, U8 rb, VMOffset& offset) {
+	void loadgp(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
 		memcpy(&(Ra.gp),p,sizeof(Ra.gp));
 	};
-	void loadlp(U8 ra, U8 rb, VMOffset& offset) {
+	void loadlp(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
 		memcpy(&(Ra.lp),p,sizeof(void*));
 	};
-	void loadvl(U8 ra, U8 rb, VMOffset& offset) {
+	void loadvl(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
 		auto sz = Ra.value.size();
 		memcpy(Ra.value.pvalue,p,sz);
 	};
-	void savegp(U8 ra, U8 rb, VMOffset& offset) {
+	void savegp(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
 		memcpy(p,&(Ra.gp),sizeof(Ra.gp));
 	};
-	void savelp(U8 ra, U8 rb, VMOffset& offset) {
+	void savelp(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
 		memcpy(p,&(Ra.lp),sizeof(void*));
 	};
-	void savevl(U8 ra, U8 rb, VMOffset& offset) {
+	void savevl(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
 		void *p = offset.add(Rb.lp);
@@ -322,10 +323,9 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		R.value(v);
 	};
-	void immelp(U8 r, ANYTYPE& p) {
+	void immelp(U8 r, size_t p) {
 		Reg& R = ctx->rfile.reg[r];
-		VMOffset o(p);
-		R.lp = (void*)(o.offset);
+		R.lp = (void*)(p);
 	};
 	void selfrd(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -337,10 +337,12 @@ struct JITVisitor {
 		auto sz = R.value.size();
 		memcpy(R.lp,R.value.pvalue,sz);	
 	};
-	void selfst(U8 r) {
+	void selfst(U8 r, U8 t) {
 		Reg& R = ctx->rfile.reg[r];
-		auto pm = new(R.lp) umutex;
-		pm->unlock();
+		if(t == 0) {
+			auto pm = new(R.lp) umutex;
+			pm->unlock();
+		}
 	};
 	void selfgl(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -351,20 +353,22 @@ struct JITVisitor {
 		ctx->workers->L2G<char>(
 			R.gp,static_cast<char*>(R.lp));
 	};
-	void selfro(U8 r, VMOffset& offset) {
+	void selfro(U8 r, VMOffset offset) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
 		memcpy(R.value.pvalue,offset.add(R.lp),sz);	
 	};
-	void selfwo(U8 r, VMOffset& offset) {
+	void selfwo(U8 r, VMOffset offset) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
 		memcpy(offset.add(R.lp),R.value.pvalue,sz);	
 	};
-	void selfso(U8 r, VMOffset& offset) {
+	void selfso(U8 r, U8 t, VMOffset offset) {
 		Reg& R = ctx->rfile.reg[r];
-		auto pm = new(offset.add(R.lp)) umutex;
-		pm->unlock();
+		if(t == 0) {
+			auto pm = new(offset.add(R.lp)) umutex;
+			pm->unlock();
+		}
 	};
 	void pushof(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -414,12 +418,13 @@ private:
 	VMContext* ctx;
 };
 
+#define TERNARY(a,b,c) (a)(b)(c)
+#define BINARY(a,b) (a)(b)
+#define NULLARY(a) (a)
+#define UNARY(a) (a)
+
 struct EncodeStream : OperatorStream {
 	EncodeStream(U8* buf,size_t len) : OperatorStream(buf,len) {};
-	#define TERNARY(a,b,c) (a)(b)(c)
-	#define BINARY(a,b) (a)(b)
-	#define NULLARY(a) (a)
-	#define UNARY(a) (a)
 	#define DECLEAR(r,data,s) (s& BOOST_PP_CAT(data,r))
 	#define VM_PUT(r,data,s) put<s>(BOOST_PP_CAT(data,r));
 	#define VISIT_OPCODE(code,name,str,types,...) \
@@ -435,9 +440,50 @@ struct EncodeStream : OperatorStream {
 	#undef VISIT_OPCODE
 	#undef VM_PUT
 	#undef DECLEAR
-	#undef UNARY
-	#undef NULLARY
-	#undef BINARY
-	#undef TERNARY
 };
+
+struct Decode {
+	#define STRING(x) #x
+	#define DECLEAR(r,data,s) s BOOST_PP_CAT(data,r);
+	#define VM_GET(r,data,s) is.get<s>(BOOST_PP_CAT(data,r));
+	#define PARAM(r,data,s) (BOOST_PP_CAT(data,r))
+	#define SHOWOP(r,data,s) << STRING(s) << "::" << BOOST_PP_CAT(data,r) << " "
+	#define VISIT_OPCODE(code,name,str,types,...) \
+		case Opcode::name: {\
+			BOOST_PP_SEQ_FOR_EACH(DECLEAR,op_,types) \
+			BOOST_PP_SEQ_FOR_EACH(VM_GET,op_,types) \
+			if(show) { \
+				std::cout << str << ": " \
+				BOOST_PP_SEQ_FOR_EACH(SHOWOP,op_,types) \
+				<< std::endl; \
+			} else {\
+				v.name(\
+					BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(PARAM,op_,types)) \
+					); \
+			}\
+			return true; \
+		}
+	bool once(JITVisitor& v, OperatorStream& is, bool show = false) {
+		if(is) {
+			Opcode c;
+			is.get<Opcode>(c);
+			switch(c) {
+			ENUM_OPERATORS(VISIT_OPCODE)
+			default:
+				return false;
+			}
+		} else {
+			return false;
+		}
+	#undef VISIT_OPCODE
+	#undef PARAM
+	#undef VM_GET
+	#undef DECLEAR
+	};
+};
+#undef UNARY
+#undef NULLARY
+#undef BINARY
+#undef TERNARY
+
 }} // namespace

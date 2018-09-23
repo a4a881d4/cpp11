@@ -14,15 +14,20 @@ int main() {
 	U8 a1 = 0;
 	U8 a2;
 	es.allocm(a0,a1,a(b));
+	es.moveal(a0,a1);
 	OperatorStream os(v,256);
-	a();
-	os.mget<U8,U8,U8,ANYTYPE>(a0,a1,a2,a);
+	JITVisitor visitor;
+	Decode d;
+	d.once(visitor,os,true);
+	d.once(visitor,os,true);
+	// a();
+	// os.mget<U8,U8,U8,ANYTYPE>(a0,a1,a2,a);
 	
-	std::cout << static_cast<int>(a0) << " "
-			  << static_cast<int>(a1) << " "
-			  << static_cast<int>(a2) << " "
-			  << static_cast<int>(*(U8*)a.pvalue) << " "
-	 		  << std::endl;
+	// std::cout << static_cast<int>(a0) << " "
+	// 		  << static_cast<int>(a1) << " "
+	// 		  << static_cast<int>(a2) << " "
+	// 		  << static_cast<int>(*(U8*)a.pvalue) << " "
+	//  		  << std::endl;
 
 	// U8 a0;
 	// U16 a1;
