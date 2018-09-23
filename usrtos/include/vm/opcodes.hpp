@@ -154,8 +154,8 @@ inline const char* asString(Opcode c) {
 
 
 struct OperatorStream {
-	OperatorStream(const std::vector<U8>& codeBytes)
-	: nextByte((U8*)codeBytes.data()), end(codeBytes.data()+codeBytes.size()) {}
+	OperatorStream(const U8* codeBytes, size_t len)
+	: nextByte((U8*)codeBytes), end(codeBytes+len) {}
 
 	operator bool() const { return nextByte < end; }
 
@@ -422,4 +422,10 @@ private:
 	VMContext* ctx;
 };
 
+struct EncodeStream : OperatorStream {
+	EncodeStream(U8* buf,size_t len) : OperatorStream(buf,len) {};
+	#define VISIT_OPCODE(code,name,namestring,argList,type) \
+	void name()
+
+};
 }} // namespace

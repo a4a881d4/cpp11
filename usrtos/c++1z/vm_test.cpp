@@ -4,10 +4,10 @@
 
 using namespace usrtos::vm;
 int main() {
-	vector<U8> v;
+	U8 v[256];
 	for(int i=0;i<256;i++)
-		v.push_back(static_cast<U8>(i));
-	OperatorStream is(v);
+		v[i] = static_cast<U8>(i);
+	OperatorStream is(v,256);
 	U8 a0;
 	U16 a1;
 	U32 a2;
@@ -34,7 +34,7 @@ int main() {
 		if((i&15)==15)
 			std::cout << std::endl;
 	}
-	OperatorStream os(v);
+	OperatorStream os(v,256);
 	os.mget<U8,U16,U32,U64,UUID>(a0,a1,a2,a3,a4);
 	std::cout << " os 0 " << std::endl;
 	os.mget<UUID,U64,U32,U16,U8>(a4,a3,a2,a1,a0);
