@@ -8,6 +8,9 @@
 #include <vm/regs.hpp>
 #include <vector>
 #include <tuple>
+#include <boost/preprocessor/seq.hpp>
+#include <boost/preprocessor/seq/enum.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
 
 
 
@@ -68,25 +71,14 @@ enum opcode {
 	, movesz = 0x83 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 };
 
-#define BINARY(A,B) \
-	{	\
-		A op1; \
-		B op2; \
-		op1 = is.get<A>(); \
-		op2 = is.get<B>(); \
-		visitor.name(op1,op2); \
-	};
 
-#define NULLARY(A) {};
-#define UNARY(A) {};
-#define TERNARY(A,B,C) {};
 
 #define ENUM_CONTROL_OPERATORS(visitOp)
 
 #define ENUM_PARAMETRIC_OPERATORS(visitOp)
 
 #define ENUM_NONCONTROL_NONPARAMETRIC_OPERATORS(visitOp) \
-	visitOp(0x01,nop,"nop",NULLARY(none)) \
+	visitOp(0x01,nop,"nop",NULLARY(U8)) \
 	\
 	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
@@ -424,8 +416,28 @@ private:
 
 struct EncodeStream : OperatorStream {
 	EncodeStream(U8* buf,size_t len) : OperatorStream(buf,len) {};
-	#define VISIT_OPCODE(code,name,namestring,argList,type) \
-	void name()
+	#define TERNARY(a,b,c) (a)(b)(c)
+	#define BINARY(a,b) (a)(b)
+	#define NULLARY(a) (a)
+	#define UNARY(a) (a)
+	#define DECLEAR(r,data,s) (s& BOOST_PP_CAT(data,r))
+	#define VM_PUT(r,data,s) put<s>(BOOST_PP_CAT(data,r));
+	#define VISIT_OPCODE(code,name,str,types,...) \
+	void name( \
+		BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(DECLEAR,op_,types)) \
+		) { \
+		Opcode c = Opcode::name; \
+		put<Opcode>(c); \
+		BOOST_PP_SEQ_FOR_EACH(VM_PUT,op_,types) \
+	};
+	ENUM_OPERATORS(VISIT_OPCODE)
 
+	#undef VISIT_OPCODE
+	#undef VM_PUT
+	#undef DECLEAR
+	#undef UNARY
+	#undef NULLARY
+	#undef BINARY
+	#undef TERNARY
 };
 }} // namespace
