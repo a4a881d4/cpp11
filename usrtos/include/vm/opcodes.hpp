@@ -423,7 +423,7 @@ private:
 
 struct EncodeStream : OperatorStream {
 	EncodeStream(U8* buf,size_t len) : OperatorStream(buf,len) {};
-	#define DECLEAR(r,data,s) (s& BOOST_PP_CAT(data,r))
+	#define DECLEAR(r,data,s) (s&& BOOST_PP_CAT(data,r))
 	#define VM_PUT(r,data,s) put<s>(BOOST_PP_CAT(data,r));
 	#define VISIT_OPCODE(code,name,str,types,...) \
 	void name( \

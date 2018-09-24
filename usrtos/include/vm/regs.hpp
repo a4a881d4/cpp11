@@ -76,7 +76,9 @@ struct ANYTYPE {
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
-	
+	ANYTYPE(size_t&& i) {
+		pack(i);
+	};
 	ANYTYPE(U8& i) : type(ValueType::u8) , pvalue(&i) {};
 	ANYTYPE(U16& i) : type(ValueType::u16) , pvalue((U8*)(&i)) {};
 	ANYTYPE(U32& i) : type(ValueType::u32) , pvalue((U8*)(&i)) {};

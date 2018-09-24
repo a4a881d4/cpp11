@@ -3,6 +3,12 @@
 #include <usrtkey.hpp>
 
 using namespace usrtos::vm;
+
+void test(U8&& a) {
+	char buf[128];
+	memcpy(buf,&a,1);
+	std::cout << (int)buf[0] << " - " << std::endl;
+}
 int main() {
 	U8 v[256];
 	for(int i=0;i<256;i++)
@@ -13,19 +19,23 @@ int main() {
 	U8 a0 = 1;
 	U8 a1 = 0;
 	U8 a2;
-	es.allocm(a0,a1,a(b));
-	es.moveal(a0,a1);
+	es.allocm(1,0,ANYTYPE(b));
+	es.moveal(1,0);
 	UUID id = usrtos::UsrtKey::usrtosNS();
-	es.immeid(a0,id);
+	es.immeid(0,std::move(id));
 	ANYTYPE offset;
 	offset.pack(65535);
-	es.selfro(a0,offset);
+	es.selfro(0,ANYTYPE(65535));
 	es.nop();
 	es.ret();
 	OperatorStream os(v,256);
 	JITVisitor visitor;
 	Decode d;
 	d.run(visitor,os,true);
+	test(10);
+	test(std::move(b));
+	U8& c = b;
+	test(std::move(c));
 	// a();
 	// os.mget<U8,U8,U8,ANYTYPE>(a0,a1,a2,a);
 	
