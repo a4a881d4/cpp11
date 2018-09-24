@@ -15,11 +15,17 @@ int main() {
 	U8 a2;
 	es.allocm(a0,a1,a(b));
 	es.moveal(a0,a1);
+	UUID id = usrtos::UsrtKey::usrtosNS();
+	es.immeid(a0,id);
+	ANYTYPE offset;
+	offset.pack(65535);
+	es.selfro(a0,offset);
+	es.nop();
+	es.ret();
 	OperatorStream os(v,256);
 	JITVisitor visitor;
 	Decode d;
-	d.once(visitor,os,true);
-	d.once(visitor,os,true);
+	d.run(visitor,os,true);
 	// a();
 	// os.mget<U8,U8,U8,ANYTYPE>(a0,a1,a2,a);
 	

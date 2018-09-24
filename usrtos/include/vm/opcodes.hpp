@@ -71,15 +71,9 @@ enum opcode {
 	, movesz = 0x83 ///< binary op1 -> regA<sz08>, op2 -> regB<sz08>
 };
 
-
-
-#define ENUM_CONTROL_OPERATORS(visitOp)
-
 #define ENUM_PARAMETRIC_OPERATORS(visitOp)
 
 #define ENUM_NONCONTROL_NONPARAMETRIC_OPERATORS(visitOp) \
-	visitOp(0x01,nop,"nop",NULLARY(U8)) \
-	\
 	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
 	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
@@ -117,7 +111,11 @@ enum opcode {
 	visitOp(0x82,movevl,"move_vl_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x83,movesz,"move_sz_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) 
-	
+
+#define ENUM_CONTROL_OPERATORS(visitOp) \
+	visitOp(0x01,nop,"nop",,) \
+	\
+	visitOp(0xf0,ret,"return",,)	
 		
 #define ENUM_NONCONTROL_OPERATORS(visitOp) \
 	ENUM_PARAMETRIC_OPERATORS(visitOp) \
@@ -435,9 +433,18 @@ struct EncodeStream : OperatorStream {
 		put<Opcode>(c); \
 		BOOST_PP_SEQ_FOR_EACH(VM_PUT,op_,types) \
 	};
-	ENUM_OPERATORS(VISIT_OPCODE)
+	ENUM_NONCONTROL_OPERATORS(VISIT_OPCODE)
 
 	#undef VISIT_OPCODE
+	
+	#define VISIT_OPCODE(code,name,str,...) \
+	void name() { \
+		Opcode c = Opcode::name; \
+		put<Opcode>(c); \
+	};
+	ENUM_CONTROL_OPERATORS(VISIT_OPCODE)
+	
+	#undef VISIT_OPCODE	
 	#undef VM_PUT
 	#undef DECLEAR
 };
@@ -468,7 +475,9 @@ struct Decode {
 			Opcode c;
 			is.get<Opcode>(c);
 			switch(c) {
-			ENUM_OPERATORS(VISIT_OPCODE)
+			ENUM_NONCONTROL_OPERATORS(VISIT_OPCODE)
+			case Opcode::nop: return true;
+			case Opcode::ret: return false;
 			default:
 				return false;
 			}
@@ -476,9 +485,15 @@ struct Decode {
 			return false;
 		}
 	#undef VISIT_OPCODE
+	#undef SHOWOP
 	#undef PARAM
 	#undef VM_GET
 	#undef DECLEAR
+	#undef STRING
+
+	};
+	void run(JITVisitor& v, OperatorStream& is, bool show = false) {
+		while(once(v,is,show));
 	};
 };
 #undef UNARY
