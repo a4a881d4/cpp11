@@ -144,10 +144,16 @@ inline const char* asString(Opcode c) {
 
 
 struct OperatorStream {
+	OperatorStream() {};
 	OperatorStream(const U8* codeBytes, size_t len)
 	: nextByte((U8*)codeBytes), end(codeBytes+len) {}
 
 	operator bool() const { return nextByte < end; }
+
+	void setBuf(const U8* codeBytes, size_t len) {
+		nextByte = (U8*)codeBytes;
+		end = codeBytes+len;
+	};
 
 	U8* advance(size_t n) {
 		U8* r = nextByte;
@@ -422,17 +428,21 @@ private:
 #define UNARY(a) (a)
 
 struct EncodeStream : OperatorStream {
+	EncodeStream() {};
 	EncodeStream(U8* buf,size_t len) : OperatorStream(buf,len) {};
-	#define DECLEAR(r,data,s) (s&& BOOST_PP_CAT(data,r))
+	#define DECLEARAA(r,data,s) (s&& BOOST_PP_CAT(data,r))
+	#define DECLEAR(r,data,s) (s BOOST_PP_CAT(data,r))
 	#define VM_PUT(r,data,s) put<s>(BOOST_PP_CAT(data,r));
+	#define PARAM(r,data,s) (std::move(BOOST_PP_CAT(data,r)))
 	#define VISIT_OPCODE(code,name,str,types,...) \
-	void name( \
-		BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(DECLEAR,op_,types)) \
-		) { \
+	void name( BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(DECLEARAA,op_,types)) ) { \
 		Opcode c = Opcode::name; \
 		put<Opcode>(c); \
 		BOOST_PP_SEQ_FOR_EACH(VM_PUT,op_,types) \
-	};
+	}; \
+	void p_##name( BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(DECLEAR,op_,types)) ) {\
+			name( BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(PARAM,op_,types)) ); \
+		};
 	ENUM_NONCONTROL_OPERATORS(VISIT_OPCODE)
 
 	#undef VISIT_OPCODE
@@ -441,12 +451,19 @@ struct EncodeStream : OperatorStream {
 	void name() { \
 		Opcode c = Opcode::name; \
 		put<Opcode>(c); \
-	};
+	}; \
+	void p_##name() { name(); };
 	ENUM_CONTROL_OPERATORS(VISIT_OPCODE)
-	
+
 	#undef VISIT_OPCODE	
 	#undef VM_PUT
+	#undef DECLEARAA
 	#undef DECLEAR
+	#undef PARAM
+
+	void test(U8 a, U8 b) {
+		std::cout << a*b << std::endl;
+	};
 };
 
 struct Decode {

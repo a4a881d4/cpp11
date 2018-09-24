@@ -12,7 +12,13 @@ using namespace boost::uuids;
 
 namespace usrtos{ namespace vm{
 
-typedef uuid UUID;
+struct UUID : uuid {
+	UUID() {};
+	UUID(std::string sid) {
+		uuid id = lexical_cast<uuid>(sid);
+		id.swap(*this);
+	};
+};
 
 struct ANYTYPE {
 	enum class ValueType : U8 {
@@ -71,12 +77,17 @@ struct ANYTYPE {
 	size_t toOffset() const {
 		if(size() > 8)
 			return 0;
-		size_t mask = (1LL<<(size()*8)) - 1LL;
+		size_t mask = -1LL;
+		if(size()<8)
+			mask = (1LL<<(size()*8)) - 1LL;
 		unsigned long long r;
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
 	ANYTYPE(size_t&& i) {
+		pack(i);
+	};
+	ANYTYPE(size_t i) {
 		pack(i);
 	};
 	ANYTYPE(U8& i) : type(ValueType::u8) , pvalue(&i) {};
@@ -120,14 +131,13 @@ struct ANYTYPE {
 		pvalue = &buf[0];
 		return *this;
 	};
-	ANYTYPE& pack(size_t s) {
+	void pack(size_t s) {
 		if(s < (1<<8)) type = ValueType::u8;
 		else if(s < (1<<16)) type = ValueType::u16;
 		else if(s < (1LL<<32)) type = ValueType::u32;
 		else type = ValueType::u64;
 		pvalue = &buf[0];
 		memcpy(pvalue,&s,sizeof(size_t));
-		return *this;
 	};
 	operator size_t() const { return toOffset(); }
 };

@@ -3,11 +3,13 @@
 #include "pusrtmem.hpp"
 #include "pusrtconfig.hpp"
 #include "pusrttask.hpp"
+#include "pusrtscript.hpp"
 
 #include <boost/python.hpp>
 using namespace boost::python;
 
 namespace usrtos {
+using namespace vm;
 
 BOOST_PYTHON_MODULE(usrtos)
 {
@@ -34,6 +36,12 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("getWorkerKey", &UsrtConfig::getWorkerKey)
 	;
 
+	class_<ANYTYPE>("AnyType", init<size_t>())
+		.def("pack", &ANYTYPE::pack)
+		;
+
+	class_<UUID>("UUID", init<std::string>());
+	
 	class_<UsrtTaskAPI>("UsrtTaskAPI", init<std::string>())
 		.def("HelloWorld", &UsrtTaskAPI::HelloWorld)
 		.def("byKeyInt", &UsrtTaskAPI::byKeyInt)
@@ -48,6 +56,17 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("allocDepend", &UsrtTaskAPI::allocDepend)
 		.def("dumpTask", &UsrtTaskAPI::dumpTask)
 	;
+
+#define ENUM_TEST_OPERATORS(visitOp) \
+	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) 
+
+	#define VISIT_OPCODE(code,name,...) .def(#name,&UsrtScript::p_##name)
+	class_<UsrtScript>("UsrtScript",init<std::string,size_t>())
+		.def("push",&UsrtScript::push)
+		.def("test",&UsrtScript::test)
+	ENUM_OPERATORS(VISIT_OPCODE) 
+	;
+	#undef VISIT_OPCODE
 }
 };
 
