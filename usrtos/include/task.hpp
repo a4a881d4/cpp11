@@ -71,15 +71,24 @@ inline std::ostream& operator<<(std::ostream& os,const CallBackArgv& argv)
 	return os;
 }
 
-struct task {
-	int64 ID;
-	uuid key;
+struct script {
 	CPBlock::GP argv;
-	uuid callback;
-	_callback_argv_t callbackargv;
+};
+
+struct timed : script {
+	int64 ID;
 	utime_t noE;
 	utime_t noL;
 	utime_t valid;
+};
+
+struct captask : timed {
+	uuid key;
+};
+
+struct task : captask {
+	uuid callback;
+	_callback_argv_t callbackargv;
 
 	task *setID(int64 id) {
 		ID = id;

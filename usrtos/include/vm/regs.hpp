@@ -35,7 +35,7 @@ struct ANYTYPE {
 	ValueType type;
 	U8* pvalue;
 
-	size_t size() {
+	size_t size() const {
 		switch(type) {
 			case ValueType::none: return 0;
 			case ValueType::i8:
@@ -68,7 +68,7 @@ struct ANYTYPE {
 		auto s = size();
 		memcpy(pvalue,is.advance(s),s);
 	};
-	size_t toOffset() {
+	size_t toOffset() const {
 		if(size() > 8)
 			return 0;
 		size_t mask = (1LL<<(size()*8)) - 1LL;
@@ -129,6 +129,7 @@ struct ANYTYPE {
 		memcpy(pvalue,&s,sizeof(size_t));
 		return *this;
 	};
+	operator size_t() const { return toOffset(); }
 };
 
 inline std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)

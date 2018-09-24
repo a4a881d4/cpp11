@@ -365,8 +365,7 @@ namespace usrtos {
 				return nullptr;
 			};
 			
-			void mainWorker()
-			{
+			void mainWorker() {
 				UsrtCapabilityBearer *bearer;
 				struct mainWorkerCTX mCtx;
 				mCtx.workers = this;
@@ -379,7 +378,7 @@ namespace usrtos {
 							if(this->setCap(t->key))
 								bearer = this->getBearerByKey(t->key);
 						}
-						if(bearer != NULL) {
+						if(bearer != nullptr) {
 							if(t->ID == 0LL) {	// system task
 								mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
 								bearer->runLP(&(mCtx));
@@ -395,7 +394,9 @@ namespace usrtos {
 						sleep(1);
 				}
 			};
-					
+			
+
+
 			void setDefaultKeeper(uuid key) {
 				if(!setCap(key))
 					fprintf(stderr,"Can not find default keeper\n");
