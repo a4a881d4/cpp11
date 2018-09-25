@@ -1,62 +1,33 @@
 import sys
 sys.path.append('work')
 
-from usrtos import UsrtConfig as cfg
+from config import Config as cfg
 from usrtos import UsrtScript as script
+from usrtos import AnyType,UUID
+
 from optparse import OptionParser
-
-class Config(cfg):
-	noArgv = [
-		  "HelloWorld"
-		, "DumpQueue"
-		, "DumpThread"
-		, "ListCap"
-		, "UnlockReady"
-		, "UnlockWait"
-		, "SetDefaultKeeper"
-		, "Exit"
-		]
-	withInt = [
-		"Start"
-	]
-	withKey = [
-		  "DelCapByKey"
-		, "SetCapByKey"
-		, "SetKeeper"
-	]
-	withStr = [
-		"SetCap"
-	]
-	system = [
-		  "capWorkersKeeper"
-		, "capCallBackLunchTask"
-		, "capExamplesHelloWorld"
-		, "capWorkersScript"
-	]
+class Script(script):
 	def __init__(self,mdir):
-		cfg.__init__(self,mdir)
-		self.keys = {}
-		for cap in Config.noArgv:
-			self.keys[cap] = {'f' : self.byKey, 'k' : self.getWorkerKey(cap)}
-		for cap in Config.withInt:
-			self.keys[cap] = {'f' : self.byKeyInt, 'k' : self.getWorkerKey(cap)}
-		for cap in Config.withStr:
-			self.keys[cap] = {'f' : self.byKeyStr, 'k' : self.getWorkerKey(cap)}
-		for cap in Config.withKey:
-			self.keys[cap] = {'f' : self.byKeyKey, 'k' : self.getWorkerKey(cap)}
-		for cap in Config.system:
-			self.keys[cap] = {'f' : None, 'k' : self.getKey(cap)}
+		script.__init__(self,mdir,4096)
+		self.cfg = cfg(mdir)
 
-	def done(self,cap,argv=None):
-		a = self.keys[cap]
-		if argv == None:
-			a['f'](a['k'])
+	def cap(self,cn,arg=0):
+		if cn in cfg.noArgv:
+			self.allocm(1,0,AnyType(32))
+		elif cn in cfg.withInt:
+			self.allocm(1,0,AnyType(32))
+			self.immevl(1,AnyType(int(arg)))
+			self.savevl(1,0,AnyType(0))
+		elif cn in cfg.withStr:
+			self.allocm(1,0,AnyType(32))
+			aStr = AnyType(0)
+			aStr.setString(arg)
+			self.immevl(1,aStr)
+			self.savevl(1,0,AnyType(0))
 		else:
-			a['f'](a['k'],argv)
-
-	def dumpKeys(self):
-		for k in self.keys:
-			print(k,":",self.keys[k]['k'])
+			pass
+		scriptCap = UUID(self.cfg.keys["capWorkersScript"]['k'])
+		self.callsy(0,scriptCap)
 
 def main():
 	parse = OptionParser()
@@ -86,20 +57,23 @@ def main():
 
 	(option, arges) = parse.parse_args()
 
-	aCfg = Config(option.dir)
+	aScript = Script(option.dir)
 
 	if option.n != None:
-		aCfg.done(arges[0],int(option.n))
+		aScript.cap(arges[0],int(option.n))
 	elif option.str != None:
-		aCfg.done(arges[0],option.str)
+		aScript.cap(arges[0],option.str)
 	else:
-		aCfg.done(arges[0])
+		aScript.cap(arges[0])
 
 	if option.k:
-		aCfg.dumpKeys()
+		aScript.cfg.dumpKeys()
 
 	if option.ucap:
-		print(option.ucap,":",aCfg.getKey(option.ucap))
+		print(option.ucap,":",aScript.cfg.getKey(option.ucap))
+
+	aScript.ret()
+	aScript.test()
 
 if __name__ == '__main__':
 	main()
