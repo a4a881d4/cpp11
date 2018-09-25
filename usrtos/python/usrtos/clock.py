@@ -20,7 +20,7 @@ import time
 # s.push()
 
 class UsrtClock(uClock):
-	def reset(self):
+	def init(self):
 		self.peek()
 		self.S0 = self.sys
 		self.C0 = self.cpu
@@ -31,6 +31,14 @@ class UsrtClock(uClock):
 		self.v = .0
 
 		self.ds2 = 1.
+		self.needReset = True
+
+	def reset(self):
+		self.peek()
+		self.S0 = self.sys
+		self.C0 = self.cpu
+		self.S = 0
+		self.C = 0
 
 	def look(self):
 		self.peek()
@@ -39,27 +47,34 @@ class UsrtClock(uClock):
 	def update(self):
 		(nS,nC) = self.look()
 		print(nS,nC)
-		if int(self.v) == 0:
+		if self.needReset:
 			self.v = float(nC-self.C)/float(nS-self.S)
 			self.S,self.C = nS,nC
+			self.needReset = False
 		else: 
 			dS = nS - self.S
 			estC = dS*self.v + self.C
 			eC = nC - estC
 			print("error: ",eC)
-			# self.ds2 += float(dS*dS)
-			self.v += 0.25*eC/float(dS)
-			self.C = estC
-			self.S = nS
+			self.v += 0.5*eC/float(dS)
+			if eC > 5000 or eC < -5000:
+				self.reset()
+				print("reset")
+				if eC > 50000 or eC < -50000:
+					print("needReset")
+					self.needReset = True
+			else:
+				self.C = estC
+				self.S = nS
 		print("v:",self.v,"EC: ",self.C,"C:",nC)
 
 
 
 c = UsrtClock()
-c.reset()
+c.init()
 print(c.look())
 
 while 1:
-	time.sleep(10)
+	time.sleep(1)
 	c.update()
 	
