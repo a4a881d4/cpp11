@@ -7,6 +7,9 @@
 #include "BasicTypes.h"
 #include <layout.hpp>
 #include <gp.hpp>
+#include <sstream>
+#include <iomanip>
+
 
 using namespace boost::uuids;
 
@@ -39,11 +42,13 @@ struct ANYTYPE {
 		, f64
 		, v128
 		, id
+		, string
 	};
 
-	U8 buf[16];
+	U8 buf[32];
 	ValueType type;
 	U8* pvalue;
+	size_t stringSz;
 
 	size_t size() const {
 		switch(type) {
@@ -60,6 +65,7 @@ struct ANYTYPE {
 			case ValueType::f64: return 8;
 			case ValueType::v128:
 			case ValueType::id: return 16;
+			case ValueType::string: return stringSz;
 			default: return 0;
 		}
 	};
@@ -69,12 +75,20 @@ struct ANYTYPE {
 		U8 *head = os.advance(sizeof(ValueType));
 		*head = static_cast<U8>(type);
 		auto s = size();
+		if(type == ValueType::string) {
+			U8 *sz = os.advance(1);
+			*sz = static_cast<U8>(stringSz);
+		}
 		memcpy(os.advance(s),pvalue,s);
 	};
 	template<typename istream>
 	void get(istream& is) {
 		U8 *h = is.advance(1);
 		type = static_cast<ValueType>(*h);
+		if(type == ValueType::string) {
+			U8 *t = is.advance(1);
+			stringSz = static_cast<size_t>(*t);
+		}
 		auto s = size();
 		memcpy(pvalue,is.advance(s),s);
 	};
@@ -128,6 +142,7 @@ struct ANYTYPE {
 	ANYTYPE& operator()(ANYTYPE& x) {
 		type = x.type;
 		auto sz = x.size();
+		pvalue = buf;
 		memcpy(pvalue,x.pvalue,sz);
 		return *this;
 	};
@@ -143,20 +158,43 @@ struct ANYTYPE {
 		pvalue = &buf[0];
 		memcpy(pvalue,&s,sizeof(size_t));
 	};
+	void setUUID(UUID& id) {
+		(*this)(id);
+	};
+	void setString(std::string str) {
+		type = ValueType::string;
+		stringSz = str.length()+1;
+		if(stringSz > 32)
+			stringSz = 32;
+		memcpy(buf,str.c_str(),stringSz-1);
+		buf[stringSz-1] = '\0';
+		pvalue = buf;
+		std::cout << "set to: " << size() << ":" << buf << std::endl;
+	};
 	operator size_t() const { return toOffset(); }
 };
 
-inline std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)
+std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)
 {
-	auto x = h.toOffset();
-	os << x << "(" << h.size() << ")";
+	if(h.type != ANYTYPE::ValueType::string) 
+	{
+		std::stringstream s1;
+		for(int i=0;i<h.size();i++)
+			s1 << std::setfill('0') << std::setw(2) << std::hex << (int)h.buf[i];
+		os << s1.str() << "(" << h.size() << ")";
+	}
+	else {
+		os << (const char *)h.buf << "(" << h.size() << ")";
+	}
 	return os;
 }
+
 inline std::ostream& operator<<(std::ostream& os,U8& h)
 {
 	os << (int)h;
 	return os;
 }
+
 struct Reg {
 	_globe_pointer gp;
 	ANYTYPE value;

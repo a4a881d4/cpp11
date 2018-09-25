@@ -2,6 +2,7 @@ import sys
 sys.path.append('work')
 
 from usrtos import UsrtConfig as cfg
+from usrtos import UsrtScript as script
 from optparse import OptionParser
 
 class Config(cfg):
@@ -81,7 +82,7 @@ def main():
 	                dest= "k",
 	                action= "store_true",
 	                default= False,
-	                help= "memory block directory")
+	                help= "dump keys")
 
 	(option, arges) = parse.parse_args()
 

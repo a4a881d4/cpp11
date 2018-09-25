@@ -38,6 +38,8 @@ BOOST_PYTHON_MODULE(usrtos)
 
 	class_<ANYTYPE>("AnyType", init<size_t>())
 		.def("pack", &ANYTYPE::pack)
+		.def("setUUID", &ANYTYPE::setUUID)
+		.def("setString", &ANYTYPE::setString)
 		;
 
 	class_<UUID>("UUID", init<std::string>());
