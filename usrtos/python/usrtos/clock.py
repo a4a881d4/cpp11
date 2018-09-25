@@ -57,10 +57,11 @@ class UsrtClock(uClock):
 			eC = nC - estC
 			print("error: ",eC)
 			self.v += 0.5*eC/float(dS)
-			if eC > 5000 or eC < -5000:
+			e = abs(eC)/self.v
+			if e > 1000:
 				self.reset()
 				print("reset")
-				if eC > 50000 or eC < -50000:
+				if e > 10000:
 					print("needReset")
 					self.needReset = True
 			else:
@@ -75,6 +76,6 @@ c.init()
 print(c.look())
 
 while 1:
-	time.sleep(1)
+	time.sleep(0.5)
 	c.update()
 	
