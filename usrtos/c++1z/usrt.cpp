@@ -4,6 +4,7 @@
 #include "pusrtconfig.hpp"
 #include "pusrttask.hpp"
 #include "pusrtscript.hpp"
+#include "pusrtclock.hpp"
 
 #include <boost/python.hpp>
 using namespace boost::python;
@@ -40,6 +41,12 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("pack", &ANYTYPE::pack)
 		.def("setUUID", &ANYTYPE::setUUID)
 		.def("setString", &ANYTYPE::setString)
+		;
+
+	class_<UsrtClock>("uClock")
+		.def("peek",&UsrtClock::peek)
+		.def_readonly("cpu",&UsrtClock::cpu)
+		.def_readonly("sys",&UsrtClock::sys)
 		;
 
 	class_<UUID>("UUID", init<std::string>());
