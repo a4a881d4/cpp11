@@ -49,7 +49,7 @@ public:
 		}
 		if((len&16) != 0)
 			s << endl;
-		return s.str();
+		return string(s.str());
 	};
 };
 };

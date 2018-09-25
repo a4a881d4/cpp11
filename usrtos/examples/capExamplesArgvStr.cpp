@@ -7,7 +7,7 @@ using namespace usrtos;
 int FUNCLASS::run( void *argv ) {
 
 	char *a = static_cast<char *>(argv);
-	std::cout << " I am in Argv Str with args " << a << std::endl;
+	std::cout << " I am in Argv Str with argv: " << a << std::endl;
 	return 0;
 }
 

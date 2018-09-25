@@ -142,6 +142,8 @@ struct ANYTYPE {
 	ANYTYPE& operator()(ANYTYPE& x) {
 		type = x.type;
 		auto sz = x.size();
+		if(type == ValueType::string)
+			stringSz = x.stringSz;
 		pvalue = buf;
 		memcpy(pvalue,x.pvalue,sz);
 		return *this;
