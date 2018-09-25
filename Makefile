@@ -176,3 +176,10 @@ reworker :
 dag : work/dag_test
 	work/dag_test > work/gr.dot
 	dot work/gr.dot -Tpng -o work/gr.png
+
+scriptDep = work/usrtos.so work/capWorkersScript.so
+script:
+	rm -f $(scriptDep)
+	make all
+	make workers
+	

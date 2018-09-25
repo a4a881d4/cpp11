@@ -104,7 +104,9 @@ enum opcode {
 	\
 	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8),std::tuple<U8>) \
 	\
-	visitOp(0x70,callcp,"call_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	visitOp(0x70,callsy,"call_sys_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	\
+	visitOp(0x71,callcp,"call_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
 	visitOp(0x80,movegp,"move_gp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
@@ -387,6 +389,16 @@ struct JITVisitor {
 		auto bearer = ctx->workers->getBearerByKey(capKey);
 		if(bearer != nullptr) {
 			bearer->runLP(R.lp);
+		}
+	};
+	void callsy(U8 r, UUID capKey) {
+		Reg& R = ctx->rfile.reg[r];
+		auto bearer = ctx->workers->getBearerByKey(capKey);
+		if(bearer != nullptr) {
+			struct mainWorkerCTX mCtx;
+			mCtx.workers = ctx->workers;
+			mCtx.argv = R.lp;
+			bearer->runLP(&mCtx);
 		}
 	};
 	void movegp(U8 src, U8 des) {

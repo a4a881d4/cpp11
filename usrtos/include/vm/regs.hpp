@@ -18,6 +18,10 @@ struct UUID : uuid {
 		uuid id = lexical_cast<uuid>(sid);
 		id.swap(*this);
 	};
+	UUID(const uuid& id) {
+		uuid iid = id;
+		iid.swap(*this);
+	};
 };
 
 struct ANYTYPE {
@@ -84,9 +88,9 @@ struct ANYTYPE {
 		memcpy(&r,buf,size());
 		return r&mask;
 	};
-	ANYTYPE(size_t&& i) {
-		pack(i);
-	};
+	// ANYTYPE(size_t&& i) {
+	// 	pack(i);
+	// };
 	ANYTYPE(size_t i) {
 		pack(i);
 	};
