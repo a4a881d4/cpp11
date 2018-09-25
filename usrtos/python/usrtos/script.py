@@ -26,6 +26,12 @@ class Script(script):
 			aStr.setString(arg)
 			self.immevl(1,aStr)
 			self.savevl(1,0,AnyType(0))
+		elif cn in cfg.withKey:
+			self.allocm(1,0,AnyType(32))
+			aStr = AnyType(0)
+			aStr.setUUID(UUID(arg))
+			self.immevl(1,aStr)
+			self.savevl(1,0,AnyType(0))
 		else:
 			pass
 		if cn in self.cfg.keys:
@@ -50,7 +56,11 @@ class Script(script):
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
 			self.callcp(0,scriptCap)
-
+	
+	def initKey(self):
+		for cap in self.api.keys:
+			print(cap,":",self.api.keys[cap]['k'])
+			self.doCap("SetCapByKey",self.api.keys[cap]['k'])
 
 def main():
 	parse = OptionParser()
@@ -78,22 +88,28 @@ def main():
 	                default= False,
 	                help= "dump keys")
 
+	parse.add_option("-i", "--init",
+	                dest= "init",
+	                action= "store_true",
+	                default= False,
+	                help= "init workers")
+
 	(option, arges) = parse.parse_args()
 
 	aScript = Script(option.dir)
 
-	if option.n != None:
-		aScript.doCap(arges[0],int(option.n))
-	elif option.str != None:
-		aScript.doCap(arges[0],option.str)
+	if option.init:
+		print("Initial workers by script")
+		aScript.initKey()
+		aScript.doCap("SetDefaultKeeper")
+		aScript.doCap("Start",1)
 	else:
-		aScript.doCap(arges[0])
-
-	if option.k:
-		aScript.cfg.dumpKeys()
-
-	if option.ucap:
-		print(option.ucap,":",aScript.cfg.getKey(option.ucap))
+		if option.n != None:
+			aScript.doCap(arges[0],int(option.n))
+		elif option.str != None:
+			aScript.doCap(arges[0],option.str)
+		else:
+			aScript.doCap(arges[0])
 
 	aScript.ret()
 	aScript.test()
