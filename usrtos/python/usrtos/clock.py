@@ -40,6 +40,7 @@ class UsrtClock(uClock):
 		self.S = 0
 		self.C = 0
 
+
 	def look(self):
 		self.peek()
 		return (self.sys - self.S0,self.cpu - self.C0)
@@ -50,13 +51,15 @@ class UsrtClock(uClock):
 		if self.needReset:
 			self.v = float(nC-self.C)/float(nS-self.S)
 			self.S,self.C = nS,nC
+			self.se = 0.
 			self.needReset = False
 		else: 
 			dS = nS - self.S
 			estC = dS*self.v + self.C
 			eC = nC - estC
-			print("error: ",eC)
-			self.v += 0.5*eC/float(dS)
+			print("error: ",eC,self.se)
+			self.se += eC
+			self.v += 0.5*eC/float(dS) # + 0.001*self.se/float(dS)
 			e = abs(eC)/self.v
 			if e > 1000:
 				self.reset()
