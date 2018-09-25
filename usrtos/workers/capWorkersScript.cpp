@@ -9,9 +9,9 @@ int FUNCLASS::run( void *argv ) {
 	struct vm::VMContext vmCtx(*(ctx->workers));
 	struct vm::JITVisitor visitor(vmCtx);
 
-	vm::OperatorStream os(static_cast<U8*>(ctx->argv),256);
+	vm::OperatorStream os(static_cast<U8*>(ctx->argv),ctx->len);
 	vm::Decode d;
-	d.run(visitor,os,true);
+	d.run(visitor,os,vm::RunMode::show|vm::RunMode::run);
 	return 1;
 }
 

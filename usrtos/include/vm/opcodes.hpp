@@ -478,6 +478,12 @@ struct EncodeStream : OperatorStream {
 	};
 };
 
+enum RunMode {
+	  run = 1
+	, show = 2
+	, step = 4
+};
+
 struct Decode {
 	#define STRING(x) #x
 	#define DECLEAR(r,data,s) s BOOST_PP_CAT(data,r);
@@ -488,18 +494,19 @@ struct Decode {
 		case Opcode::name: {\
 			BOOST_PP_SEQ_FOR_EACH(DECLEAR,op_,types) \
 			BOOST_PP_SEQ_FOR_EACH(VM_GET,op_,types) \
-			if(show) { \
+			if(show&RunMode::show) { \
 				std::cout << str << ": " \
 				BOOST_PP_SEQ_FOR_EACH(SHOWOP,op_,types) \
 				<< std::endl; \
-			} else {\
+			} \
+			if(show&RunMode::run) {\
 				v.name(\
 					BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(PARAM,op_,types)) \
 					); \
 			}\
 			return true; \
 		}
-	bool once(JITVisitor& v, OperatorStream& is, bool show = false) {
+	bool once(JITVisitor& v, OperatorStream& is, int show = RunMode::show) {
 		if(is) {
 			Opcode c;
 			is.get<Opcode>(c);
@@ -521,7 +528,7 @@ struct Decode {
 	#undef STRING
 
 	};
-	void run(JITVisitor& v, OperatorStream& is, bool show = false) {
+	void run(JITVisitor& v, OperatorStream& is, int show = RunMode::show) {
 		while(once(v,is,show));
 	};
 };

@@ -31,7 +31,7 @@ public:
 		vm::OperatorStream os(buf,len);
 		vm::JITVisitor visitor;
 		vm::Decode d;
-		d.run(visitor,os,true);
+		d.run(visitor,os,vm::RunMode::show);
 	};
 };
 };

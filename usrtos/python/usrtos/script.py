@@ -4,14 +4,16 @@ sys.path.append('work')
 from config import Config as cfg
 from usrtos import UsrtScript as script
 from usrtos import AnyType,UUID
+from userAPI import UserAPI as uAPI
 
 from optparse import OptionParser
 class Script(script):
 	def __init__(self,mdir):
 		script.__init__(self,mdir,4096)
 		self.cfg = cfg(mdir)
+		self.api = uAPI(mdir)
 
-	def cap(self,cn,arg=0):
+	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
 			self.allocm(1,0,AnyType(32))
 		elif cn in cfg.withInt:
@@ -26,8 +28,29 @@ class Script(script):
 			self.savevl(1,0,AnyType(0))
 		else:
 			pass
-		scriptCap = UUID(self.cfg.keys["capWorkersScript"]['k'])
-		self.callsy(0,scriptCap)
+		if cn in self.cfg.keys:
+			scriptCap = UUID(self.cfg.keys[cn]['k'])
+			self.callsy(0,scriptCap)
+		
+		if cn in uAPI.noArgv:
+			self.allocm(1,0,AnyType(32))
+		elif cn in uAPI.withInt:
+			self.allocm(1,0,AnyType(32))
+			self.immevl(1,AnyType(int(arg)))
+			self.savevl(1,0,AnyType(0))
+		elif cn in uAPI.withStr:
+			self.allocm(1,0,AnyType(32))
+			aStr = AnyType(0)
+			aStr.setString(arg)
+			self.immevl(1,aStr)
+			self.savevl(1,0,AnyType(0))
+		else:
+			pass
+
+		if cn in self.api.keys:
+			scriptCap = UUID(self.api.keys[cn]['k'])
+			self.callcp(0,scriptCap)
+
 
 def main():
 	parse = OptionParser()
@@ -60,11 +83,11 @@ def main():
 	aScript = Script(option.dir)
 
 	if option.n != None:
-		aScript.cap(arges[0],int(option.n))
+		aScript.doCap(arges[0],int(option.n))
 	elif option.str != None:
-		aScript.cap(arges[0],option.str)
+		aScript.doCap(arges[0],option.str)
 	else:
-		aScript.cap(arges[0])
+		aScript.doCap(arges[0])
 
 	if option.k:
 		aScript.cfg.dumpKeys()
@@ -74,6 +97,7 @@ def main():
 
 	aScript.ret()
 	aScript.test()
+	aScript.push()
 
 if __name__ == '__main__':
 	main()
