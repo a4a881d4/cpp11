@@ -48,7 +48,7 @@ class UsrtClock(uClock):
 			eC = nC - estC
 			print("error: ",eC)
 			# self.ds2 += float(dS*dS)
-			self.v += 0.5*eC/float(dS)
+			self.v += 0.25*eC/float(dS)
 			self.C = estC
 			self.S = nS
 		print("v:",self.v,"EC: ",self.C,"C:",nC)
@@ -60,6 +60,6 @@ c.reset()
 print(c.look())
 
 while 1:
-	time.sleep(1)
+	time.sleep(10)
 	c.update()
 	
