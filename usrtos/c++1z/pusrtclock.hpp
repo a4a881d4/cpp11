@@ -3,6 +3,8 @@
 
 namespace usrtos {
 
+timing::CPU2SYS c2s;
+
 struct UsrtClock {
 	long long cpu;
 	long long sys;
@@ -30,6 +32,11 @@ struct UsrtClock {
 		peek_i(0);
 	};
 
+	double update() {
+		if(!timing::CPUClock::c2s)
+			timing::CPUClock::c2s = &c2s;
+		timing::CPUClock::c2s->update();
+		return timing::CPUClock::c2s->err;
+	};
 };
-
 }; //namespace usrtos

@@ -95,6 +95,7 @@ public:
 	ReadyHeap *ready;
 	TaskFifo *tm;
 	struct task *card;
+	utime clock;
 
 	TaskHeap(CPBlock& m) {
 		wait = new WaitHeap(m);
@@ -118,12 +119,16 @@ public:
 	};
 
 	utime_t now() {
-		return std::chrono::high_resolution_clock::now();
+		return clock.now();
 	};
 
-	utime_t after(long long us) {
-		return std::chrono::high_resolution_clock::now()
-			+ micro_type(us);
+	utime_t after(long long ns) {
+		return clock.now()
+			+ clock.fromns(ns);
+	};
+
+	utime_t after(utime_t t, long long ns) {
+		return t + clock.fromns(ns);
 	};
 
 	int update() {

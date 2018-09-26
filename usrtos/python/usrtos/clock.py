@@ -46,8 +46,8 @@ class UsrtClock(uClock):
 		return (self.sys - self.S0,self.cpu - self.C0)
 
 	def update(self):
+		print(time.asctime(time.localtime(time.time())),":",end=' ')
 		(nS,nC) = self.look()
-		print(nS,nC)
 		if self.needReset:
 			self.v = float(nC-self.C)/float(nS-self.S)
 			self.S,self.C = nS,nC
@@ -57,7 +57,7 @@ class UsrtClock(uClock):
 			dS = nS - self.S
 			estC = dS*self.v + self.C
 			eC = nC - estC
-			print("error: ",eC,self.se)
+			print("e:",eC,self.se,end=' ')
 			self.se += eC
 			self.v += 0.5*eC/float(dS) # + 0.001*self.se/float(dS)
 			e = abs(eC)/self.v
@@ -65,12 +65,13 @@ class UsrtClock(uClock):
 				self.reset()
 				print("reset")
 				if e > 10000:
-					print("needReset")
+					print("needReset",end=' ')
 					self.needReset = True
 			else:
 				self.C = estC
 				self.S = nS
-		print("v:",self.v,"EC: ",self.C,"C:",nC)
+		print("v:",self.v,end=' ')
+		print("c err",self.cupdate())
 
 
 
@@ -79,6 +80,6 @@ c.init()
 print(c.look())
 
 while 1:
-	time.sleep(0.5)
+	time.sleep(2)
 	c.update()
 	

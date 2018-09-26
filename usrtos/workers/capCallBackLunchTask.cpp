@@ -44,8 +44,8 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 			pTask = w->G2L<task>(callback->gp);
 			if(ref == nullptr) 
 				ref=pTask;
-			pTask->noE = ref->noE + micro_type(callback->delay);
-			pTask->noL = ref->noL + micro_type(callback->delay);
+			pTask->noE = w->tQueue()->after(ref->noE ,callback->delay);
+			pTask->noL = w->tQueue()->after(ref->noL ,callback->delay);
 			WorkerHelper::pushTask(w,callback->gp);
 		}
 		break;
@@ -56,8 +56,8 @@ static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
 				pTask = WorkerHelper::copyUserTask(w,gp,*pTask);
 				pTask->callbackargv.gp = gp;
 			}
-			pTask->noE += micro_type(callback->delay);
-			pTask->noL += micro_type(callback->delay);
+			pTask->noE += w->tQueue()->clock.micro_type(callback->delay);
+			pTask->noL += w->tQueue()->clock.micro_type(callback->delay);
 			WorkerHelper::pushTask(w,gp);
 		}
 		break;

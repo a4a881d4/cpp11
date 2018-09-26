@@ -45,6 +45,7 @@ BOOST_PYTHON_MODULE(usrtos)
 
 	class_<UsrtClock>("uClock")
 		.def("peek",&UsrtClock::peek)
+		.def("cupdate",&UsrtClock::update)
 		.def_readonly("cpu",&UsrtClock::cpu)
 		.def_readonly("sys",&UsrtClock::sys)
 		;

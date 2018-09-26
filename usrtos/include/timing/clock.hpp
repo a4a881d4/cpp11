@@ -6,6 +6,14 @@ namespace usrtos { namespace timing {
 	typedef std::chrono::high_resolution_clock::time_point systime_t;
 	typedef std::chrono::duration<int, std::micro> micro_type;
 	
+	inline std::ostream& operator<<(std::ostream& os,const systime_t& h)
+	{
+		auto d = h - std::chrono::high_resolution_clock::now();
+		micro_type dd = std::chrono::duration_cast<micro_type>(d);
+		os << dd.count();
+		return os;
+	}
+	
 	systime_t getSysNow() {
 		return std::chrono::high_resolution_clock::now();
 	};
@@ -71,8 +79,14 @@ namespace usrtos { namespace timing {
 					double dC = nowC - lastC;
 					double est = dC*v + (double)lastS;
 					err = (double)nowS - est;
-					v += 0.5*err/dC;
-					lastS = (time_t)est;
+					if(fabs(err) > 500) {
+						reset();
+						if(fabs(err) > 5000)
+							init();
+					} else {
+						v += 0.5*err/dC;
+						lastS = (time_t)est;
+					}
 				}
 				lastC = nowC;
 			}
@@ -120,7 +134,18 @@ namespace usrtos { namespace timing {
 				return getSysNow();
 			}
 		};
+		time_t fromns(time_t ns) {
+			if(c2s && *c2s) {
+				return (time_t)((double)ns/c2s->v);
+			} else {
+				return ns;
+			}
+		};
+		time_t micro_type(time_t ns) {
+			return fromns(ns);
+		};
 	};
+
 	struct SYSClock {
 		typedef systime_t utime_t;
 		static CPU2SYS *c2s;
@@ -137,7 +162,11 @@ namespace usrtos { namespace timing {
 		systime_t systime() const {
 			return getSysNow();
 		};
+		time_t fromns(time_t ns) {
+			return ns;
+		};
 	};
+
 	CPU2SYS * CPUClock::c2s = nullptr;
 	CPU2SYS * SYSClock::c2s = nullptr;
 }}

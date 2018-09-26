@@ -6,16 +6,15 @@ namespace usrtos {
 class UsrtHardTimer {
   private: 
     utime_t end;
-    utime_t getNow() {
-      return std::chrono::high_resolution_clock::now();
-    };
+    utime t;
+      
   public:
     UsrtHardTimer( int time ) {
-      end = getNow() + micro_type(time);
+      end = t.now() + t.fromns(time);
     };
     
-    int expired() { return end < getNow(); };
+    int expired() { return end < t.now(); };
     
-    utime_t date() { return getNow(); };
+    utime_t date() { return t.now(); };
 };
 }; //namespace usrtos
