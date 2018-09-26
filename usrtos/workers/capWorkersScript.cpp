@@ -15,7 +15,7 @@ int FUNCLASS::run( void *argv ) {
 	
 	vm::OperatorStream os(static_cast<U8*>(ctx->argv),ctx->len);
 	vm::Decode d;
-	d.run(*visitor,os,vm::RunMode::show|vm::RunMode::run);
+	d.run(*visitor,os,vm::RunMode::run);
 	return 1;
 }
 

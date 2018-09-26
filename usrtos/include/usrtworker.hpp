@@ -403,11 +403,13 @@ namespace usrtos {
 					}
 					else{
 						sleep(1);
-						stringstream s;
-						m_c2s.dump(s);
 						m_c2s.update();
-						string ps = s.str();
-						SYSLOG.put(ps);
+						if(fabs(m_c2s.err) > 100) {
+							stringstream s;
+							m_c2s.dump(s);
+							string ps = s.str();
+							SYSLOG.put(ps);	
+						}
 					}
 				}
 			};
