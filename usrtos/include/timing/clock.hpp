@@ -73,7 +73,7 @@ namespace usrtos { namespace timing {
 				nowC = rC - C0;
 				nowS = rS - S0;
 				if(lastC == 0 && updateV) {
-					v = (double)nowS/(double)nowC;
+					v = ((double)nowS+0.5)/((double)nowC+0.5);
 					lastS = nowS;
 					updateV = false;
 				} else {
@@ -143,11 +143,12 @@ namespace usrtos { namespace timing {
 			}
 		};
 		time_t fromns(time_t ns) {
-			if(c2s && *c2s) {
-				return (time_t)((double)ns/c2s->v);
-			} else {
-				return ns;
+			if(c2s) {
+				if(*c2s) {
+					return (time_t)((double)ns/c2s->v);	
+				} 
 			}
+			return ns;
 		};
 		time_t micro_type(time_t ns) {
 			return fromns(ns);

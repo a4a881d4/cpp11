@@ -3,15 +3,50 @@ sys.path.append('work')
 
 from config import Config as cfg
 from usrtos import UsrtScript as script
-from usrtos import AnyType,UUID
+from usrtos import AnyType,UUID,uClock
 from userAPI import UserAPI as uAPI
 
 from optparse import OptionParser
+from utility import getStructFieldOffest
+from ctypes import *
+
+class task(Structure):
+	_fields_ = [  ("argv",  c_char*32)
+				, ("ID",    c_longlong)
+				, ("noE",   c_longlong)
+				, ("noL",   c_longlong)
+				, ("valid", c_longlong)
+				, ("key",   c_char*16)
+				, ("cbkey", c_char*16)
+				, ("cbarg", c_char*56)
+				]
+
+class Task:
+	fields = getStructFieldOffest(task)
+	def __init__(self):
+		pass
+
 class Script(script):
 	def __init__(self,mdir):
 		script.__init__(self,mdir,4096)
 		self.cfg = cfg(mdir)
 		self.api = uAPI(mdir)
+		self.clock = uClock()
+
+	def newTask(self,reg_task,reg_argv,key):
+		self.allocm(0,reg_task,AnyType(sizeof(task)))
+		self.clearm(reg_task)
+		
+		self.immeid(0xf0,key)
+		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
+		self.clock.peek()
+		self.immevl(0xf0,AnyType(10))
+		self.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
+		self.immevl(0xf0,AnyType(self.clock.cpu+1000000))
+		self.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
+		self.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
+		self.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
+		self.pushof(reg_task)
 
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
@@ -55,7 +90,7 @@ class Script(script):
 
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
-			self.callcp(0,scriptCap)
+			self.newTask(1,0,scriptCap)
 	
 	def initKey(self):
 		for cap in self.api.keys:

@@ -77,6 +77,7 @@ enum opcode {
 	visitOp(0x02,setseg,"set_segment",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
 	visitOp(0x10,allocm,"alloc_memory",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
+	visitOp(0x11,clearm,"clear_memory",UNARY(U8),std::tuple<U8>) \
 	\
 	visitOp(0x20,savegp,"save_globe_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
 	visitOp(0x21,savelp,"save_local_pointer",TERNARY(U8,U8,ANYTYPE),std::tuple<U8,U8,ANYTYPE>) \
@@ -97,6 +98,7 @@ enum opcode {
 	visitOp(0x52,selfst,"self_set",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x53,selfgl,"self_gp2lp",UNARY(U8),std::tuple<U8>) \
 	visitOp(0x54,selflg,"self_lp2gp",UNARY(U8),std::tuple<U8>) \
+	visitOp(0x55,selfsc,"self_conv_time_sys2cpu",UNARY(U8),std::tuple<U8>) \
 	\
 	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
@@ -273,6 +275,10 @@ struct JITVisitor {
 		R.lp = ctx->rfile.mem[s]
 			->newGP<char>(R.gp,sz.offset,16);
 	};
+	void clearm(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		memset(R.lp, 0, R.gp.objsize);
+	};
 	void loadgp(U8 ra, U8 rb, VMOffset offset) {
 		Reg& Ra = ctx->rfile.reg[ra];
 		Reg& Rb = ctx->rfile.reg[rb];
@@ -358,6 +364,18 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		ctx->workers->L2G<char>(
 			R.gp,static_cast<char*>(R.lp));
+	};
+	void selfsc(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		// check type U64
+		timing::time_t& t= *(timing::time_t*)R.value.pvalue;
+		t = ctx->workers->m_c2s.toCpu(t);
+	};
+	void selfcs(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		// check type U64
+		timing::time_t& t= *(timing::time_t*)R.value.pvalue;
+		t = ctx->workers->m_c2s.toSys(t);
 	};
 	void selfro(U8 r, VMOffset offset) {
 		Reg& R = ctx->rfile.reg[r];
