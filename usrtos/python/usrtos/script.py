@@ -35,7 +35,7 @@ class Script(script):
 
 	def newTask(self,reg_task,reg_argv,key):
 		self.allocm(0,reg_task,AnyType(sizeof(task)))
-		self.clearm(reg_task)
+		# self.clearm(reg_task)
 		
 		self.immeid(0xf0,key)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
@@ -90,7 +90,7 @@ class Script(script):
 
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
-			self.newTask(1,0,scriptCap)
+			self.newTask(0xf,0,scriptCap)
 	
 	def initKey(self):
 		for cap in self.api.keys:
