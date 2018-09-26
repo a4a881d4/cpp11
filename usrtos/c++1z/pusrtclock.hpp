@@ -1,4 +1,4 @@
-#include <timing/getnow.hpp>
+#include <timing/clock.hpp>
 #include <usrttype.hpp>
 
 namespace usrtos {
@@ -8,12 +8,12 @@ struct UsrtClock {
 	long long sys;
 
 	long long cpu_now() {
-		return timing::CPUClock().getNow();
+		return timing::CPUClock().now();
 	};
 
 	long long sys_now() {
-		utime_t a = std::chrono::high_resolution_clock::now();
-		return *((long long*)(&a));
+		auto a = timing::SYSClock().now();
+		return a;
 	};
 
 	void peek_i(int i=0) {

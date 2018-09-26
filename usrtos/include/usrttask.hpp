@@ -8,9 +8,6 @@
 
 namespace usrtos {
 
-
-
-
 class OffsetPtr {
 public:
 	size_t p;
