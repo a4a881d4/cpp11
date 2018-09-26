@@ -270,6 +270,7 @@ struct JITVisitor {
 			ctx->rfile.mem[s] = ctx->workers
 				->bindBlockByKey<Layout::UsrtMem>(
 					ctx->rfile.seg[s]);
+			ctx->rfile.dump(); 
 		}
 		Reg& R = ctx->rfile.reg[r];
 		R.lp = ctx->rfile.mem[s]
@@ -400,6 +401,9 @@ struct JITVisitor {
 			ctx ->workers
 				->tQueue()
 				->insert(static_cast<task*>(R.lp));
+			ctx ->workers
+			    ->tQueue()
+			    ->dumpTask(*(task*)R.lp);
 		}
 	};
 	void callcp(U8 r, UUID capKey) {

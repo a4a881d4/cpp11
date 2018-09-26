@@ -303,7 +303,7 @@ public:
 	template <typename T>
 	bool LP2GP(GP& gp, T* p) {
 		auto off = LP2offset<T>(p);
-		if(off==m_head->dataSize)
+		if(off == m_head->dataSize)
 			return false;
 		gp.id = m_region.id;
 		gp.offset = off;

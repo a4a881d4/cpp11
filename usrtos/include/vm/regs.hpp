@@ -248,6 +248,16 @@ struct RegFile {
 		mem[(size_t)i] = nullptr;
 		return *this;
 	};
+	void dump() {
+		for(int i=0;i<8;i++) {
+			std::cout << i << ": " << seg[i] << " ";
+			if(mem[i])
+				std::cout << "attach mem";
+			else
+				std::cout << "no attach";
+			std::cout << std::endl;
+		}
+	};
 };
 
 };

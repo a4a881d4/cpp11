@@ -35,9 +35,10 @@ class Script(script):
 
 	def newTask(self,reg_task,reg_argv,key):
 		self.allocm(0,reg_task,AnyType(sizeof(task)))
-		# self.clearm(reg_task)
-		
-		self.immeid(0xf0,key)
+		self.clearm(reg_task)
+		aStr = AnyType(0)
+		aStr.setUUID(key)
+		self.immevl(0xf0,aStr)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
 		self.clock.peek()
 		self.immevl(0xf0,AnyType(10))
