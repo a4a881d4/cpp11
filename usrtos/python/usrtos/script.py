@@ -9,6 +9,7 @@ from userAPI import UserAPI as uAPI
 from optparse import OptionParser
 from utility import getStructFieldOffest
 from ctypes import *
+from time import time
 
 class task(Structure):
 	_fields_ = [  ("argv",  c_char*32)
@@ -40,14 +41,17 @@ class Script(script):
 		aStr.setUUID(key)
 		self.immevl(0xf0,aStr)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
-		self.clock.peek()
+		# self.clock.peek()
+		now = int(time()*1e9)
 		self.immevl(0xf0,AnyType(10))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
-		self.immevl(0xf0,AnyType(self.clock.cpu+1000000))
+		self.immevl(0xf0,AnyType(now+2000000000))
+		self.selfsc(0xf0)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
 		self.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
 		self.pushof(reg_task)
+		print(now+2000000000)
 
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:

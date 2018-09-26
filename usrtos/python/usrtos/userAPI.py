@@ -8,6 +8,7 @@ import config
 class UserAPI(api):
 	noArgv = [
 		  "ExamplesHelloWorld"
+		  , "ExamplesClock"
 		]
 	withInt = [
 		  "ExamplesArgvInt"
