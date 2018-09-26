@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include <sstream>
 
 namespace usrtos { namespace timing {
 	typedef long long int time_t;
@@ -110,8 +111,15 @@ namespace usrtos { namespace timing {
 			} else {
 				return 0;
 			}
-		}
-
+		};
+		void dump(std::stringstream& s) {
+			s << " v: " << v;
+			s << " e: " << err;
+			auto a = getSysNow();
+			time_t b = *(time_t*)(&a);
+			s << " now: " << getCpuNow() - toCpu(b);
+			s << std::endl;
+		};
 		CPU2SYS() {
 			init();
 		};

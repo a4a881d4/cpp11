@@ -185,6 +185,9 @@ namespace usrtos {
 			LogLevel				  WARN;
 			LogLevel				 ERROR;
 			LogLevel				 FATAL;
+
+			timing::CPU2SYS m_c2s;
+
 			UsrtWorkers( const char* dir ) {
 				FindBlock fb(dir);
 				auto heads = fb.list();
@@ -208,6 +211,12 @@ namespace usrtos {
 				WARN	 = LogLevel(*m_logs,3);
 				ERROR	= LogLevel(*m_logs,4);
 				FATAL	= LogLevel(*m_logs,5);
+
+				if(!timing::CPUClock::c2s)
+					timing::CPUClock::c2s = &m_c2s;
+				if(!timing::SYSClock::c2s)
+					timing::SYSClock::c2s = &m_c2s;
+				
 				ctx.workers = this;
 			};
 			uuid getMemKey(string name) {
@@ -392,8 +401,14 @@ namespace usrtos {
 									);
 						}
 					}
-					else
+					else{
 						sleep(1);
+						stringstream s;
+						m_c2s.dump(s);
+						m_c2s.update();
+						string ps = s.str();
+						SYSLOG.put(ps);
+					}
 				}
 			};
 			
