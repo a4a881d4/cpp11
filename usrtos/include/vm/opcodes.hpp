@@ -265,7 +265,7 @@ struct JITVisitor {
 	void setseg(U8 s, UUID id) {
 		ctx->rfile.setSeg((segment)s,std::move(id));
 	};
-	void allocm(U8 s, U8 r, VMOffset sz) {
+	void allocm(U8 s, U8 r, ANYTYPE& sz) {
 		if(ctx->rfile.mem[s] == nullptr) {
 			ctx->rfile.mem[s] = ctx->workers
 				->bindBlockByKey<Layout::UsrtMem>(
@@ -273,11 +273,22 @@ struct JITVisitor {
 			// ctx->rfile.dump(); 
 		}
 		Reg& R = ctx->rfile.reg[r];
+		size_t ssize = sz;
+		if(sz > 65536)
+			std::cout << "alloc size:" << ssize << std::endl;
 		R.lp = ctx->rfile.mem[s]
-			->newGP<char>(R.gp,sz.offset,16);
+			->newGP<char>(R.gp,ssize,16);
 	};
 	void clearm(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
+		if(R.gp.objsize > 65536){
+			CPBlock::GP tempgp;
+			ctx->workers->L2G<char>(tempgp,(char*)R.lp);
+			std::cout << "id:" << R.gp.id << " t:" << tempgp.id << std::endl;
+			std::cout << "of:" << R.gp.offset << " t:" << tempgp.offset << std::endl;
+			std::cout << "sz:" << R.gp.objsize << " t:" << tempgp.objsize << std::endl;
+			std::cout << "clear size:" << R.gp.objsize << std::endl;
+		}
 		memset(R.lp, 0, R.gp.objsize);
 	};
 	void loadgp(U8 ra, U8 rb, VMOffset offset) {

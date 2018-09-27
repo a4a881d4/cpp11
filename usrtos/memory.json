@@ -15,8 +15,8 @@
   {
     "VERSION": "",
     "altitude": 50.0,
-    "cpSize": 16,
-    "dataSize": 256,
+    "cpSize": 256,
+    "dataSize": 65536,
     "fileName": "",
     "latitude": 40.0,
     "longitude": 120.0,

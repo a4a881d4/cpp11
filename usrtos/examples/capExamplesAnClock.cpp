@@ -11,9 +11,11 @@ int FUNCLASS::run( void *argv ) {
 	double sumxx = 0.;
 	double sum = 0.;
 	for(int i=0;i<65536;i++) {
-		sumx += tab[i]*i;
-		sumxx += tab[i]*i*i;
-		sum += tab[i];
+		if(tab[i]>10)
+			std::cout << ">10 :" << tab[i] << " " << i << std::endl;
+		sumx += (double)(tab[i])*i;
+		sumxx += (double)(tab[i])*i*i;
+		sum += (double)(tab[i]);
 	}
 	double avg = sumx/sum;
 	double sgm = sqrt(sumxx/sum - avg*avg);
@@ -22,6 +24,7 @@ int FUNCLASS::run( void *argv ) {
 	for(int i=sgm6;i<65536;i++) {
 		r += tab[i];
 	}
+	std::cout << "sum   :" << sum   << std::endl;
 	std::cout << "avg   :" << avg   << std::endl;
 	std::cout << "sgm   :" << sgm   << std::endl;
 	std::cout << "sgm6  :" << sgm6  << std::endl;

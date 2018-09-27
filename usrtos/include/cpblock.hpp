@@ -115,6 +115,7 @@ public:
 		if(s1 != s2) {
 			std::cout << "s1:"  << s1
 					  << " s2:" << s2
+					  << " fn:" << fn
 					  << std::endl;
 			return false; 
 		}

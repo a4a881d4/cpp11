@@ -17,12 +17,13 @@ int FUNCLASS::run( void *argv ) {
 		ddd *= 1e9;
 		long long int id = (long long int)ddd;
 		long long int *tab = (long long int *)argv;
-		int iid = id%1000000;
+		int iid = id%100000;
 		if(iid < 65535)
 			tab[iid]++;
 		else
 			tab[65535]++;
-		std::cout << " wall clock now: " << id << " " << tab[iid] << std::endl;
+		if(tab[iid] > 10)
+			std::cout << " wall clock now: " << id << " " << tab[iid] << std::endl;
 	}
 	// {
 	// 	auto a = std::chrono::high_resolution_clock::now();
