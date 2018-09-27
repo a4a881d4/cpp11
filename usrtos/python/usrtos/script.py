@@ -42,16 +42,16 @@ class Script(script):
 		self.immevl(0xf0,aStr)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
 		# self.clock.peek()
-		now = int(time()*1e9)
+		now = int(time())*int(1e9)
 		self.immevl(0xf0,AnyType(10))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
-		self.immevl(0xf0,AnyType(now+2000000000))
+		self.immevl(0xf0,AnyType(now+3000000000))
 		self.selfsc(0xf0)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
 		self.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
 		self.pushof(reg_task)
-		print(now+2000000000)
+		print(now+3000000000)
 
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
