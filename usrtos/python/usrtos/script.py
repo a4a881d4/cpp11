@@ -28,30 +28,27 @@ class Task:
 		pass
 
 class Script(script):
-	def __init__(self,mdir):
-		script.__init__(self,mdir,4096)
+	def __init__(self,mdir,ssize = 65536*4):
+		script.__init__(self,mdir,ssize)
 		self.cfg = cfg(mdir)
 		self.api = uAPI(mdir)
 		self.clock = uClock()
 
-	def newTask(self,reg_task,reg_argv,key):
+	def newTask(self,reg_task,reg_argv,key,now):
 		self.allocm(0,reg_task,AnyType(sizeof(task)))
 		self.clearm(reg_task)
 		aStr = AnyType(0)
 		aStr.setUUID(key)
 		self.immevl(0xf0,aStr)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
-		# self.clock.peek()
-		now = int(time())*int(1e9)
 		self.immevl(0xf0,AnyType(10))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
-		self.immevl(0xf0,AnyType(now+3000000000))
+		self.immevl(0xf0,AnyType(now))
 		self.selfsc(0xf0)
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
 		self.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
 		self.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
 		self.pushof(reg_task)
-		print(now+3000000000)
 
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
@@ -95,7 +92,10 @@ class Script(script):
 
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
-			self.newTask(0xf,0,scriptCap)
+			now = int(time())*int(1e9)+3000000000
+			for i in range(1):
+				self.newTask(0xf,0,scriptCap,now)
+				now += 1000000
 	
 	def initKey(self):
 		for cap in self.api.keys:
@@ -154,6 +154,7 @@ def main():
 	aScript.ret()
 	aScript.test()
 	aScript.push()
+
 
 if __name__ == '__main__':
 	main()
