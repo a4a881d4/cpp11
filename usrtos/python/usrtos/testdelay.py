@@ -18,7 +18,7 @@ def TestDelay(dir):
 	aScript.clearm(0)
 	aScript.ret()
 	aScript.push()
-	for i in range(20):
+	for i in range(2000):
 		once(dir)
 		sleep(1)
 	sleep(1)
