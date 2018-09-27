@@ -16,16 +16,19 @@ public:
 	UsrtScript(std::string dir, size_t bufSize) {
 		len = bufSize;
 		m_workers = new UsrtWorkers(dir.c_str());
+		reset();
+	};
+	void push() {
+		m_workers->m_configFifo->push<task>(pTask);
+	};
+	void reset() {
 		uuid key = WorkerHelper::cap2key(std::string("capWorkersScript"));
 		pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
 			-> setID(0)
 			-> setKey(key);
 		CPBlock::GP& argv = pTask->getArgv();
-		buf = m_workers->m_memory->newGP<U8>(argv,bufSize);
-		setBuf(buf,bufSize);
-	};
-	void push() {
-		m_workers->m_configFifo->push<task>(pTask);
+		buf = m_workers->m_memory->newGP<U8>(argv,len);
+		setBuf(buf,len);
 	};
 	void test() {
 		vm::OperatorStream os(buf,len);

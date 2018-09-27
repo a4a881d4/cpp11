@@ -75,6 +75,7 @@ BOOST_PYTHON_MODULE(usrtos)
 	#define VISIT_OPCODE(code,name,...) .def(#name,&UsrtScript::p_##name)
 	class_<UsrtScript>("UsrtScript",init<std::string,size_t>())
 		.def("push",&UsrtScript::push)
+		.def("reset",&UsrtScript::reset)
 		.def("test",&UsrtScript::test)
 	ENUM_OPERATORS(VISIT_OPCODE) 
 	;

@@ -11,8 +11,8 @@ int FUNCLASS::run( void *argv ) {
 	double sumxx = 0.;
 	double sum = 0.;
 	for(int i=0;i<65536;i++) {
-		if(tab[i]>10)
-			std::cout << ">10 :" << tab[i] << " " << i << std::endl;
+		if(tab[i]>50)
+			std::cout << ">50 :" << tab[i] << " " << i << std::endl;
 		sumx += (double)(tab[i])*i;
 		sumxx += (double)(tab[i])*i*i;
 		sum += (double)(tab[i]);

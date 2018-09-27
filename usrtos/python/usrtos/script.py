@@ -27,73 +27,76 @@ class Task:
 	def __init__(self):
 		pass
 
-class Script(script):
+class Script:
 	def __init__(self,mdir,ssize = 65536*4):
-		script.__init__(self,mdir,ssize)
+		self.s = script(mdir,ssize)
 		self.cfg = cfg(mdir)
 		self.api = uAPI(mdir)
 		self.clock = uClock()
 
+	def reset(self):
+		self.s.reset()
+
 	def newTask(self,reg_task,reg_argv,key,now):
-		self.allocm(0,reg_task,AnyType(sizeof(task)))
-		self.clearm(reg_task)
+		self.s.allocm(0,reg_task,AnyType(sizeof(task)))
+		self.s.clearm(reg_task)
 		aStr = AnyType(0)
 		aStr.setUUID(key)
-		self.immevl(0xf0,aStr)
-		self.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
-		self.immevl(0xf0,AnyType(10))
-		self.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
-		self.immevl(0xf0,AnyType(now))
-		self.selfsc(0xf0)
-		self.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
-		self.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
-		self.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
-		self.pushof(reg_task)
+		self.s.immevl(0xf0,aStr)
+		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
+		self.s.immevl(0xf0,AnyType(10))
+		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
+		self.s.immevl(0xf0,AnyType(now))
+		self.s.selfsc(0xf0)
+		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
+		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
+		self.s.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
+		self.s.pushof(reg_task)
 
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
 		elif cn in cfg.withInt:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
-			self.immevl(1,AnyType(int(arg)))
-			self.savevl(1,0,AnyType(0))
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
+			self.s.immevl(1,AnyType(int(arg)))
+			self.s.savevl(1,0,AnyType(0))
 		elif cn in cfg.withStr:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
 			aStr = AnyType(0)
 			aStr.setString(arg)
-			self.immevl(1,aStr)
-			self.savevl(1,0,AnyType(0))
+			self.s.immevl(1,aStr)
+			self.s.savevl(1,0,AnyType(0))
 		elif cn in cfg.withKey:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
 			aStr = AnyType(0)
 			aStr.setUUID(UUID(arg))
-			self.immevl(1,aStr)
-			self.savevl(1,0,AnyType(0))
+			self.s.immevl(1,aStr)
+			self.s.savevl(1,0,AnyType(0))
 		else:
 			pass
 		if cn in self.cfg.keys:
 			scriptCap = UUID(self.cfg.keys[cn]['k'])
-			self.callsy(0,scriptCap)
+			self.s.callsy(0,scriptCap)
 		
 		if cn in uAPI.noArgv:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
 		elif cn in uAPI.withInt:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
-			self.immevl(1,AnyType(int(arg)))
-			self.savevl(1,0,AnyType(0))
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
+			self.s.immevl(1,AnyType(int(arg)))
+			self.s.savevl(1,0,AnyType(0))
 		elif cn in uAPI.withStr:
-			self.allocm(1,0,AnyType(32))
-			self.clearm(0)
+			self.s.allocm(1,0,AnyType(32))
+			self.s.clearm(0)
 			aStr = AnyType(0)
 			aStr.setString(arg)
-			self.immevl(1,aStr)
-			self.savevl(1,0,AnyType(0))
+			self.s.immevl(1,aStr)
+			self.s.savevl(1,0,AnyType(0))
 		else:
 			pass
 
@@ -158,9 +161,9 @@ def main():
 		else:
 			aScript.doCap(arges[0])
 
-	aScript.ret()
-	aScript.test()
-	aScript.push()
+	aScript.s.ret()
+	aScript.s.test()
+	aScript.s.push()
 
 
 if __name__ == '__main__':

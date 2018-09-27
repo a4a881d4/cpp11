@@ -22,7 +22,7 @@ int FUNCLASS::run( void *argv ) {
 			tab[iid]++;
 		else
 			tab[65535]++;
-		if(tab[iid] > 10)
+		if(tab[iid] > 50)
 			std::cout << " wall clock now: " << id << " " << tab[iid] << std::endl;
 	}
 	// {
