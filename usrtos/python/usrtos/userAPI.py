@@ -7,8 +7,9 @@ from usrtos import UsrtTaskAPI as api
 import config
 class UserAPI(api):
 	noArgv = [
-		  "ExamplesHelloWorld"
+		    "ExamplesHelloWorld"
 		  , "ExamplesClock"
+		  , "ExamplesAnClock"
 		]
 	withInt = [
 		  "ExamplesArgvInt"

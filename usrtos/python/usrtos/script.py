@@ -53,18 +53,22 @@ class Script(script):
 	def doCap(self,cn,arg=0):
 		if cn in cfg.noArgv:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 		elif cn in cfg.withInt:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 			self.immevl(1,AnyType(int(arg)))
 			self.savevl(1,0,AnyType(0))
 		elif cn in cfg.withStr:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 			aStr = AnyType(0)
 			aStr.setString(arg)
 			self.immevl(1,aStr)
 			self.savevl(1,0,AnyType(0))
 		elif cn in cfg.withKey:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 			aStr = AnyType(0)
 			aStr.setUUID(UUID(arg))
 			self.immevl(1,aStr)
@@ -77,12 +81,15 @@ class Script(script):
 		
 		if cn in uAPI.noArgv:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 		elif cn in uAPI.withInt:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 			self.immevl(1,AnyType(int(arg)))
 			self.savevl(1,0,AnyType(0))
 		elif cn in uAPI.withStr:
 			self.allocm(1,0,AnyType(32))
+			self.clearm(0)
 			aStr = AnyType(0)
 			aStr.setString(arg)
 			self.immevl(1,aStr)

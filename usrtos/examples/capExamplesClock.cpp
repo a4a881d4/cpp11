@@ -12,7 +12,17 @@ int FUNCLASS::run( void *argv ) {
 	{
 		auto a = timing::getWallNow().time_since_epoch();
 		auto dd = std::chrono::duration_cast<timing::Second>(a);
-		std::cout << " wall clock now: " << dd.count() << std::endl;
+		double ddd = dd.count();
+		ddd -= (long long int)ddd;
+		ddd *= 1e9;
+		long long int id = (long long int)ddd;
+		long long int *tab = (long long int *)argv;
+		int iid = id%1000000;
+		if(iid < 65535)
+			tab[iid]++;
+		else
+			tab[65535]++;
+		std::cout << " wall clock now: " << id << " " << tab[iid] << std::endl;
 	}
 	// {
 	// 	auto a = std::chrono::high_resolution_clock::now();

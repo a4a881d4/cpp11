@@ -15,12 +15,19 @@ def once(dir):
 def TestDelay(dir):
 	aScript = Script(dir)
 	aScript.allocm(1,0,AnyType(65536*8))
-	self.clearm(0)
+	aScript.clearm(0)
 	aScript.ret()
 	aScript.push()
-	for i in range(10):
+	for i in range(2):
 		once(dir)
 		sleep(1)
+	sleep(1)
+	aScript = Script(dir)
+	scriptCap = UUID(aScript.api.keys["ExamplesAnClock"]['k'])
+	now = int(time())*int(1e9)+3000000000
+	aScript.newTask(0xf,0,scriptCap,now)
+	aScript.ret()
+	aScript.push()
 
 if __name__ == '__main__':
 	TestDelay("/tmp/usrtos")
