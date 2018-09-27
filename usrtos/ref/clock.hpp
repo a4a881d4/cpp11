@@ -6,25 +6,27 @@ namespace usrtos { namespace timing {
 	using namespace std::chrono;
 
 	typedef long long int time_t;
-	typedef high_resolution_clock::time_point systime_t;
-	typedef duration<int, std::micro> micro_type;
+	
+	typedef duration<int, std::nano> nano_type;
+	typedef time_point<system_clock,nano_type> systime_t;
+	
+	time_t sys2time(systime_t a) {
+		nano_type ns = duration_cast<nano_type>(a.time_since_epoch());
+		return ns.count();
+	}
 	
 	inline std::ostream& operator<<(std::ostream& os,const systime_t& h)
 	{
-		auto d = h - high_resolution_clock::now();
-		micro_type dd = duration_cast<micro_type>(d);
+		auto d = h - system_clock::now();
+		nano_type dd = duration_cast<nano_type>(d);
 		os << dd.count();
 		return os;
 	}
 	
 	systime_t getSysNow() {
-		return high_resolution_clock::now();
+		return system_clock::now();  //time_from_eproch()
 	};
 	
-	system_clock::time_point getWallNow() {
-		return system_clock::now();
-	};
-
 	time_t getCpuNow() {
 		typedef struct { unsigned long t[2]; } _timing;
 		#define timing_now(x) asm volatile(".byte 15;.byte 49" : "=a"((x)->t[0]),"=d"((x)->t[1]))
@@ -34,10 +36,10 @@ namespace usrtos { namespace timing {
 	};
 
 	struct CPU2SYS {
-		time_t C0,S0,W0;
+		time_t C0,S0;
 		time_t lastC,lastS;
 		time_t nowC,nowS;
-		time_t rC,rS,rW;
+		time_t rC,rS;
 		double v;
 		double err;
 		bool updateV;
@@ -47,21 +49,13 @@ namespace usrtos { namespace timing {
 		void peek_i(int i=0) {
 			time_t cpu0 = getCpuNow();
 			auto a = getSysNow();
-			time_t sys0 = *(time_t*)(&a);
-			auto b = getWallNow();
-			time_t wall = *(time_t*)(&b);
-			wall *= 1000;
-			auto c = getSysNow();
-			time_t sys1 = *(time_t*)(&c);
+			time_t sys0 = sys2time(a);
 			time_t cpu1 = getCpuNow();
-			if( cpu1-cpu0 > 2000 && i<10 ) {
+			if( cpu1-cpu0 > 500 || i>10 ) {
 				peek_i(i+1);
 			} else {
 				rC = (cpu0+cpu1)/2;
-				rS = (sys0+sys1)/2;
-				rW = wall;
-				if(i >= 10)
-					std::cout << " time diff " << cpu1-cpu0 << std::endl;
+				rS = sys0;
 			}
 		};
 		void peek() {
@@ -81,7 +75,6 @@ namespace usrtos { namespace timing {
 			if(C0 == 0) {
 				C0 = rC;
 				S0 = rS;
-				W0 = rW - S0;
 				lastC = 0;
 				lastS = 0;
 			} else {
@@ -112,7 +105,7 @@ namespace usrtos { namespace timing {
 			if(!updateV) {
 				time_t dc = cpu-C0-lastC;
 				double ds = (double)dc * v;
-				return (time_t)ds+S0+lastS+W0;
+				return (time_t)ds+S0+lastS;
 			} else {
 				return 0;
 			}
@@ -120,7 +113,7 @@ namespace usrtos { namespace timing {
 
 		time_t toCpu(time_t sys) {
 			if(!updateV) {
-				time_t ds = sys-S0-lastS-W0;
+				time_t ds = sys-S0-lastS;
 				double dc = (double)ds / v;
 				return (time_t)dc+C0+lastC;
 			} else {
@@ -131,7 +124,7 @@ namespace usrtos { namespace timing {
 			s << " v: " << v;
 			s << " e: " << err;
 			auto a = getSysNow();
-			time_t b = *(time_t*)(&a)+W0;
+			time_t b = sys2time(a);
 			s << " now: " << getCpuNow() - toCpu(b);
 			s << std::endl;
 		};
@@ -151,14 +144,14 @@ namespace usrtos { namespace timing {
 		systime_t systime() const {
 			time_t n = now();
 			if(c2s) {
-				if(*c2s){
-					time_t s = c2s->toSys(n) - c2s->W0;
-					return *(systime_t*)s;
-				}
-			} 
-			return getSysNow();
+				time_t s = c2s->toSys(n);
+				systime_t a;
+				a += nano_type(s);
+				return a;
+			} else {
+				return getSysNow();
+			}
 		};
-
 		time_t fromns(time_t ns) {
 			if(c2s) {
 				if(*c2s) {
@@ -167,10 +160,6 @@ namespace usrtos { namespace timing {
 			}
 			return ns;
 		};
-
-		time_t micro_type(time_t ns) {
-			return fromns(ns);
-		};
 	};
 
 	struct SYSClock {
@@ -178,29 +167,19 @@ namespace usrtos { namespace timing {
 		static CPU2SYS *c2s;
 		time_t now() const {
 			auto a = getSysNow();
-			return *(time_t *)(&a);
+			return sys2time(a);
 		};
 
 		time_t after(time_t t) const {
-			auto a = getSysNow() + micro_type(t);
-			return *(time_t *)(&a);
+			systime_t a = getSysNow() + nano_type(t);
+			return sys2time(a);
 		};
 		
 		systime_t systime() const {
 			return getSysNow();
 		};
-
 		time_t fromns(time_t ns) {
 			return ns;
-		};
-
-		time_t wall_time() {
-			if(c2s) {
-				if(*c2s) {
-					return now()+c2s->W0;
-				}
-			}
-			return now();
 		};
 	};
 

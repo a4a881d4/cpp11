@@ -4,21 +4,6 @@ sys.path.append('work')
 from usrtos import uClock
 import time
 
-# import script
-
-
-# s = script.Script("/tmp/usrtos")
-# key = s.api.getKey("ExamplesClock")
-# print("Key:",key)
-# s.doCap("SetCapByKey",key)
-# s.push()
-
-# s.allocm(1,0,AnyType(32))
-# scriptCap = UUID(key)
-# s.callcp(0,scriptCap)
-# s.ret()
-# s.push()
-
 class UsrtClock(uClock):
 	def init(self):
 		self.peek()

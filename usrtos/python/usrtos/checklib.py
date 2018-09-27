@@ -47,7 +47,20 @@ print(time.time())
 clock = usrtos.uClock()
 
 clock.peek()
-
 print(clock.sys)
-print(time.time()*1e9-clock.sys)
+print(clock.cpu)
+print(clock.system_clock)
+
+for i in range(10):
+	clock.cupdate()
+	time.sleep(0.2)
+clock.peek()
+print(clock.sys)
+print(clock.cpu)
+print(clock.system_clock)
+t = time.time()*1e9
+print(t-clock.system_clock)
+clock.peek()
+print(t-clock.system_clock)
+
 

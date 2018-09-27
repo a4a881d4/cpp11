@@ -4,10 +4,12 @@
 namespace usrtos {
 
 timing::CPU2SYS c2s;
+using namespace std::chrono;
 
 struct UsrtClock {
 	long long cpu;
 	long long sys;
+	long long system_clock;
 
 	long long cpu_now() {
 		return timing::CPUClock().now();
@@ -28,8 +30,13 @@ struct UsrtClock {
 			cpu = (cpu0+cpu1)/2;
 		}
 	};
+	
 	void peek() {
 		peek_i(0);
+		if(c2s)
+			system_clock = sys + c2s.W0;
+		else
+			system_clock = 0;  
 	};
 
 	double update() {
