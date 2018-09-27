@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <sstream>
+#include <ratio>
 
 namespace usrtos { namespace timing {
 	using namespace std::chrono;
@@ -8,7 +9,8 @@ namespace usrtos { namespace timing {
 	typedef long long int time_t;
 	typedef high_resolution_clock::time_point systime_t;
 	typedef duration<int, std::micro> micro_type;
-	
+	typedef duration<int, std::nano> ns;
+	typedef duration<double, std::ratio<1,1> > Second;
 	inline std::ostream& operator<<(std::ostream& os,const systime_t& h)
 	{
 		auto d = h - high_resolution_clock::now();
@@ -48,9 +50,9 @@ namespace usrtos { namespace timing {
 			time_t cpu0 = getCpuNow();
 			auto a = getSysNow();
 			time_t sys0 = *(time_t*)(&a);
-			auto b = getWallNow();
-			time_t wall = *(time_t*)(&b);
-			wall *= 1000;
+			auto b = getWallNow().time_since_epoch();
+			auto sb = duration_cast<Second>(b);
+			time_t wall = sb.count()*1e9;
 			auto c = getSysNow();
 			time_t sys1 = *(time_t*)(&c);
 			time_t cpu1 = getCpuNow();

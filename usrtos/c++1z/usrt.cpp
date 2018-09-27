@@ -49,6 +49,7 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def_readonly("cpu",&UsrtClock::cpu)
 		.def_readonly("sys",&UsrtClock::sys)
 		.def_readonly("system_clock",&UsrtClock::system_clock)
+		.def_readonly("wall_clock",&UsrtClock::wall_clock)
 		;
 
 	class_<UUID>("UUID", init<std::string>());

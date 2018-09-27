@@ -57,10 +57,11 @@ for i in range(10):
 clock.peek()
 print(clock.sys)
 print(clock.cpu)
-print(clock.system_clock)
+print("system_clock",clock.system_clock)
+print("wall_clock",clock.wall_clock)
 t = time.time()*1e9
-print(t-clock.system_clock)
+print("time()-system_clock",t-clock.system_clock)
 clock.peek()
-print(t-clock.system_clock)
+print("time()-wall_clock",t-clock.wall_clock)
 
 

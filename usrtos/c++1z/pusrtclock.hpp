@@ -10,6 +10,7 @@ struct UsrtClock {
 	long long cpu;
 	long long sys;
 	long long system_clock;
+	long long wall_clock;
 
 	long long cpu_now() {
 		return timing::CPUClock().now();
@@ -30,13 +31,16 @@ struct UsrtClock {
 			cpu = (cpu0+cpu1)/2;
 		}
 	};
-	
+	typedef duration<double, std::ratio<1,1> > Second;
 	void peek() {
 		peek_i(0);
 		if(c2s)
 			system_clock = sys + c2s.W0;
 		else
-			system_clock = 0;  
+			system_clock = 0;
+		auto b = timing::getWallNow().time_since_epoch();
+		Second sb = duration_cast<Second>(b);
+		wall_clock = (sb.count()*1e9);  
 	};
 
 	double update() {
