@@ -77,7 +77,7 @@ struct script {
 };
 
 struct timed : script {
-	uuid ID;
+	uint64_t ID[2];
 	utime_t noE;
 	uint32_t noL;
 	uint32_t valid;
@@ -92,7 +92,7 @@ struct task : captask {
 	_callback_argv_t callbackargv;
 
 	task *setID(int64 id) {
-		ID = id;
+		ID[0] = id;
 		return this;
 	};
 

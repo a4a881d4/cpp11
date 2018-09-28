@@ -389,7 +389,7 @@ namespace usrtos {
 								bearer = this->getBearerByKey(t->key);
 						}
 						if(bearer != nullptr) {
-							if(t->ID == 0LL) {	// system task
+							if(t->ID[0] == 0LL) {	// system task
 								mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
 								mCtx.len = t->argv.objsize;
 								bearer->runLP(&(mCtx));
