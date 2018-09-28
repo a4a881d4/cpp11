@@ -129,6 +129,14 @@ namespace usrtos { namespace timing {
 				return 0;
 			}
 		};
+		time_t mulCpu(time_t sys) {
+			if(!updateV) {
+				double cpu = (double)sys / v;
+				return (time_t)cpu;
+			} else {
+				return sys;
+			}
+		};
 		void dump(std::stringstream& s) {
 			s << " v: " << v;
 			s << " e: " << err;

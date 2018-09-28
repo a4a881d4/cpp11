@@ -66,14 +66,16 @@ class TaskHeap {
 		struct less {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			bool operator()(OffsetPtr a, OffsetPtr b) { 
-				return (a.Off2LP<task>(mem)->noL < b.Off2LP<task>(mem)->noL); 
+			bool operator()(OffsetPtr a, OffsetPtr b) {
+				auto pa = a.Off2LP<task>(mem);
+				auto pb = b.Off2LP<task>(mem); 
+				return ((uint64_t)pa->noL+pa->noE < (uint64_t)pb->noL+pb->noE); 
 			};
 		};
 		struct key {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			utime_t operator()(OffsetPtr a) { 
+			uint32_t operator()(OffsetPtr a) { 
 				return a.Off2LP<task>(mem)->noL; 
 			};
 		};

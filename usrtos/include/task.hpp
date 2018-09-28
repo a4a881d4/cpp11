@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpblock.hpp>
+#include <cstdint>
 
 namespace usrtos {
 enum CBMode { 
@@ -76,10 +77,10 @@ struct script {
 };
 
 struct timed : script {
-	int64 ID;
+	uuid ID;
 	utime_t noE;
-	utime_t noL;
-	utime_t valid;
+	uint32_t noL;
+	uint32_t valid;
 };
 
 struct captask : timed {
@@ -120,12 +121,12 @@ struct task : captask {
 	};
 
 	task *setDeadline(utime_t nol) {
-		noL = nol;
+		noL = (uint32_t)(nol - noE);
 		return this;
 	};
 
 	task *setValid(utime_t v) {
-		valid = v;
+		valid = (uint32_t)(v - noE);
 		return this;
 	};
 
