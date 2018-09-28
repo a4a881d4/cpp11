@@ -1,6 +1,8 @@
 from script import Script
 from time import time,sleep
 from usrtos import AnyType,UUID,uClock
+import sys
+import os
 
 def once(aScript):
 	aScript.reset()
@@ -12,13 +14,13 @@ def once(aScript):
 	aScript.s.ret()
 	aScript.s.push()
 
-def TestDelay(dir):
+def TestDelay(dir,mins):
 	aScript = Script(dir)
 	aScript.s.allocm(4,0,AnyType(65536*8))
 	aScript.s.clearm(0)
 	aScript.s.ret()
 	aScript.s.push()
-	for i in range(20*60):
+	for i in range(mins*60):
 		once(aScript)
 		sleep(1)
 	sleep(1)
@@ -30,4 +32,8 @@ def TestDelay(dir):
 	aScript.s.push()
 
 if __name__ == '__main__':
-	TestDelay("/tmp/usrtos")
+	os.remove("/tmp/usrtos/test.result")
+	if len(sys.argv) > 1:
+		TestDelay("/tmp/usrtos", int(sys.argv[1]))
+	else:
+		TestDelay("/tmp/usrtos", 1)
