@@ -32,7 +32,11 @@ def TestDelay(dir,mins):
 	aScript.s.push()
 
 if __name__ == '__main__':
-	os.remove("/tmp/usrtos/test.result")
+	try:
+		os.remove("/tmp/usrtos/test.result")
+	except Exception as e:
+		print(e)
+
 	if len(sys.argv) > 1:
 		TestDelay("/tmp/usrtos", int(sys.argv[1]))
 	else:

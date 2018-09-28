@@ -13,4 +13,5 @@ make all
 make workers
 make examples
 
+touch /tmp/usrtos/test.result
 

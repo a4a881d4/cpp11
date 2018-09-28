@@ -13,10 +13,10 @@ from time import time
 
 class task(Structure):
 	_fields_ = [  ("argv",  c_char*32)
-				, ("ID",    c_longlong)
+				, ("ID",    c_longlong*2)
 				, ("noE",   c_longlong)
-				, ("noL",   c_longlong)
-				, ("valid", c_longlong)
+				, ("noL",   c_char*4)
+				, ("valid", c_char*4)
 				, ("key",   c_char*16)
 				, ("cbkey", c_char*16)
 				, ("cbarg", c_char*56)
