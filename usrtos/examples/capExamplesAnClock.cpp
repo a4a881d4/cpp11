@@ -1,9 +1,10 @@
 #define FUNCLASS capExamplesAnClock
 #include <capabilityAPI.hpp>
 #include <iostream>
+#include <fstream>
 
 using namespace usrtos;
-
+using namespace std;
 int FUNCLASS::run( void *argv ) {
 
 	long long int *tab = (long long int *)argv;
@@ -36,5 +37,10 @@ int FUNCLASS::run( void *argv ) {
 	std::cout << "r/sum :" << r/sum << std::endl;
 	std::cout << "out of 65500:" << tab[65500] << std::endl;
 	std::cout << "max at:" << tab[65534] << " tab:" << tab[65535] << std::endl;
+	ofstream back;
+	back.open("/tmp/usrtos/delay.back",ios::binary);
+	back.write(argv,65536*8);
+	back.close();
 	return 0;
 }
+
