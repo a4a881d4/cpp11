@@ -26,7 +26,7 @@ int an(void *argv) {
 	}
 	double avg = sumx/sum;
 	if((long long int)sum != tab[65533]) {
-		tout << "total:" << tab[65533] << " ne:" << sum << std::endl;
+		tout << "total:" << tab[65533] << " ne:" << (long long int)sum << std::endl;
 	}
 	double sgm = sqrt(sumxx/sum - avg*avg);
 	double sgm6 = avg+sgm*6.;
@@ -34,7 +34,7 @@ int an(void *argv) {
 	for(int i=sgm6;i<65500;i++) {
 		r += tab[i];
 	}
-	tout << "sum   :" << sum   << endl;
+	tout << "sum   :" << (long long int)sum   << endl;
 	tout << "avg   :" << avg   << endl;
 	tout << "sgm   :" << sgm   << endl;
 	tout << "sgm6  :" << sgm6  << endl;

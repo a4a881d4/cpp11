@@ -22,7 +22,7 @@ int FUNCLASS::run( void *argv ) {
 	}
 	double avg = sumx/sum;
 	if((long long int)sum != tab[65533]) {
-		std::cout << "total:" << tab[65533] << " ne:" << sum << std::endl;
+		std::cout << "total:" << tab[65533] << " ne:" << (long long int)sum << std::endl;
 	}
 	double sgm = sqrt(sumxx/sum - avg*avg);
 	double sgm6 = avg+sgm*6.;
@@ -30,7 +30,7 @@ int FUNCLASS::run( void *argv ) {
 	for(int i=sgm6;i<65500;i++) {
 		r += tab[i];
 	}
-	std::cout << "sum   :" << sum   << std::endl;
+	std::cout << "sum   :" << (long long int)sum   << std::endl;
 	std::cout << "avg   :" << avg   << std::endl;
 	std::cout << "sgm   :" << sgm   << std::endl;
 	std::cout << "sgm6  :" << sgm6  << std::endl;
@@ -39,7 +39,7 @@ int FUNCLASS::run( void *argv ) {
 	std::cout << "max at:" << tab[65534] << " tab:" << tab[65535] << std::endl;
 	ofstream back;
 	back.open("/tmp/usrtos/delay.back",ios::binary);
-	back.write(argv,65536*8);
+	back.write((const char*)argv,65536*8);
 	back.close();
 	return 0;
 }
