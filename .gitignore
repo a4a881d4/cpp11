@@ -37,3 +37,4 @@ usrtos/python/usrtos/version.py
 usrtos/include/_version.hpp
 
 *.pyc
+core*
