@@ -23,6 +23,7 @@ class UserAPI(api):
 	system = [
 		  "CallBackLunchTask"
 		, "WorkersTaskOnly"
+		, "WorkersTaskScript"
 	]
 	def __init__(self,mdir):
 		api.__init__(self,mdir)

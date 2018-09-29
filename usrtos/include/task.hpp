@@ -72,6 +72,11 @@ inline std::ostream& operator<<(std::ostream& os,const CallBackArgv& argv)
 	return os;
 }
 
+enum class TaskType : uint64_t {
+	  system = 0x01LL
+	, script = 0x02LL
+};
+
 struct script {
 	CPBlock::GP argv;
 };
