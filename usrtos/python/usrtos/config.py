@@ -16,18 +16,21 @@ class Config(cfg):
 		, "Exit"
 		]
 	withInt = [
-		"Start"
+		  "Start"
+		, "UpdateWorkerKey"
 	]
 	withKey = [
 		  "DelCapByKey"
 		, "SetCapByKey"
 		, "SetKeeper"
+		, "SetWorker"
 	]
 	withStr = [
 		"SetCap"
 	]
 	system = [
 		  "capWorkersKeeper"
+		, "capWorkersTaskOnly"
 		, "capCallBackLunchTask"
 		, "capExamplesHelloWorld"
 		, "capWorkersScript"

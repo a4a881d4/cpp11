@@ -21,7 +21,8 @@ class UserAPI(api):
 		"ExamplesArgvStr"
 	]
 	system = [
-		"CallBackLunchTask"
+		  "CallBackLunchTask"
+		, "WorkersTaskOnly"
 	]
 	def __init__(self,mdir):
 		api.__init__(self,mdir)
