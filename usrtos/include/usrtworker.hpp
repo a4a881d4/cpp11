@@ -233,8 +233,10 @@ namespace usrtos {
 			T* G2L(CPBlock::GP& gp) {
 				if(m_blocks.count(gp.id) > 0)
 					return m_blocks[gp.id]->GP2LP<T>(gp);
-				else
+				else {
+					std::cout << "in workers G2L: error gp " << gp.id << std::endl;
 					return nullptr;
+				}
 			};
 
 			template <typename T>

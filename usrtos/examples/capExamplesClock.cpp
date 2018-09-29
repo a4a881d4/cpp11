@@ -39,6 +39,7 @@ int an(void *argv) {
 	tout << "sgm   :" << sgm   << endl;
 	tout << "sgm6  :" << sgm6  << endl;
 	tout << "r/sum :" << r/sum << endl;
+	tout << "small :" << tab[65532] << endl;
 	tout << "out of 65500:" << tab[65500] << endl;
 	tout << "max at:" << tab[65534] << " tab:" << tab[65535] << endl;
 	tout.close();
@@ -54,9 +55,12 @@ int FUNCLASS::run( void *argv ) {
 		ddd *= 1e9;
 		long long int id = (long long int)ddd;
 		long long int *tab = (long long int *)argv;
-		int iid = id%100000;
-		if(iid > 65500)
+		int iid = id%1000000;
+		if(iid > 900000) {
+			iid = 66532;
+		} else if(iid > 65500) {
 			iid = 65500;
+		}
 		tab[iid]++;
 		if(tab[iid] > tab[65535]) {
 			tab[65535] = tab[iid];
