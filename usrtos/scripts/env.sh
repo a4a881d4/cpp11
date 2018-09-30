@@ -1,9 +1,9 @@
 #!/bin/sh
 sh usrtos/scripts/post-commit
-
+rm -rf work
 mkdir work
 mkdir -p /tmp/usrtos
-rm /tmp/usrtos/*
+rm -rf /tmp/usrtos/*
 
 python3 usrtos/python/usrtos/layout.py usrtos/memory.json
 

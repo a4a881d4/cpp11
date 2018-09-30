@@ -168,7 +168,16 @@ namespace usrtos { namespace timing {
 			} 
 			return getSysNow();
 		};
-
+		time_t wall_time() {
+			time_t n = now();
+			if(c2s) {
+				if(*c2s){
+					time_t s = c2s->toSys(n);
+					return s;
+				}
+			}
+			return now();
+		};
 		time_t fromns(time_t ns) {
 			if(c2s) {
 				if(*c2s) {
