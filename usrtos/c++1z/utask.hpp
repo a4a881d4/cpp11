@@ -20,7 +20,7 @@ public:
 	utask *newTask(uuid key, CPBlock::GP& gpTask) {
 		auto t = m_workers->tQueue();
 		pTask = WorkerHelper::newUserTask(m_workers,gpTask)
-			-> setID(1)
+			-> setID(TaskType::system)
 			-> setKey(key);
 		m_gp = gpTask;
 		return this;

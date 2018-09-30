@@ -36,6 +36,9 @@ class Script:
 
 	def reset(self):
 		self.s.reset()
+	
+	def nScript():
+		self.s.nScript()
 
 	def newTask(self,reg_task,reg_argv,key,now):
 		self.s.allocm(0,reg_task,AnyType(sizeof(task)))
@@ -106,10 +109,8 @@ class Script:
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
 			now = int(time())*int(1e9)+3000000000
-			for i in range(1):
-				self.newTask(0xf,0,scriptCap,now)
-				now += 1000000
-	
+			self.newTask(0xf,0,scriptCap,now)
+			
 	def initKey(self):
 		for cap in self.api.keys:
 			print(cap,":",self.api.keys[cap]['k'])
@@ -146,11 +147,17 @@ def main():
 	                action= "store_true",
 	                default= False,
 	                help= "init workers")
-
+	
+	parse.add_option("-c", "--script",
+	                dest= "script",
+	                action= "store_true",
+	                default= False,
+	                help= "run script mode")
 	(option, arges) = parse.parse_args()
 
 	aScript = Script(option.dir)
-
+	if option.Script:
+		aScript.s.newScript()
 	if option.init:
 		print("Initial workers by script")
 		aScript.initKey()

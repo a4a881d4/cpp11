@@ -77,6 +77,8 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("push",&UsrtScript::push)
 		.def("reset",&UsrtScript::reset)
 		.def("test",&UsrtScript::test)
+		.def("nTask",&UsrtScript::newTask)
+		.def("nScript",&UsrtScript::newScript)
 	ENUM_OPERATORS(VISIT_OPCODE) 
 	;
 	#undef VISIT_OPCODE

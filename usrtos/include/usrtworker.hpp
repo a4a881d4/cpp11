@@ -380,6 +380,9 @@ namespace usrtos {
 				UsrtCapabilityBearer *bearer;
 				if(t != nullptr) {
 					my->monitor.run++;
+					if(t->ID[0] == (uint64_t)TaskType::script) {
+						throw(usrtos_exception("in thread: unsupport script"));
+					}
 					auto capKey = t->key;
 					bearer = my->workers->getBearerByKey(capKey);
 					if(bearer != nullptr) {

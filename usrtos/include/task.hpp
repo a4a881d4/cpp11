@@ -96,8 +96,8 @@ struct task : captask {
 	uuid callback;
 	_callback_argv_t callbackargv;
 
-	task *setID(int64 id) {
-		ID[0] = id;
+	task *setID(TaskType id) {
+		ID[0] = (uint64_t)id;
 		return this;
 	};
 
