@@ -5,7 +5,7 @@ import sys
 import os
 
 def once(aScript):
-	aScript.reset()
+	aScript.s.nScript()
 	scriptCap = UUID(aScript.api.keys["ExamplesClock"]['k'])
 	now = int(time())*int(1e9)+2000000000
 	for i in range(1000):
@@ -16,6 +16,7 @@ def once(aScript):
 
 def TestDelay(dir,mins):
 	aScript = Script(dir)
+	aScript.s.nScript()
 	aScript.s.allocm(4,0,AnyType(65536*8))
 	aScript.s.clearm(0)
 	aScript.s.ret()
@@ -24,7 +25,7 @@ def TestDelay(dir,mins):
 		once(aScript)
 		sleep(1)
 	sleep(1)
-	aScript.reset()
+	aScript.s.nScript()
 	scriptCap = UUID(aScript.api.keys["ExamplesAnClock"]['k'])
 	now = int(time())*int(1e9)+3000000000
 	aScript.newTask(0xf,0,scriptCap,now)

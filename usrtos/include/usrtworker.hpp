@@ -253,7 +253,7 @@ namespace usrtos {
 				else {
 					stringstream err;
 					err << "in workers G2L: error gp " << gp.id << std::endl;
-					throw(usrtos_exception(err));
+					throw(usrtos_exception(err,10));
 					return nullptr;
 				}
 			};
@@ -477,7 +477,7 @@ namespace usrtos {
 						else{
 							sleep(1);
 							m_c2s.update();
-							if(fabs(m_c2s.err) > 100) {
+							if(fabs(m_c2s.err) > 1000) {
 								stringstream s;
 								m_c2s.dump(s);
 								string ps = s.str();

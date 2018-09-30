@@ -5,6 +5,7 @@
 #include <cstring>        //strerror
 #include <iostream>
 #include <sstream>
+#include <execinfo.h>
 
 namespace usrtos {
 
@@ -132,7 +133,23 @@ class usrtos_exception : public std::exception
       catch (...) {}
    }
 
-   usrtos_exception(const error_info &err_info, const char *str = 0)
+   usrtos_exception(std::stringstream& err, size_t s)
+      :  m_err(other_error)
+   {
+      try {
+         void* array[s] = {0};
+         char **strframe = NULL;
+         auto size = backtrace(array, s);
+         strframe = (char **)backtrace_symbols(array, size);
+         for(int i = 0; i < size; i++){
+            err << "frame " << i << ": " << strframe[i] << std::endl;
+         }
+         m_str = err.str(); 
+      }
+      catch (...) {}
+   }
+
+  usrtos_exception(const error_info &err_info, const char *str = 0)
       :  m_err(err_info)
    {
       try{

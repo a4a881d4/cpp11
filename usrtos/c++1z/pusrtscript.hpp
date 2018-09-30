@@ -2,6 +2,7 @@
 
 #include <workerhelper.hpp>
 #include <vm/opcodes.hpp>
+#include <sstream>
 namespace usrtos {
 
 class UsrtScript : public vm::EncodeStream {
@@ -23,7 +24,12 @@ public:
 		switch(type) {
 			case TaskType::system: m_workers->m_configFifo->push<task>(pTask); break;
 			case TaskType::script: m_workers->tQueue()->insert(pTask); break;
-			default: throw(usrtos_exception("in puserscript: unsupport Task Type")); break;
+			default: {
+				std::stringstream err;
+				err << "in puserscript: unsupport Task Type" << (uint64_t)type << std::endl;
+				throw(usrtos_exception(err)); 
+				break;
+			}
 		}
 	};
 	void reset() {
