@@ -1,6 +1,6 @@
 UNAME := $(shell uname)
 
-CPPFLAG = -std=c++1z -g
+CPPFLAG = -std=c++1z
 LDFLAG = -lboost_filesystem -lboost_system
 PYFLAG = 
 ifeq ($(UNAME),Linux)
@@ -159,13 +159,13 @@ WorkersInternalCapabilities := $(wildcard usrtos/workers/cap*.cpp)
 WorkersInternalLibs := $(patsubst %.cpp,%.so,$(subst usrtos/workers/cap,work/lib,$(WorkersInternalCapabilities)))
 
 $(WorkersInternalLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) 
-	g++ -std=c++1z -g ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@ $(LDFLAG)
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@ $(LDFLAG)
 
 UserCapabilities := $(wildcard usrtos/examples/cap*.cpp)
 UserLibs := $(patsubst %.cpp,%.so,$(subst usrtos/examples/cap,work/lib,$(UserCapabilities)))
 
 $(UserLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) 
-	g++ -std=c++1z -g ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) -o $@ $(LDFLAG)
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) -o $@ $(LDFLAG)
 
 workers : $(WorkersInternalLibs)
 	
