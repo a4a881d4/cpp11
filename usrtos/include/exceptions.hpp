@@ -23,7 +23,7 @@ class usrtos_exception : public std::exception
             m_str = str;
          }
          else{
-            m_str = "boost::usrtos_exception::library_error";
+            m_str = "usrtos_exception::library_error";
          }
       }
       catch(...){}

@@ -142,7 +142,8 @@ namespace usrtos { namespace timing {
 			s << " e: " << err;
 			auto a = getSysNow();
 			time_t b = *(time_t*)(&a)+W0;
-			s << " now: " << getCpuNow() - toCpu(b);
+			s << " cpu clock diff: " << getCpuNow() - toCpu(b);
+			s << " sys clock diff: " << toSys(getCpuNow()) - b;
 			s << std::endl;
 		};
 		CPU2SYS() {
@@ -176,7 +177,9 @@ namespace usrtos { namespace timing {
 					return s;
 				}
 			}
-			return now();
+			auto t = getSysNow();
+			time_t b = *(time_t*)(&t);
+			return b;
 		};
 		time_t fromns(time_t ns) {
 			if(c2s) {
