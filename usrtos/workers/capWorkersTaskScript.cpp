@@ -8,10 +8,15 @@ static void handleTask(UsrtWorkers *w, task *t, structThread *my) {
 	auto capKey = t->key;
 	UsrtCapabilityBearer *bearer = w->getBearerByKey(capKey);
 	if(bearer != nullptr) {
-		bearer->runLP(
-			static_cast<void*>
-			(w->G2L<char>(t->argv))
-			);
+		try{
+			bearer->runLP(
+				static_cast<void*>
+				(w->G2L<char>(t->argv))
+				);
+		} catch(usrtos_exception& e) {
+			std::cout << "In handleTask:" << e.what() << std::endl;
+			std::cout << dumpTask(t) << std::endl;
+		}
 		if(t->callbackargv.mode != CBMode::nocallback) {
 			bearer = w->getBearerByKey(t->callback);
 			if(bearer != nullptr) {
@@ -30,10 +35,14 @@ static void handleScript(UsrtWorkers *w, task *t, structThread *my) {
 	my->monitor.script++;
 	vm::VMContext   *vmCtx   = new struct vm::VMContext(*w);
 	vm::JITVisitor	*visitor = new struct vm::JITVisitor(*vmCtx);
-	U8 *code = w->G2L<U8>(t->argv);
-	vm::OperatorStream os(code,t->argv.objsize);
-	vm::Decode d;
-	d.run(*visitor,os,vm::RunMode::run);
+	try {
+		U8 *code = w->G2L<U8>(t->argv);
+		vm::OperatorStream os(code,t->argv.objsize);
+		vm::Decode d;
+		d.run(*visitor,os,vm::RunMode::run);
+	} catch(usrtos_exception& e) {
+		std::cout << "In handleScript:" << e.what() << std::endl;
+	}
 };
 
 int FUNCLASS::run( void *argv ) {

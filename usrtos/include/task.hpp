@@ -153,4 +153,25 @@ inline std::ostream& operator<<(std::ostream& os,const taskdependen& dep)
 	   << "gp.size: " << dep.me.objsize;
 	return os;
 }
+string dumpTask(task *pTask) {
+		stringstream s1;
+		s1 << pTask->key 
+		   << " " << pTask->ID[0] 
+		   << "-" << pTask->ID[1] 
+		   << endl
+		   << "noE: " << pTask->noE << " "
+		   << "noL: " << pTask->noL << " "
+		   << "valid: " << pTask->valid
+		   << endl 
+		   << "callback" << endl
+		   << *(pTask->getCallBackArgv()) << " "
+		   << endl
+		   << "Argv GP" << endl
+		   << "id: " << pTask->argv.id  << " "
+		   << "off: " << pTask->argv.offset << " "
+		   << "sz: " << pTask->argv.objsize << " "
+		   << endl;
+
+		return s1.str();  
+	};
 };
