@@ -44,7 +44,8 @@ all:work/ptr_vector \
 	work/workers \
 	work/dag_test \
 	work/vm_test \
-	work/task_test
+	work/task_test \
+	work/exception_test
 
 
 
@@ -134,6 +135,9 @@ work/vm_test:usrtos/c++1z/vm_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/task_test:usrtos/c++1z/task_test.cpp
+	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
+
+work/exception_test:usrtos/c++1z/exception_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 usrtos/c++1z/dag_test.cpp:usrtos/include/dag/nodes.hpp

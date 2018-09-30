@@ -17,6 +17,7 @@
 #include <layout.hpp>
 #include <usrthardtimer.hpp>
 #include <pthread.h>
+#include <exceptions.hpp>
 
 using namespace std;
 
@@ -99,7 +100,9 @@ namespace usrtos {
 						r = new T(*(m_blocks[it->second]));
 					}
 					else {
-						cerr << "bind block " << name << " failure" << endl;
+						stringstream err;
+						err << "in workers bindBlock: " << name << " failure" << endl;
+						throw(usrtos_exception(err));
 						r = nullptr;
 					}
 					return r;
@@ -112,7 +115,9 @@ namespace usrtos {
 						r = new T(*(it->second));
 					}
 					else {
-						cerr << "bind block by key " << id << " failure" << endl;
+						stringstream err;
+						err << "in workers bindBlockByKey: " << id << " failure" << endl;
+						throw(usrtos_exception(err));
 						r = nullptr;
 					}
 					return r;
@@ -226,6 +231,11 @@ namespace usrtos {
 			};
 			uuid getMemKey(string name) {
 				auto it = m_memName.find(name);
+				if(it == m_memName.end()) {
+					stringstream err;
+					err << "in workers getMemKey: miss key: " << name << std::endl;
+					throw(usrtos_exception(err));
+				}
 				return it->second;
 			};
 			UsrtTask *tQueue() { 
@@ -239,7 +249,9 @@ namespace usrtos {
 				if(m_blocks.count(gp.id) > 0)
 					return m_blocks[gp.id]->GP2LP<T>(gp);
 				else {
-					std::cout << "in workers G2L: error gp " << gp.id << std::endl;
+					stringstream err;
+					err << "in workers G2L: error gp " << gp.id << std::endl;
+					throw(usrtos_exception(err));
 					return nullptr;
 				}
 			};
@@ -251,6 +263,9 @@ namespace usrtos {
 						return it->second->LP2GP(gp,p);
 					}
 				}
+				stringstream err;
+				err << "in workers L2G: address invaliable: " << p << std::endl;
+				throw(usrtos_exception(err));
 				return false;
 			};
 
@@ -258,8 +273,13 @@ namespace usrtos {
 				auto iter = caps.find( key );
 				if( iter != caps.end() ) 
 					return iter->second;
-				else
+				else{
+					stringstream err;
+					err << "in workers getBearerByKey: miss key: " 
+						<< key << std::endl;
+					throw(usrtos_exception(err));
 					return nullptr; 
+				}
 			};
 			
 			void removeBearerByKey( uuid key ) {
@@ -269,6 +289,11 @@ namespace usrtos {
 					caps.erase (iter);
 					sleep(1);
 					delete capToBeDel;
+				} else {
+					stringstream err;
+					err << "in workers removeBearerByKey: miss key: " 
+						<< key << std::endl;
+					throw(usrtos_exception(err));
 				}
 			};
 
@@ -286,8 +311,14 @@ namespace usrtos {
 				if(c->isValid()) {
 					caps[c->getKey()]=c;
 					return true; 
+				} else {
+					stringstream err;
+					err << "in workers setCap: cap invalid: " 
+						<< name << std::endl;
+					throw(usrtos_exception(err));
+					return false;
 				}
-				return false;
+				
 			};
 			
 			bool setCap(uuid key) {
@@ -298,8 +329,13 @@ namespace usrtos {
 				if(c->isValid()) {
 					caps[key]=c;
 					return true;
+				} else {
+					stringstream err;
+					err << "in workers setCap: cap invalid: " 
+						<< key << std::endl;
+					throw(usrtos_exception(err));
+					return false;
 				}
-				return false;
 			};
 			
 			void start( int n ) {
@@ -329,6 +365,7 @@ namespace usrtos {
 					threadNum=n;	
 				}
 			};
+
 			static void _worker(struct structThread *my) {
 				task *t = my->workers->m_taskq->pop();
 				UsrtCapabilityBearer *bearer;
@@ -371,23 +408,27 @@ namespace usrtos {
 			};
 			static void* worker(void *argv) {
 				struct structThread *my = (struct structThread *)argv;
-				fprintf(stderr,"Thread %d is starting\n", my->id);
 				my->workers->SYSLOG("Thread %d is start\n", my->id);
 				my->sysid=(long int)pthread_self();
 				while( my->control!=-1 ) {
-					while( my->control==1 ) {
-						my->state = WAITING;
-					}
-					my->state = RUNNING;
-					auto bearer = my->workers->getBearerByKey(my->workerKey);
-					if(bearer != nullptr) {
-						bearer->runLP(argv);
-					} else {
-						_worker(my);
+					try {
+						while( my->control==1 ) {
+							my->state = WAITING;
+						}
+						my->state = RUNNING;
+						auto bearer = my->workers->getBearerByKey(my->workerKey);
+						if(bearer != nullptr) {
+							bearer->runLP(argv);
+						} else {
+							_worker(my);
+						}
+					} catch(usrtos_exception& e) {
+						std::string estr = e.what();
+						my->workers->SYSLOG.put(estr);
 					}
 				}
 				my->state = EXITING;
-				fprintf(stderr,"Thread %d is stop\n", my->id);
+				my->workers->SYSLOG("Thread %d is stop\n", my->id);
 				pthread_exit(NULL);
 				return nullptr;
 			};
@@ -398,35 +439,40 @@ namespace usrtos {
 				mCtx.workers = this;
 				
 				while(this->control == 0) {
-					if(this->m_configFifo->len() > 0) {
-						task *t = this->m_configFifo->get<task>();
-						bearer = this->getBearerByKey(t->key);
-						if(bearer == nullptr) {
-							if(this->setCap(t->key))
-								bearer = this->getBearerByKey(t->key);
-						}
-						if(bearer != nullptr) {
-							if(t->ID[0] == 0LL) {	// system task
-								mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
-								mCtx.len = t->argv.objsize;
-								bearer->runLP(&(mCtx));
+					try {
+						if(this->m_configFifo->len() > 0) {
+							task *t = this->m_configFifo->get<task>();
+							bearer = this->getBearerByKey(t->key);
+							if(bearer == nullptr) {
+								if(this->setCap(t->key))
+									bearer = this->getBearerByKey(t->key);
 							}
-							else
-								bearer->runLP(
-									static_cast<void*>
-									(G2L<char>(t->argv))
-									);
+							if(bearer != nullptr) {
+								if(t->ID[0] == 0LL) {	// system task
+									mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
+									mCtx.len = t->argv.objsize;
+									bearer->runLP(&(mCtx));
+								}
+								else
+									bearer->runLP(
+										static_cast<void*>
+										(G2L<char>(t->argv))
+										);
+							}
 						}
-					}
-					else{
-						sleep(1);
-						m_c2s.update();
-						if(fabs(m_c2s.err) > 100) {
-							stringstream s;
-							m_c2s.dump(s);
-							string ps = s.str();
-							SYSLOG.put(ps);	
+						else{
+							sleep(1);
+							m_c2s.update();
+							if(fabs(m_c2s.err) > 100) {
+								stringstream s;
+								m_c2s.dump(s);
+								string ps = s.str();
+								SYSLOG.put(ps);	
+							}
 						}
+					} catch(usrtos_exception& e) {
+						std::string estr = e.what();
+						SYSLOG.put(estr);
 					}
 				}
 			};
@@ -470,6 +516,7 @@ namespace usrtos {
 			void dumpQueue() { 
 				m_taskq->dumpHeap(); 
 			};
+
 			void listThread() {};
 	};
 }; // namespace usrtos
