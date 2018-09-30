@@ -281,6 +281,15 @@ namespace usrtos {
 					return nullptr; 
 				}
 			};
+
+			UsrtCapabilityBearer *_getBearerByKey( uuid key ) {
+				auto iter = caps.find( key );
+				if( iter != caps.end() ) 
+					return iter->second;
+				else{
+					return nullptr; 
+				}
+			};
 			
 			void removeBearerByKey( uuid key ) {
 				auto iter = caps.find( key );
@@ -416,7 +425,7 @@ namespace usrtos {
 							my->state = WAITING;
 						}
 						my->state = RUNNING;
-						auto bearer = my->workers->getBearerByKey(my->workerKey);
+						auto bearer = my->workers->_getBearerByKey(my->workerKey);
 						if(bearer != nullptr) {
 							bearer->runLP(argv);
 						} else {
@@ -442,7 +451,7 @@ namespace usrtos {
 					try {
 						if(this->m_configFifo->len() > 0) {
 							task *t = this->m_configFifo->get<task>();
-							bearer = this->getBearerByKey(t->key);
+							bearer = this->_getBearerByKey(t->key);
 							if(bearer == nullptr) {
 								if(this->setCap(t->key))
 									bearer = this->getBearerByKey(t->key);

@@ -444,7 +444,7 @@ struct JITVisitor {
 	};
 	void callsy(U8 r, UUID capKey) {
 		Reg& R = ctx->rfile.reg[r];
-		auto bearer = ctx->workers->getBearerByKey(capKey);
+		auto bearer = ctx->workers->_getBearerByKey(capKey);
 		if(bearer == nullptr) {
 			if(ctx->workers->setCap(capKey))
 				bearer = ctx->workers->getBearerByKey(capKey);

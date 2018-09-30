@@ -65,6 +65,8 @@ public:
 		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
 			-> setID(0)
 			-> setKey(UsrtKey::string2key(key));
+		CPBlock::GP& argv = pTask->getArgv();
+		char *a = m_workers->m_memory->newGP<char>(argv,16);
 		m_workers->m_configFifo->push<task>(pTask);
 	};
 };
