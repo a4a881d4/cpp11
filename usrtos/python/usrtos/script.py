@@ -156,8 +156,10 @@ def main():
 	(option, arges) = parse.parse_args()
 
 	aScript = Script(option.dir)
-	if option.Script:
-		aScript.s.newScript()
+	if option.script:
+		aScript.s.nScript()
+	else:
+		aScript.s.nTask()
 	if option.init:
 		print("Initial workers by script")
 		aScript.initKey()

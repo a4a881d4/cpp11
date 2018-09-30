@@ -27,6 +27,7 @@ static void handleTask(UsrtWorkers *w, task *t, structThread *my) {
 	}
 };
 static void handleScript(UsrtWorkers *w, task *t, structThread *my) {
+	my->monitor.script++;
 	vm::VMContext   *vmCtx   = new struct vm::VMContext(*w);
 	vm::JITVisitor	*visitor = new struct vm::JITVisitor(*vmCtx);
 	U8 *code = w->G2L<U8>(t->argv);

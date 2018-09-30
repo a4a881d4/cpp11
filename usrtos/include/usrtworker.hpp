@@ -31,6 +31,7 @@ namespace usrtos {
 		unsigned long long int keeper;
 		unsigned long long int keeperLock;
 		unsigned long long int callback;
+		unsigned long long int script;
 	};
 		
 	struct structThread {
@@ -62,11 +63,12 @@ namespace usrtos {
 	class UsrtWorkers {
 		private:
 			void dumpMonitor( struct structThreadMonitor& m ) {
-				fprintf(stderr,"R:%lld K:%lld L:%lld CB:%lld\n"
+				fprintf(stderr,"R:%lld K:%lld L:%lld CB:%lld SC:%lld\n"
 					, m.run
 					, m.keeper
 					, m.keeperLock
 					, m.callback
+					, m.script
 					);
 			};
 		public:
@@ -460,7 +462,7 @@ namespace usrtos {
 									bearer = this->getBearerByKey(t->key);
 							}
 							if(bearer != nullptr) {
-								if(t->ID[0] == 0LL) {	// system task
+								if(t->ID[0] == (uint64_t)TaskType::system) {	// system task
 									mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
 									mCtx.len = t->argv.objsize;
 									bearer->runLP(&(mCtx));

@@ -21,9 +21,9 @@ public:
 	};
 	void push() {
 		switch(type) {
-			case TaskType::system: m_workers->m_configFifo->push<task>(pTask);
-			case TaskType::script: m_workers->tQueue()->insert(pTask);
-			default: throw(usrtos_exception("in puserscript: unsupport Task Type"));
+			case TaskType::system: m_workers->m_configFifo->push<task>(pTask); break;
+			case TaskType::script: m_workers->tQueue()->insert(pTask); break;
+			default: throw(usrtos_exception("in puserscript: unsupport Task Type")); break;
 		}
 	};
 	void reset() {
