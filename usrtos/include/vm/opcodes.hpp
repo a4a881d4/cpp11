@@ -407,7 +407,7 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		// check type U64
 		timing::time_t& t= *(timing::time_t*)R.value.pvalue;
-		t = ctx->workers->m_c2s.toCpu(t);
+		t = ctx->workers->m_c2s.toCpuE(t);
 	};
 	void selfsm(U8 r) {
 		Reg& R = ctx->rfile.reg[r];

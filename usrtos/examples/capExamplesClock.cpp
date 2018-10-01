@@ -58,7 +58,7 @@ int FUNCLASS::run( void *argv ) {
 		long long int *tab = (long long int *)argv;
 		int iid = id%1000000;
 		if(iid > 900000) {
-			iid = 66532;
+			iid = 65532;
 		} else if(iid > 65500) {
 			iid = 65500;
 		}
@@ -76,6 +76,8 @@ int FUNCLASS::run( void *argv ) {
 				<< " " << tab[iid] 
 				<< std::endl;
 			std::cout << " max:" << tab[65535] << "@"<< tab[65534] << std::endl;
+			std::cout << " out 65500:" << tab[65500] << std::endl;
+			std::cout << " small:" << tab[65532] << std::endl;
 		}
 		if((tab[65533]%60000) == 0) {
 			an(argv);

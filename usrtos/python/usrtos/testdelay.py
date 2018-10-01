@@ -10,7 +10,7 @@ def once(aScript):
 	aScript.s.immeos(0,AnyType(0))
 	aScript.s.immesz(0,AnyType(65536*8))
 	scriptCap = UUID(aScript.api.keys["ExamplesClock"]['k'])
-	now = int(time())*int(1e9)+2000000000
+	now = int(time())*int(1e9)+1100000000
 	for i in range(1000):
 		aScript.newTask(0xf,0,scriptCap,now)
 		now += 1000000

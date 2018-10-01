@@ -2,6 +2,7 @@
 #include <chrono>
 #include <sstream>
 #include <ratio>
+#include <exceptions.hpp>
 
 namespace usrtos { namespace timing {
 	using namespace std::chrono;
@@ -14,8 +15,8 @@ namespace usrtos { namespace timing {
 	inline std::ostream& operator<<(std::ostream& os,const systime_t& h)
 	{
 		auto d = h - high_resolution_clock::now();
-		micro_type dd = duration_cast<micro_type>(d);
-		os << dd.count();
+		Second dd = duration_cast<Second>(d);
+		os << int(dd.count()*1e9);
 		return os;
 	}
 	
@@ -36,10 +37,11 @@ namespace usrtos { namespace timing {
 	};
 
 	struct CPU2SYS {
-		time_t C0,S0,W0;
-		time_t lastC,lastS;
-		time_t nowC,nowS;
-		time_t rC,rS,rW;
+		int64_t W0;
+		int64_t C0,S0;
+		int64_t lastC,lastS;
+		int64_t nowC,nowS;
+		int64_t rC,rS,rW;
 		double v;
 		double err;
 		bool updateV;
@@ -133,6 +135,16 @@ namespace usrtos { namespace timing {
 				return getCpuNow();
 			}
 		};
+		time_t toCpuE(time_t sys) {
+			if(!updateV) {
+				double ds = (double)sys-(double)(S0+lastS+W0);
+				double dc = ds / v;
+				dc += (double)(C0+lastC);
+				return (time_t)dc;
+			} else {
+				throw(usrtos_exception("clock invalid"));
+			}
+		};
 		time_t mulCpu(time_t sys) {
 			if(!updateV) {
 				double cpu = (double)sys / v;
@@ -149,7 +161,7 @@ namespace usrtos { namespace timing {
 			time_t b = (*(time_t*)(&as))+W0;
 			s << " cpu: " << ac;
 			s << " sys: " << b; 
-			s << " " << as;
+			s << " from now: " << as;
 			s << " W0: " << W0;
 			s << " cpu clock diff: " << (int64_t)ac - (int64_t)toCpu(b);
 			s << " sys clock diff: " << (int64_t)toSys(ac) - (int64_t)b;
