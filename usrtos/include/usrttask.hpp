@@ -157,7 +157,7 @@ public:
 		return r;
 	};
 
-	int clear(utime_t start, utime_t end) {
+	size_t clear(utime_t start, utime_t end) {
 		task *s = tm->newLP<task>();
 		memset(s,0,sizeof(task));
 		s->noE = start;
@@ -169,8 +169,13 @@ public:
 		e->noE = end;
 		OffsetPtr card_end;
 		card_end.LP2offset(e,wait->getMem());
-		
-		return wait->clear(card_start, card_end) + ready->clear(card_start, card_end);
+		size_t wdel = wait->clear(card_start, card_end);
+		size_t rdel = ready->clear(card_start, card_end);
+		std::stringstream logs;
+		logs << "wait del " << wdel << ", ready del " << rdel <<std::endl;
+		std::string logstr = logs.str();
+		SYSLOG.put(logstr);
+		return  wdel+rdel; 
 	};
 
 	void dumpHeap() {

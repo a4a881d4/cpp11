@@ -30,6 +30,7 @@ class Config(cfg):
 	]
 	system = [
 		  "capWorkersKeeper"
+		, "capWorkersClearer"
 		, "capWorkersTaskOnly"
 		, "capWorkersTaskScript"
 		, "capCallBackLunchTask"

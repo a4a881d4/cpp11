@@ -453,6 +453,7 @@ struct JITVisitor {
 			struct mainWorkerCTX mCtx;
 			mCtx.workers = ctx->workers;
 			mCtx.argv = R.lp;
+			mCtx.len = R.gp.objsize;
 			bearer->runLP(&mCtx);
 		}
 	};

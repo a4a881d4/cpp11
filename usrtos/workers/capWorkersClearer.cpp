@@ -9,26 +9,44 @@ struct ClearArgv {
 };
 
 int FUNCLASS::run( void *argv ) {
-	struct structThread *my = (struct structThread*)argv;
-	struct WorkerKeeperCTX *ctx = &(my->workers->ctx);
-	SYSLOG = my->workers->_SYSLOG;
+	struct mainWorkerCTX *ctx = (struct mainWorkerCTX *)argv;
+	SYSLOG = ctx->workers->_SYSLOG;
 	if( !ctx->workers ) {		
-		SYSLOG("in capWorkersClearer: thread %d can not get worker\n",my->id);
+		SYSLOG("in capWorkersClearer: can not get worker");
 		return -1;
 	}
 	if( ctx->workers->tQueue() == nullptr ) {		
-		SYSLOG("in capWorkersClearer: thread %d can not get Queue\n",my->id);
+		SYSLOG("in capWorkersClearer: thread can not get Queue");
 		return -1;
 	}
-	if(ctx->keeper_mutex.value() == false) {
-		struct ClearArgv *cargv = static_cast<struct ClearArgv *>(argv); 
-		uscoped_lock lock(ctx->keeper_mutex);
-		int cleared = ctx->workers->tQueue()->clear(cargv->start,cargv->end);
-		SYSLOG("in capWorkersClearer: clear task: %d",cleared);
-	}
-	else {		
-		my->monitor.keeperLock++;
-	}
+	struct ClearArgv *cargv = static_cast<struct ClearArgv *>(ctx->argv); 
+	uscoped_lock lock(ctx->workers->ctx.keeper_mutex);
+	auto q = ctx->workers->tQueue();
+	size_t cleared = q->clear(cargv->start,cargv->end);
+	
+	std::stringstream s;
+	s << "in capWorkersClearer: ";
+	ctx->workers->m_c2s.dump(s);
+	std::string logstr = s.str();
+	SYSLOG.put(logstr);
+	
+	s.str("");
+	s << "in capWorkersClearer: start: sys " << ctx->workers->m_c2s.toSys(cargv->start);
+	s << " cpu " << cargv->start;
+	logstr = s.str();
+	SYSLOG.put(logstr);
+	
+	s.str("");
+	s << "in capWorkersClearer: end:   sys " << ctx->workers->m_c2s.toSys(cargv->end);
+	s << " cpu " << cargv->end;
+	logstr = s.str();
+	SYSLOG.put(logstr);
+	
+	s.str("");
+	s << "in capWorkersClearer: clear task: " << cleared;
+	logstr = s.str();
+	SYSLOG.put(logstr);
+	
 	return 1;
 }
 

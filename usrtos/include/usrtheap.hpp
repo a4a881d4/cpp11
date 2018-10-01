@@ -130,12 +130,12 @@ public:
 		
 		return ret;
 	};
-	int clear(const PointerType& start, const PointerType& end) {
+	size_t clear(const PointerType& start, const PointerType& end) {
 		std::vector<PointerType> valid;
-		valid.resize(Hsize::value);
-		int r = 0;
+		//valid.resize(Hsize::value);
+		size_t r = 0;
 		USRT_SCOPED_LOCK(m_pa->heap_mutex);
-		int i;
+		size_t i;
 		r = m_pa->size;
 		for(i = 0;i < m_pa->size;i++) {
 			if(less(start,m_pa->heap[i]) && less(m_pa->heap[i],end)) {
