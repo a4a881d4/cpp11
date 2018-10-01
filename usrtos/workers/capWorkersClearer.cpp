@@ -3,10 +3,6 @@
 #include <usrtworker.hpp>
 #include <glog.hpp>
 using namespace usrtos;
-struct ClearArgv {
-	utime_t start;
-	utime_t end;
-};
 
 int FUNCLASS::run( void *argv ) {
 	struct mainWorkerCTX *ctx = (struct mainWorkerCTX *)argv;

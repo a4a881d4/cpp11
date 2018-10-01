@@ -265,7 +265,10 @@ struct VMOffset {
 		return static_cast<void*>(p);
 	};
 };
-
+enum class SelfSetType : U8 {
+	  mutex = 0
+	, clear = 1
+};
 struct JITVisitor {
 	JITVisitor() {};
 	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
@@ -375,9 +378,20 @@ struct JITVisitor {
 	};
 	void selfst(U8 r, U8 t) {
 		Reg& R = ctx->rfile.reg[r];
-		if(t == 0) {
-			auto pm = new(R.lp) umutex;
-			pm->unlock();
+		switch(static_cast<SelfSetType>(t)) {
+			case SelfSetType::mutex: {
+				auto pm = new(R.lp) umutex;
+				pm->unlock();
+				break;
+			}
+			case SelfSetType::clear: {
+				auto ps = ctx->workers->G2L<struct ClearArgv>(R.gp);
+				ctx->workers->tQueue()->clear(ps->start,ps->end);
+				break;
+			}
+			default: {
+				ctx->workers->_SYSLOG("unsupport self set type");
+			}
 		}
 	};
 	void selfgl(U8 r) {

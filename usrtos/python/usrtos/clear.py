@@ -3,10 +3,14 @@ from time import time,sleep
 from usrtos import AnyType,UUID,uClock
 import sys
 import os
+from optparse import OptionParser
 
-def clear(dir,start,end):
+def clear(dir,start,end,mode):
 	aS = Script(dir)
-	aS.s.nTask()
+	if mode=="system":
+		aS.s.nTask()
+	else:
+		aS.s.nScript()
 	aS.s.allocm(1,0,AnyType(32))
 	aS.s.clearm(0)
 	now = int(time()*1e9)
@@ -19,17 +23,43 @@ def clear(dir,start,end):
 	aS.s.selfsc(1)
 	aS.s.savevl(1,0,AnyType(8))
 	scriptCap = UUID(aS.cfg.keys["capWorkersClearer"]['k'])
-	aS.s.callsy(0,scriptCap)
+	if mode=="system":
+		aS.s.callsy(0,scriptCap)
+	else:
+		aS.s.selfst(0,1)
+	
 	aS.s.ret()
 	aS.s.test()
 	aS.s.push()
 
-	#		self.newTask(0xf,0,scriptCap,now)
-
 if __name__ == '__main__':
-	if len(sys.argv) > 2:
-		clear("/tmp/usrtos", int(sys.argv[1]), int(sys.argv[2]))
-	elif len(sys.argv) > 1:
-		clear("/tmp/usrtos", int(sys.argv[1]), 1)
+	parse = OptionParser()
+
+	parse.add_option("-s", "--start",
+	                dest= "s",
+	                default=-1,
+	                help= "clear start")
+
+	parse.add_option("-e", "--end",
+	                dest= "e",
+	                default=1,
+	                help= "string agrv")
+
+	parse.add_option("-d", "--dir",
+	                dest= "dir",
+	                default= "/tmp/usrtos",
+	                help= "memory block directory")
+
+	parse.add_option("-c", "--script",
+	                dest= "script",
+	                action= "store_true",
+	                default= False,
+	                help= "run script mode")
+
+	(option, arges) = parse.parse_args()
+
+	if option.script:
+		clear(option.dir, option.s, option.e, "script")
 	else:
-		clear("/tmp/usrtos", -1, 1)
+		clear(option.dir, option.s, option.e, "system")
+	

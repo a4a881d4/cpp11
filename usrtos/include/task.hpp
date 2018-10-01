@@ -154,24 +154,30 @@ inline std::ostream& operator<<(std::ostream& os,const taskdependen& dep)
 	return os;
 }
 string dumpTask(task *pTask) {
-		stringstream s1;
-		s1 << pTask->key 
-		   << " " << pTask->ID[0] 
-		   << "-" << pTask->ID[1] 
-		   << endl
-		   << "noE: " << pTask->noE << " "
-		   << "noL: " << pTask->noL << " "
-		   << "valid: " << pTask->valid
-		   << endl 
-		   << "callback" << endl
-		   << *(pTask->getCallBackArgv()) << " "
-		   << endl
-		   << "Argv GP" << endl
-		   << "id: " << pTask->argv.id  << " "
-		   << "off: " << pTask->argv.offset << " "
-		   << "sz: " << pTask->argv.objsize << " "
-		   << endl;
+	stringstream s1;
+	s1 << pTask->key 
+	   << " " << pTask->ID[0] 
+	   << "-" << pTask->ID[1] 
+	   << endl
+	   << "noE: " << pTask->noE << " "
+	   << "noL: " << pTask->noL << " "
+	   << "valid: " << pTask->valid
+	   << endl 
+	   << "callback" << endl
+	   << *(pTask->getCallBackArgv()) << " "
+	   << endl
+	   << "Argv GP" << endl
+	   << "id: " << pTask->argv.id  << " "
+	   << "off: " << pTask->argv.offset << " "
+	   << "sz: " << pTask->argv.objsize << " "
+	   << endl;
 
-		return s1.str();  
-	};
+	return s1.str();  
+};
+
+struct ClearArgv {
+	utime_t start;
+	utime_t end;
+};
+
 };
