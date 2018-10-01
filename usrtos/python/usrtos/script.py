@@ -165,8 +165,9 @@ def main():
 		aScript.initKey()
 		aScript.doCap("SetDefaultKeeper")
 		aScript.doCap("SetWorker",aScript.api.keys["WorkersTaskScript"]['k'])
-		aScript.doCap("Start",1)
+		aScript.doCap("Start",2)
 		aScript.doCap("UpdateWorkerKey",0)
+		aScript.doCap("UpdateWorkerKey",1)
 	else:
 		if option.n != None:
 			aScript.doCap(arges[0],int(option.n))
