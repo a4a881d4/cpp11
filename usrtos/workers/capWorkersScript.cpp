@@ -2,12 +2,15 @@
 #include <capabilityAPI.hpp>
 #include <usrtworker.hpp>
 #include <vm/opcodes.hpp>
+#include <glog.hpp>
+
 using namespace usrtos;
 
 static struct vm::VMContext *vmCtx = nullptr;
 static struct vm::JITVisitor *visitor = nullptr;
 int FUNCLASS::run( void *argv ) {
 	struct mainWorkerCTX *ctx = (struct mainWorkerCTX *)argv;
+	SYSLOG = ctx->workers->_SYSLOG;
 	if(!vmCtx) {
 		vmCtx = new struct vm::VMContext(*(ctx->workers));
 		visitor = new struct vm::JITVisitor(*vmCtx);

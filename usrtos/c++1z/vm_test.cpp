@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vm/opcodes.hpp>
 #include <usrtkey.hpp>
+#include <glog.hpp>
 
 using namespace usrtos::vm;
 

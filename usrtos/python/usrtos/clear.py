@@ -11,7 +11,7 @@ def clear(dir,start,end,mode):
 		aS.s.nTask()
 	else:
 		aS.s.nScript()
-	aS.s.allocm(1,0,AnyType(32))
+	aS.s.allocm(1,0,AnyType(16))
 	aS.s.clearm(0)
 	now = int(time()*1e9)
 	iS = now + int(start*1e9)

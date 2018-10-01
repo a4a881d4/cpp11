@@ -2,6 +2,7 @@
 #include <capabilityAPI.hpp>
 #include <usrtworker.hpp>
 #include <vm/opcodes.hpp>
+#include <glog.hpp>
 
 using namespace usrtos;
 static void handleTask(UsrtWorkers *w, task *t, structThread *my) {
@@ -47,6 +48,7 @@ static void handleScript(UsrtWorkers *w, task *t, structThread *my) {
 
 int FUNCLASS::run( void *argv ) {
 	struct structThread *my = (struct structThread *)argv;
+	SYSLOG = my->workers->_SYSLOG;
 	task *t = my->workers->m_taskq->pop();
 	if(t != nullptr) {
 		my->monitor.run++;
