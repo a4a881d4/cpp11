@@ -5,10 +5,10 @@
 #include "pusrttask.hpp"
 #include "pusrtscript.hpp"
 #include "pusrtclock.hpp"
+#include <glog.hpp>
 
 #include <boost/python.hpp>
 using namespace boost::python;
-
 namespace usrtos {
 using namespace vm;
 

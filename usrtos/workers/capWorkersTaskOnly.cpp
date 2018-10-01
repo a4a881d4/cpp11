@@ -28,7 +28,7 @@ int FUNCLASS::run( void *argv ) {
 		}
 		else {
 			std::string bug = std::string("bad cap key: ") + UsrtKey::key2string(capKey);
-			SYSLOG.put(bug);
+			my->workers->_SYSLOG.put(bug);
 		}
 	}
 	else /*if( my->id==0)*/ {
@@ -37,7 +37,7 @@ int FUNCLASS::run( void *argv ) {
 			std::stringstream s1;
 			s1 << "In Thread (work cap)" << my->id << std::endl;
 			std::string ks = s1.str();
-			SYSLOG.put(ks);
+			my->workers->_SYSLOG.put(ks);
 		}
 		my->state=KEEPER;
 		bearer = my->workers->getBearerByKey(my->workers->keeperKey);

@@ -2,7 +2,6 @@
 #include <capability.hpp>
 #include <version.hpp>
 #include <userhelper.hpp>
-#include <loglevel.hpp>
 
 #define _STR(x) #x
 #define STR(x) _STR(x)

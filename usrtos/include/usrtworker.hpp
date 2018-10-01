@@ -192,7 +192,12 @@ namespace usrtos {
 			logs				   *m_logs;
 
 			timing::CPU2SYS m_c2s;
-
+			LogLevel				_SYSLOG;
+			LogLevel				 _DEBUG;
+			LogLevel				  _INFO;
+			LogLevel				  _WARN;
+			LogLevel				 _ERROR;
+			LogLevel				 _FATAL;
 			UsrtWorkers( const char* dir ) {
 				FindBlock fb(dir);
 				auto heads = fb.list();
@@ -216,6 +221,12 @@ namespace usrtos {
 				WARN	= LogLevel(*m_logs,3);
 				ERROR	= LogLevel(*m_logs,4);
 				FATAL	= LogLevel(*m_logs,5);
+				_SYSLOG = LogLevel(*m_logs,0);
+				_DEBUG	= LogLevel(*m_logs,1);
+				_INFO	= LogLevel(*m_logs,2);
+				_WARN	= LogLevel(*m_logs,3);
+				_ERROR	= LogLevel(*m_logs,4);
+				_FATAL	= LogLevel(*m_logs,5);
 
 				if(!timing::CPUClock::c2s)
 					timing::CPUClock::c2s = &m_c2s;
@@ -396,7 +407,7 @@ namespace usrtos {
 					}
 					else {
 						std::string bug = std::string("bad cap key: ") + UsrtKey::key2string(capKey);
-						SYSLOG.put(bug);
+						my->workers->_SYSLOG.put(bug);
 					}
 				}
 				else /*if( my->id==0)*/ {
@@ -405,7 +416,7 @@ namespace usrtos {
 						std::stringstream s1;
 						s1 << "In Thread " << my->id << std::endl;
 						std::string ks = s1.str();
-						SYSLOG.put(ks);
+						my->workers->_SYSLOG.put(ks);
 					}
 					my->state=KEEPER;
 					bearer = my->workers->getBearerByKey(my->workers->keeperKey);
@@ -415,7 +426,7 @@ namespace usrtos {
 			};
 			static void* worker(void *argv) {
 				struct structThread *my = (struct structThread *)argv;
-				SYSLOG("Thread %d is start\n", my->id);
+				my->workers->_SYSLOG("Thread %d is start\n", my->id);
 				my->sysid=(long int)pthread_self();
 				while( my->control!=-1 ) {
 					try {
@@ -431,11 +442,11 @@ namespace usrtos {
 						}
 					} catch(usrtos_exception& e) {
 						std::string estr = e.what();
-						SYSLOG.put(estr);
+						my->workers->_SYSLOG.put(estr);
 					}
 				}
 				my->state = EXITING;
-				SYSLOG("Thread %d is stop\n", my->id);
+				my->workers->_SYSLOG("Thread %d is stop\n", my->id);
 				pthread_exit(NULL);
 				return nullptr;
 			};
@@ -474,12 +485,12 @@ namespace usrtos {
 								stringstream s;
 								m_c2s.dump(s);
 								string ps = s.str();
-								SYSLOG.put(ps);	
+								_SYSLOG.put(ps);	
 							}
 						}
 					} catch(usrtos_exception& e) {
 						std::string estr = e.what();
-						SYSLOG.put(estr);
+						_SYSLOG.put(estr);
 					}
 				}
 			};
@@ -504,7 +515,7 @@ namespace usrtos {
 			
 			void updateWorkerKey(int n) {
 				if(n >= threadNum) {
-					SYSLOG("out of running thread\n");
+					_SYSLOG("out of running thread\n");
 				} else {
 					tids[n]->workerKey = workerKey;
 				}
