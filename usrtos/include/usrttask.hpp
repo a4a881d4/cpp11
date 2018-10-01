@@ -208,13 +208,26 @@ public:
 
     bool insert(task *t) {
     	OffsetPtr t_off;
+    	utime_t after4 = after(4000000000);
+    	if(t->noE > after4) {
+    		std::stringstream s;
+    		s << "in insert task: task in future " << t->noE;
+    		throw(usrtos_exception(s));
+    	}
     	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->getHead()->dataSize)
     		if(wait->insert(t_off) != OffsetPtr::Null())
     			return true;
-    		else
+    		else {
+    			auto del = clear(now(),after4);
+    			std::stringstream s;
+    			s << "in insert task: wait heap full, del " << del;
+    			throw(usrtos_exception(s));
     			return false;
-    	else 
+    		}
+    	else {
+    		throw(usrtos_exception("in insert task: bad local point"));
     		return false;
+    	}
     };
 };
 }; // namespace usrtos

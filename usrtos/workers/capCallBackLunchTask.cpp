@@ -2,7 +2,7 @@
 #include <capabilityAPI.hpp>
 #include <usrtworker.hpp>
 #include <workerhelper.hpp>
-
+#include <glog.hpp>
 using namespace usrtos;
 
 static void dealCallBack(UsrtWorkers *w, _callback_argv_t *callback, task *ref )
@@ -100,6 +100,7 @@ int FUNCLASS::run( void *argv ) {
 	task *my = (task *)argv;
 	_callback_argv_t *callback = &(my->callbackargv); 
 	UsrtWorkers *w = (UsrtWorkers *)callback->workers;
+	SYSLOG = w->_SYSLOG;
 	dealCallBack(w, callback, my );
 	return 0;
 }

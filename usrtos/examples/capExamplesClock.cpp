@@ -57,6 +57,7 @@ int FUNCLASS::run( void *argv ) {
 		long long int my_wall_time = timing::CPUClock().wall_time();
 		long long int *tab = (long long int *)argv;
 		int iid = id%100000;
+		iid /= 2;
 		if(iid > 90000) {
 			iid = 65532;
 		} else if(iid > 65500) {

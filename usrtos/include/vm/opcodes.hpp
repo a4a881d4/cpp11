@@ -441,12 +441,14 @@ struct JITVisitor {
 	void pushof(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
 		if(R.gp.id == ctx->rfile.seg[0]) {
-			ctx ->workers
-				->tQueue()
-				->insert(static_cast<task*>(R.lp));
-			// ctx ->workers
-			//     ->tQueue()
-			//     ->dumpTask(*(task*)R.lp);
+			try {
+				ctx ->workers
+					->tQueue()
+					->insert(static_cast<task*>(R.lp));
+			} catch(usrtos_exception& e) {
+				std::cout << "catch exception in opcode pushof" << std::endl;
+				std::cout << e.what() << std::endl; 
+			}
 		}
 	};
 	void callcp(U8 r, UUID capKey) {
