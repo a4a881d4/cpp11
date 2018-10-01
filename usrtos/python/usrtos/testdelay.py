@@ -35,7 +35,7 @@ def TestDelay(dir,mins):
 	aScript.s.immeos(0,AnyType(0))
 	aScript.s.immesz(0,AnyType(65536*8))
 	scriptCap = UUID(aScript.api.keys["ExamplesAnClock"]['k'])
-	now = int(time())*int(1e9)+3000000000
+	now = int(time())*int(1e9)+1100000000
 	aScript.newTask(0xf,0,scriptCap,now)
 	aScript.s.ret()
 	aScript.s.push()
