@@ -135,9 +135,9 @@ public:
 	};
 
 	int update() {
-		if(!checkCard())
-			std::cout << "new card" << std::endl;
-
+		if(!checkCard()) {
+			SYSLOG("new card");
+		}
 		card->noE = now();
 		int r = 0;
 		
