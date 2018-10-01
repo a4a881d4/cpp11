@@ -14,7 +14,7 @@ public:
 	size_t p;
 	OffsetPtr() : p(0) {};
 	OffsetPtr(size_t o) : p(o){};
-	OffsetPtr(OffsetPtr& a) { p = a.p; };
+	//OffsetPtr(OffsetPtr& a) { p = a.p; };
 	
 	static const OffsetPtr Null() { return OffsetPtr(0xffffffffffffffff); };
 	
@@ -25,7 +25,7 @@ public:
 	};
 
 	template<typename T>
-	T* Off2LP(CPBlock *mem) {
+	T* Off2LP(CPBlock *mem) const{
 		return mem->Off2LP<T>(p);
 	};
 
@@ -48,7 +48,7 @@ class TaskHeap {
 		struct less {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			bool operator()(OffsetPtr a, OffsetPtr b) { 
+			bool operator()(const OffsetPtr& a, const OffsetPtr& b) { 
 				return (a.Off2LP<task>(mem)->noE < b.Off2LP<task>(mem)->noE); 
 			};
 		};
@@ -67,7 +67,7 @@ class TaskHeap {
 		struct less {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			bool operator()(OffsetPtr a, OffsetPtr b) {
+			bool operator()(const OffsetPtr& a, const OffsetPtr& b) {
 				auto pa = a.Off2LP<task>(mem);
 				auto pb = b.Off2LP<task>(mem); 
 				return ((uint64_t)pa->noL+pa->noE < (uint64_t)pb->noL+pb->noE); 
@@ -155,6 +155,22 @@ public:
 			}
 		}
 		return r;
+	};
+
+	int clear(utime_t start, utime_t end) {
+		task *s = tm->newLP<task>();
+		memset(s,0,sizeof(task));
+		s->noE = start;
+		OffsetPtr card_start;
+		card_start.LP2offset(s,wait->getMem());
+		
+		task *e = tm->newLP<task>();
+		memset(e,0,sizeof(task));
+		e->noE = end;
+		OffsetPtr card_end;
+		card_end.LP2offset(e,wait->getMem());
+		
+		return wait->clear(card_start, card_end) + ready->clear(card_start, card_end);
 	};
 
 	void dumpHeap() {

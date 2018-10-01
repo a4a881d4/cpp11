@@ -1,12 +1,13 @@
 #define FUNCLASS capWorkersKeeper
 #include <capabilityAPI.hpp>
 #include <usrtworker.hpp>
-
+#include <glog.hpp>
 using namespace usrtos;
 
 int FUNCLASS::run( void *argv ) {
   struct structThread *my = (struct structThread*)argv;
   struct WorkerKeeperCTX *ctx = &(my->workers->ctx);
+  SYSLOG = my->workers->_SYSLOG;
   if( !ctx->workers ) {    
 	  printf("you are into Worker Keeper\n");
 	  printf("thread %d can not get worker\n",my->id);

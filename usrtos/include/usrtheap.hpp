@@ -28,7 +28,7 @@ private:
 	typename Compare::key m_key;
 	typename Compare::less m_less;
 
-	bool less(PointerType a, PointerType b) {
+	bool less(const PointerType& a, const PointerType& b) {
 		return m_less(a,b);
 	};
 
@@ -130,7 +130,27 @@ public:
 		
 		return ret;
 	};
-
+	int clear(const PointerType& start, const PointerType& end) {
+		std::vector<PointerType> valid;
+		valid.resize(Hsize::value);
+		int r = 0;
+		USRT_SCOPED_LOCK(m_pa->heap_mutex);
+		int i;
+		r = m_pa->size;
+		for(i = 0;i < m_pa->size;i++) {
+			if(less(start,m_pa->heap[i]) && less(m_pa->heap[i],end)) {
+				valid.push_back(m_pa->heap[i]);
+			}
+		}
+		m_pa->size = 0;
+		r -= valid.size();
+		for( auto x = valid.begin();x!=valid.end();++x ) {
+			m_pa->heap[m_pa->size] = *x;
+			m_pa->size++;
+			up(m_pa->size-1);
+		}
+		return r;
+	};
 	int check(int debug = 0) {
 		int err = 0;
 		int i;
