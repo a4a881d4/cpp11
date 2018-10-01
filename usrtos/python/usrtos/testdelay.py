@@ -10,10 +10,10 @@ def once(aScript):
 	aScript.s.immeos(0,AnyType(0))
 	aScript.s.immesz(0,AnyType(65536*8))
 	scriptCap = UUID(aScript.api.keys["ExamplesClock"]['k'])
-	now = int(time())*int(1e9)+1100000000
+	now = int(time()*10.)*int(1e8)+150000000
 	for i in range(1000):
 		aScript.newTask(0xf,0,scriptCap,now)
-		now += 1000000
+		now += 100000
 	aScript.s.ret()
 	aScript.s.push()
 
@@ -26,9 +26,9 @@ def TestDelay(dir,mins):
 	aScript.s.clearm(0)
 	aScript.s.ret()
 	aScript.s.push()
-	for i in range(mins*60):
+	for i in range(mins*600):
 		once(aScript)
-		sleep(1)
+		sleep(0.1)
 	sleep(1)
 	aScript.s.nScript()
 	aScript.s.allocm(4,0,AnyType(0)) 
