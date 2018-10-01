@@ -1,9 +1,10 @@
+#pragma once
 #include <usrtkey.hpp>
-#include <cpblock.hpp>
-#include <usrtmem.hpp>
+// #include <cpblock.hpp> // in loglevel
+// #include <usrtmem.hpp> // in loglevel
 #include <usrtheap.hpp>
 #include <task.hpp>
-
+#include <loglevel.hpp>
 #include <chrono>
 
 namespace usrtos {

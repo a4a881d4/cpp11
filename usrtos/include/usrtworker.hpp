@@ -190,13 +190,6 @@ namespace usrtos {
 			UsrtTask			  *m_taskq; ///< the usrt task in this queue which has two heap (wait,ready)
 			Layout::UsrtMem		 *m_memory;
 			logs				   *m_logs;
-			
-			LogLevel				SYSLOG;
-			LogLevel				 DEBUG;
-			LogLevel				  INFO;
-			LogLevel				  WARN;
-			LogLevel				 ERROR;
-			LogLevel				 FATAL;
 
 			timing::CPU2SYS m_c2s;
 
@@ -217,10 +210,10 @@ namespace usrtos {
 				m_memory = bindBlock<Layout::UsrtMem>("memory");
 				m_logs = new logs(blocks);
 				
-				SYSLOG = LogLevel(*m_logs,0);
+				SYSLOG  = LogLevel(*m_logs,0);
 				DEBUG	= LogLevel(*m_logs,1);
-				INFO	 = LogLevel(*m_logs,2);
-				WARN	 = LogLevel(*m_logs,3);
+				INFO	= LogLevel(*m_logs,2);
+				WARN	= LogLevel(*m_logs,3);
 				ERROR	= LogLevel(*m_logs,4);
 				FATAL	= LogLevel(*m_logs,5);
 
@@ -403,7 +396,7 @@ namespace usrtos {
 					}
 					else {
 						std::string bug = std::string("bad cap key: ") + UsrtKey::key2string(capKey);
-						my->workers->SYSLOG.put(bug);
+						SYSLOG.put(bug);
 					}
 				}
 				else /*if( my->id==0)*/ {
@@ -412,7 +405,7 @@ namespace usrtos {
 						std::stringstream s1;
 						s1 << "In Thread " << my->id << std::endl;
 						std::string ks = s1.str();
-						my->workers->SYSLOG.put(ks);
+						SYSLOG.put(ks);
 					}
 					my->state=KEEPER;
 					bearer = my->workers->getBearerByKey(my->workers->keeperKey);
@@ -422,7 +415,7 @@ namespace usrtos {
 			};
 			static void* worker(void *argv) {
 				struct structThread *my = (struct structThread *)argv;
-				my->workers->SYSLOG("Thread %d is start\n", my->id);
+				SYSLOG("Thread %d is start\n", my->id);
 				my->sysid=(long int)pthread_self();
 				while( my->control!=-1 ) {
 					try {
@@ -438,11 +431,11 @@ namespace usrtos {
 						}
 					} catch(usrtos_exception& e) {
 						std::string estr = e.what();
-						my->workers->SYSLOG.put(estr);
+						SYSLOG.put(estr);
 					}
 				}
 				my->state = EXITING;
-				my->workers->SYSLOG("Thread %d is stop\n", my->id);
+				SYSLOG("Thread %d is stop\n", my->id);
 				pthread_exit(NULL);
 				return nullptr;
 			};

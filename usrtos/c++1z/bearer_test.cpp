@@ -1,7 +1,7 @@
 #include <capabilityBearer.hpp>
 #include <iostream>
 #include <usrtworker.hpp>
-
+#include <glog.hpp>
 using namespace std;
 using namespace usrtos;
 int main(int argc, char *argv[])

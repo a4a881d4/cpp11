@@ -2,6 +2,7 @@
 #include <usrttype.hpp>
 #include <cpblock.hpp>
 #include <boost/mpl/size_t.hpp>
+#include <loglevel.hpp>
 
 namespace usrtos {
 

@@ -112,21 +112,25 @@ namespace usrtos { namespace timing {
 
 		time_t toSys(time_t cpu) {
 			if(!updateV) {
-				time_t dc = cpu-C0-lastC;
-				double ds = (double)dc * v;
-				return (time_t)ds+S0+lastS+W0;
+				double dc = (double)cpu-(double)(C0+lastC);
+				double ds = dc * v;
+				ds += (double)(S0+lastS+W0);
+				return (time_t)ds;
 			} else {
-				return 0;
+				auto as = getSysNow();
+				time_t b = (*(time_t*)(&as))+W0;
+				return b;
 			}
 		};
 
 		time_t toCpu(time_t sys) {
 			if(!updateV) {
-				time_t ds = sys-S0-lastS-W0;
-				double dc = (double)ds / v;
-				return (time_t)dc+C0+lastC;
+				double ds = (double)sys-(double)(S0+lastS+W0);
+				double dc = ds / v;
+				dc += (double)(C0+lastC);
+				return (time_t)dc;
 			} else {
-				return 0;
+				return getCpuNow();
 			}
 		};
 		time_t mulCpu(time_t sys) {
@@ -140,10 +144,15 @@ namespace usrtos { namespace timing {
 		void dump(std::stringstream& s) {
 			s << " v: " << v;
 			s << " e: " << err;
-			auto a = getSysNow();
-			time_t b = *(time_t*)(&a)+W0;
-			s << " cpu clock diff: " << getCpuNow() - toCpu(b);
-			s << " sys clock diff: " << toSys(getCpuNow()) - b;
+			auto as = getSysNow();
+			auto ac = getCpuNow();
+			time_t b = (*(time_t*)(&as))+W0;
+			s << " cpu: " << ac;
+			s << " sys: " << b; 
+			s << " " << as;
+			s << " W0: " << W0;
+			s << " cpu clock diff: " << (int64_t)ac - (int64_t)toCpu(b);
+			s << " sys clock diff: " << (int64_t)toSys(ac) - (int64_t)b;
 			s << std::endl;
 		};
 		CPU2SYS() {

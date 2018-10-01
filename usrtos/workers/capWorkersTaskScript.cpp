@@ -28,7 +28,7 @@ static void handleTask(UsrtWorkers *w, task *t, structThread *my) {
 	}
 	else {
 		std::string bug = std::string("bad cap key: ") + UsrtKey::key2string(capKey);
-		my->workers->SYSLOG.put(bug);
+		SYSLOG.put(bug);
 	}
 };
 static void handleScript(UsrtWorkers *w, task *t, structThread *my) {
@@ -62,7 +62,7 @@ int FUNCLASS::run( void *argv ) {
 			std::stringstream s1;
 			s1 << "In Thread (work cap)" << my->id << std::endl;
 			std::string ks = s1.str();
-			my->workers->SYSLOG.put(ks);
+			SYSLOG.put(ks);
 		}
 		my->state=KEEPER;
 		UsrtCapabilityBearer *bearer = my->workers->getBearerByKey(my->workers->keeperKey);

@@ -1,5 +1,4 @@
 #pragma once
-#include <log.hpp>
 #include <logs.hpp>
 #include <sstream>
 
@@ -31,4 +30,12 @@ public:
 		m_log->put(s);
 	};
 };
+
+extern LogLevel				SYSLOG;
+extern LogLevel				 DEBUG;
+extern LogLevel				  INFO;
+extern LogLevel				  WARN;
+extern LogLevel				 ERROR;
+extern LogLevel				 FATAL;
+
 }; // namespace usrtos
