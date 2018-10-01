@@ -37,11 +37,13 @@ if __name__ == '__main__':
 
 	parse.add_option("-s", "--start",
 	                dest= "s",
+	                type= "float",
 	                default=-1,
 	                help= "clear start")
 
 	parse.add_option("-e", "--end",
 	                dest= "e",
+	                type= "float",
 	                default=1,
 	                help= "string agrv")
 
