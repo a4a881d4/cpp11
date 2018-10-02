@@ -137,14 +137,16 @@ class usrtos_exception : public std::exception
       :  m_err(other_error)
    {
       try {
-         void* array[s] = {0};
+         auto array = new void*[s];
+         memset(array,0,s*sizeof(void*));
          char **strframe = NULL;
          auto size = backtrace(array, s);
          strframe = (char **)backtrace_symbols(array, size);
          for(int i = 0; i < size; i++){
             err << "frame " << i << ": " << strframe[i] << std::endl;
          }
-         m_str = err.str(); 
+         m_str = err.str();
+         delete[] array; 
       }
       catch (...) {}
    }
