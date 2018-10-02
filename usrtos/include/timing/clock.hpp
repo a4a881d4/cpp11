@@ -40,7 +40,6 @@ namespace usrtos { namespace timing {
 		int64_t W0;
 		int64_t C0,S0;
 		int64_t lastC,lastS;
-		int64_t nowC,nowS;
 		int64_t rC,rS,rW;
 		double v;
 		double err;
@@ -80,7 +79,8 @@ namespace usrtos { namespace timing {
 			S0 = 0;
 			updateV = true;
 		};
-		void update() {
+		bool update() {
+			int64_t nowC,nowS;
 			peek();
 			if(C0 == 0) {
 				C0 = rC;
@@ -88,6 +88,8 @@ namespace usrtos { namespace timing {
 				W0 = rW - S0;
 				lastC = 0;
 				lastS = 0;
+				err = 1.;
+				return true;
 			} else {
 				nowC = rC - C0;
 				nowS = rS - S0;
@@ -99,9 +101,8 @@ namespace usrtos { namespace timing {
 					double dC = nowC - lastC;
 					double est = dC*v + (double)lastS;
 					err = (double)nowS - est;
-					if(fabs(err) > 500) {
-						reset();
-						if(fabs(err) > 5000)
+					if(fabs(err) > 5000) {
+						if(fabs(err) > 50000)
 							init();
 					} else {
 						v += 0.5*err/dC;
@@ -109,6 +110,7 @@ namespace usrtos { namespace timing {
 					}
 				}
 				lastC = nowC;
+				return false;
 			}
 		};
 

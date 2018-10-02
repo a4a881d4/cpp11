@@ -455,7 +455,7 @@ namespace usrtos {
 				UsrtCapabilityBearer *bearer;
 				struct mainWorkerCTX mCtx;
 				mCtx.workers = this;
-				
+				double sleep_time = 1.;
 				while(this->control == 0) {
 					try {
 						if(this->m_configFifo->len() > 0) {
@@ -479,13 +479,29 @@ namespace usrtos {
 							}
 						}
 						else{
-							sleep(1);
-							m_c2s.update();
-							if(fabs(m_c2s.err) > 1000) {
+							sleep(sleep_time);
+							auto flag = m_c2s.update();
+							if(flag && m_c2s.updateV) {
+								sleep_time = 2.;
 								stringstream s;
+								s << "re calc ";
 								m_c2s.dump(s);
 								string ps = s.str();
-								_SYSLOG.put(ps);	
+								_SYSLOG.put(ps);
+							}
+							else {
+								auto abs_err = fabs(m_c2s.err);
+								if( abs_err > 1000) {
+									stringstream s;
+									m_c2s.dump(s);
+									string ps = s.str();
+									_SYSLOG.put(ps);
+									sleep_time = 1000./abs_err;
+									if(sleep_time < 0.5)
+										sleep_time = 0.5;	
+								} else {
+									sleep_time = 1;
+								}
 							}
 						}
 					} catch(usrtos_exception& e) {
