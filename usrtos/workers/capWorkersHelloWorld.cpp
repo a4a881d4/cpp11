@@ -12,4 +12,4 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->_SYSLOG("Hello World");
   return 0;
 }
-
+#undef FUNCLASS

@@ -18,17 +18,17 @@ namespace usrtos { namespace timing {
 		Second dd = duration_cast<Second>(d);
 		os << int(dd.count()*1e9);
 		return os;
-	}
+	};
 	
-	systime_t getSysNow() {
+	inline systime_t getSysNow() {
 		return high_resolution_clock::now();
 	};
 	
-	system_clock::time_point getWallNow() {
+	inline system_clock::time_point getWallNow() {
 		return system_clock::now();
 	};
 
-	time_t getCpuNow() {
+	inline time_t getCpuNow() {
 		typedef struct { unsigned long t[2]; } _timing;
 		#define timing_now(x) asm volatile(".byte 15;.byte 49" : "=a"((x)->t[0]),"=d"((x)->t[1]))
 		_timing now;
@@ -249,6 +249,4 @@ namespace usrtos { namespace timing {
 		};
 	};
 
-	CPU2SYS * CPUClock::c2s = nullptr;
-	CPU2SYS * SYSClock::c2s = nullptr;
 }}

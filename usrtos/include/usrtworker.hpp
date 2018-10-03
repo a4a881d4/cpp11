@@ -18,6 +18,7 @@
 #include <usrthardtimer.hpp>
 #include <pthread.h>
 #include <exceptions.hpp>
+#include <internalfuncmap.hpp>
 
 using namespace std;
 
@@ -460,6 +461,14 @@ namespace usrtos {
 					try {
 						if(this->m_configFifo->len() > 0) {
 							task *t = this->m_configFifo->get<task>();
+							if(t->ID[0] == (uint64_t)TaskType::internal) {
+								if(validInternalFunc(t->ID[1])) {
+									mCtx.argv = static_cast<void*>(G2L<char>(t->argv));
+									mCtx.len = t->argv.objsize;
+									SystemFuncMap[t->ID[1]](&mCtx);
+									continue;
+								}
+							}
 							bearer = this->_getBearerByKey(t->key);
 							if(bearer == nullptr) {
 								if(this->setCap(t->key))

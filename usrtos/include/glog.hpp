@@ -2,10 +2,10 @@
 #include <loglevel.hpp>
 
 namespace usrtos {	
-	LogLevel				SYSLOG;
-	LogLevel				 DEBUG;
-	LogLevel				  INFO;
-	LogLevel				  WARN;
-	LogLevel				 ERROR;
-	LogLevel				 FATAL;
+extern	LogLevel	SYSLOG;
+extern	LogLevel	 DEBUG;
+extern	LogLevel	  INFO;
+extern	LogLevel	  WARN;
+extern	LogLevel	 ERROR;
+extern	LogLevel	 FATAL;
 };

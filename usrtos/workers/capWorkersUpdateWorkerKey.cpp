@@ -13,6 +13,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->updateWorkerKey( num );
   return 0;
 }
-
+#undef FUNCLASS
 
 

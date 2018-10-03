@@ -16,6 +16,6 @@ int FUNCLASS::run( void *argv ) {
 	ctx->workers->setDefaultWorker( key );
 	return 0;
 }
-
+#undef FUNCLASS
 
 

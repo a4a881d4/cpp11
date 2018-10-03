@@ -14,6 +14,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->setCap( cap );
   return 0;
 }
-
+#undef FUNCLASS
 
 

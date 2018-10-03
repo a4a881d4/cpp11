@@ -73,8 +73,9 @@ inline std::ostream& operator<<(std::ostream& os,const CallBackArgv& argv)
 }
 
 enum class TaskType : uint64_t {
-	  system = 0x01LL
-	, script = 0x02LL
+	  internal = 0x01LL
+	, script   = 0x02LL
+	, system   = 0x03LL
 };
 
 struct script {
@@ -153,7 +154,7 @@ inline std::ostream& operator<<(std::ostream& os,const taskdependen& dep)
 	   << "gp.size: " << dep.me.objsize;
 	return os;
 }
-string dumpTask(task *pTask) {
+inline string dumpTask(task *pTask) {
 	stringstream s1;
 	s1 << pTask->key 
 	   << " " << pTask->ID[0] 

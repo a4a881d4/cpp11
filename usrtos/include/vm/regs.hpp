@@ -176,7 +176,7 @@ struct ANYTYPE {
 	operator size_t() const { return toOffset(); }
 };
 
-std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)
+inline std::ostream& operator<<(std::ostream& os,struct ANYTYPE& h)
 {
 	if(h.type != ANYTYPE::ValueType::string) 
 	{

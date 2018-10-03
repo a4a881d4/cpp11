@@ -21,5 +21,5 @@ int FUNCLASS::run( void *argv ) {
 	d.run(*visitor,os,vm::RunMode::run);
 	return 1;
 }
-
+#undef FUNCLASS
 

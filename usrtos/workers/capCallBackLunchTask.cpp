@@ -104,6 +104,7 @@ int FUNCLASS::run( void *argv ) {
 	dealCallBack(w, callback, my );
 	return 0;
 }
+#undef FUNCLASS
 
 
 

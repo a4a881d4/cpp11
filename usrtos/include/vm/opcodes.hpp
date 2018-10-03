@@ -217,22 +217,22 @@ private:
 };
 
 template<typename T>
-T* OperatorStream::get(T& a) {
+inline T* OperatorStream::get(T& a) {
 	a = *(T*)(advance(sizeof(T)));
 	return &a;
 };
 template<typename T>
-OperatorStream& OperatorStream::put(T& a) {
+inline OperatorStream& OperatorStream::put(T& a) {
 	memcpy(advance(sizeof(T)),&a,sizeof(T));
 	return *this;
 };
 template<>
-ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
+inline ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
 	a.get<OperatorStream>(*this);
 	return &a;
 };
 template<> 
-OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
+inline OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
 	a.put<OperatorStream>(*this);
 	return *this;
 };

@@ -146,13 +146,13 @@ usrtos/c++1z/dag_test.cpp:usrtos/include/dag/nodes.hpp
 work/dag_test:usrtos/c++1z/dag_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/workers:usrtos/c++1z/workers.cpp
+work/workers:usrtos/c++1z/workers.cpp work/usrtoslib.so work/system.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/hello_ext.so: python/hello.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared python/hello.cpp -o work/hello_ext.so $(PYFLAG) $(LDFLAG)
 
-work/usrtos.so: usrtos/c++1z/usrt.cpp
+work/usrtos.so: usrtos/c++1z/usrt.cpp work/usrtoslib.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared $^ -o $@ $(LDFLAG) $(PYFLAG)
 
 clean:
@@ -162,14 +162,14 @@ clean:
 WorkersInternalCapabilities := $(wildcard usrtos/workers/cap*.cpp)
 WorkersInternalLibs := $(patsubst %.cpp,%.so,$(subst usrtos/workers/cap,work/lib,$(WorkersInternalCapabilities)))
 
-$(WorkersInternalLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) 
-	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) -o $@ $(LDFLAG)
+$(WorkersInternalLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) work/usrtoslib.so
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/workers/cap,$@)) work/usrtoslib.so -o $@ $(LDFLAG)
 
 UserCapabilities := $(wildcard usrtos/examples/cap*.cpp)
 UserLibs := $(patsubst %.cpp,%.so,$(subst usrtos/examples/cap,work/lib,$(UserCapabilities)))
 
-$(UserLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) 
-	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) -o $@ $(LDFLAG)
+$(UserLibs): %.so: $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) work/usrtoslib.so
+	g++ -std=c++1z ${USRTOSFLAG} -fPIC -shared $(patsubst %.so,%.cpp,$(subst work/lib,usrtos/examples/cap,$@)) work/usrtoslib.so -o $@ $(LDFLAG) 
 
 workers : $(WorkersInternalLibs)
 	
@@ -190,4 +190,9 @@ script:
 	rm -f $(scriptDep)
 	make all
 	make workers
-	
+
+work/usrtoslib.so : usrtos/c++1z/usrtoslib.cpp
+	g++ -std=c++1z -Iusrtos/include -fPIC -shared -o $@ $^
+
+work/system.so : $(WorkersInternalCapabilities) usrtos/workers/system.cpp work/usrtoslib.so
+	g++ -std=c++1z -DSYSTEM_FUNCTION -Iusrtos/include -Iusrtos/workers -fPIC -shared -o $@ $^

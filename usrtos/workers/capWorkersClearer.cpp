@@ -45,6 +45,6 @@ int FUNCLASS::run( void *argv ) {
 	
 	return 1;
 }
-
+#undef FUNCLASS
 
 

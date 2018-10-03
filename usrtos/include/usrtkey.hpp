@@ -44,7 +44,7 @@ inline void sha1Set(const struct sha1str& h, const char s[]) {
 	memcpy((void *)&(h.sha1),buf,40);
 };
 
-string sha2str(const struct sha1str& s) {
+static inline string sha2str(const struct sha1str& s) {
 	char buf[50];
 	strncpy(buf,(const char *)&s,40);
 	buf[40]='\0';
@@ -88,7 +88,7 @@ struct UsrtKey {
 		return stru1;
 	};
 };
-inline ostream& operator<<(ostream& os,const uuid& id)
+static inline ostream& operator<<(ostream& os,const uuid& id)
 {
 	uuid a = id;
 	os << UsrtKey::key2string(a);

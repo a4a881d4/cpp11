@@ -12,6 +12,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->tQueue()->ready->unlock();
   return 0;
 }
-
+#undef FUNCLASS
 
 
