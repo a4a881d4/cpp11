@@ -14,6 +14,7 @@ class Config(cfg):
 		, "UnlockWait"
 		, "SetDefaultKeeper"
 		, "Exit"
+		, "InitClock"
 		]
 	withInt = [
 		  "Start"
