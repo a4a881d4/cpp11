@@ -32,7 +32,7 @@ namespace usrtos {
 
 	namespace capCallBackLunchTask { int run(void*);};
 	#define VISITOR(code,name,type) capWorkers##name = code,
-	enum class FunctionType : uint64_t {
+	enum class InternelFunctionType : uint64_t {
 		capWorkersNull = 0,
 		CAPABILITY_SYSTEM_WORKER_OPERATOR(VISITOR)
 		capCallBackLunchTask,

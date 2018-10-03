@@ -24,6 +24,7 @@ class task(Structure):
 
 class Task:
 	fields = getStructFieldOffest(task)
+	TaskSize = sizeof(task)
 	def __init__(self):
 		pass
 

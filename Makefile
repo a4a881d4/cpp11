@@ -119,7 +119,7 @@ work/layout_test:usrtos/c++1z/layout_test.cpp
 work/mem_test:usrtos/c++1z/mem_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/heap_test:usrtos/c++1z/heap_test.cpp
+work/heap_test:usrtos/c++1z/heap_test.cpp work/usrtoslib.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/findblock_test:usrtos/c++1z/findblock_test.cpp
@@ -128,13 +128,13 @@ work/findblock_test:usrtos/c++1z/findblock_test.cpp
 work/log_test:usrtos/c++1z/log_test.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/bearer_test:usrtos/c++1z/bearer_test.cpp
+work/bearer_test:usrtos/c++1z/bearer_test.cpp work/usrtoslib.so work/system.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/vm_test:usrtos/c++1z/vm_test.cpp
+work/vm_test:usrtos/c++1z/vm_test.cpp work/usrtoslib.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/task_test:usrtos/c++1z/task_test.cpp
+work/task_test:usrtos/c++1z/task_test.cpp work/system.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/exception_test:usrtos/c++1z/exception_test.cpp
@@ -152,7 +152,7 @@ work/workers:usrtos/c++1z/workers.cpp work/usrtoslib.so work/system.so
 work/hello_ext.so: python/hello.cpp
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared python/hello.cpp -o work/hello_ext.so $(PYFLAG) $(LDFLAG)
 
-work/usrtos.so: usrtos/c++1z/usrt.cpp work/usrtoslib.so
+work/usrtos.so: usrtos/c++1z/usrt.cpp work/usrtoslib.so work/system.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -fPIC -shared $^ -o $@ $(LDFLAG) $(PYFLAG)
 
 clean:

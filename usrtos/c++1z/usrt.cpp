@@ -8,6 +8,9 @@
 #include <glog.hpp>
 
 #include <boost/python.hpp>
+
+#include <internalfuncmap.hpp>
+
 using namespace boost::python;
 namespace usrtos {
 using namespace vm;
@@ -53,6 +56,10 @@ BOOST_PYTHON_MODULE(usrtos)
 		;
 
 	class_<UUID>("UUID", init<std::string>());
+
+	def("validInternalFunc",validInternalFunc);
+	def("name2internalFunc",name2internalFunc);
+	def("internalFuncName",internalFuncName);
 	
 	class_<UsrtTaskAPI>("UsrtTaskAPI", init<std::string>())
 		.def("HelloWorld", &UsrtTaskAPI::HelloWorld)

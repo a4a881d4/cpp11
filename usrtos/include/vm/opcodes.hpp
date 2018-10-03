@@ -11,7 +11,7 @@
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-
+#include <internalfuncmap.hpp>
 
 
 using namespace boost::uuids;
@@ -108,9 +108,11 @@ enum opcode {
 	\
 	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8),std::tuple<U8>) \
 	\
-	visitOp(0x70,callsy,"call_sys_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	visitOp(0x70,callin,"call_internal_capability",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	\
 	visitOp(0x71,callcp,"call_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	\
+	visitOp(0x72,callsy,"call_sys_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
 	visitOp(0x80,movegp,"move_gp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
@@ -449,6 +451,18 @@ struct JITVisitor {
 				std::cout << "catch exception in opcode pushof" << std::endl;
 				std::cout << e.what() << std::endl; 
 			}
+		}
+	};
+	void callin(U8 r, ANYTYPE& code) {
+		Reg& R = ctx->rfile.reg[r];
+		VMOffset o(code);
+		U64 c = o.offset;
+		if(validInternalFunc(c)) {
+			struct mainWorkerCTX mCtx;
+			mCtx.workers = ctx->workers;
+			mCtx.argv = R.lp;
+			mCtx.len = R.gp.objsize;
+			SystemFuncMap[c](&mCtx);
 		}
 	};
 	void callcp(U8 r, UUID capKey) {
