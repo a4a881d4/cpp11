@@ -131,7 +131,7 @@ work/log_test:usrtos/c++1z/log_test.cpp
 work/bearer_test:usrtos/c++1z/bearer_test.cpp work/usrtoslib.so work/system.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
-work/vm_test:usrtos/c++1z/vm_test.cpp work/usrtoslib.so
+work/vm_test:usrtos/c++1z/vm_test.cpp work/system.so work/usrtoslib.so
 	g++ $(CPPFLAG) $(USRTOSFLAG) -o $@ $^ $(LDFLAG)
 
 work/task_test:usrtos/c++1z/task_test.cpp work/system.so
@@ -192,7 +192,7 @@ script:
 	make workers
 
 work/usrtoslib.so : usrtos/c++1z/usrtoslib.cpp
-	g++ -std=c++1z -Iusrtos/include -fPIC -shared -o $@ $^
+	g++ -std=c++1z -Iusrtos/include -fPIC -shared -o $@ $^ $(LDFLAG)
 
 work/system.so : $(WorkersInternalCapabilities) usrtos/workers/system.cpp work/usrtoslib.so
-	g++ -std=c++1z -DSYSTEM_FUNCTION -Iusrtos/include -Iusrtos/workers -fPIC -shared -o $@ $^
+	g++ -std=c++1z -DSYSTEM_FUNCTION -Iusrtos/include -Iusrtos/workers -fPIC -shared -o $@ $^ $(LDFLAG) 
