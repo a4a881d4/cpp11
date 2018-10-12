@@ -35,6 +35,7 @@ int FUNCLASS::run( void *argv ) {
 	std::cout << "sgm   :" << sgm   << std::endl;
 	std::cout << "sgm6  :" << sgm6  << std::endl;
 	std::cout << "r/sum :" << r/sum << std::endl;
+	std::cout << "small :" << tab[65532] << std::endl;
 	std::cout << "out of 65500:" << tab[65500] << std::endl;
 	std::cout << "max at:" << tab[65534] << " tab:" << tab[65535] << std::endl;
 	ofstream back;
