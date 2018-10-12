@@ -32,7 +32,7 @@ public:
 	void byKeyInt(std::string key, int k) {
 		CPBlock::GP gpTask;
 		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key));
 		CPBlock::GP& argv = pTask->getArgv();
 		int *a = m_workers->m_memory->newGP<int>(argv);
@@ -43,7 +43,7 @@ public:
 	void byKeyKey(std::string key, std::string k) {
 		CPBlock::GP gpTask;
 		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key));
 		CPBlock::GP& argv = pTask->getArgv();
 		uuid *a = m_workers->m_memory->newGP<uuid>(argv);
@@ -53,7 +53,7 @@ public:
 	void byKeyStr(std::string key, std::string k) {
 		CPBlock::GP gpTask;
 		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key));
 		CPBlock::GP& argv = pTask->getArgv();
 		char *a = m_workers->m_memory->newGP<char>(argv,k.size()+16);
@@ -63,8 +63,10 @@ public:
 	void byKey(std::string key) {
 		CPBlock::GP gpTask;
 		task *pTask = WorkerHelper::newConfigTask(m_workers,gpTask)
-			-> setID(0)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key));
+		CPBlock::GP& argv = pTask->getArgv();
+		char *a = m_workers->m_memory->newGP<char>(argv,16);
 		m_workers->m_configFifo->push<task>(pTask);
 	};
 };

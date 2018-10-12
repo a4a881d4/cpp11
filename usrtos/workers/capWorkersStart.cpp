@@ -13,6 +13,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->start( num );
   return 0;
 }
-
+#undef FUNCLASS
 
 

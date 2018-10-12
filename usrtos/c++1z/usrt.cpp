@@ -5,10 +5,13 @@
 #include "pusrttask.hpp"
 #include "pusrtscript.hpp"
 #include "pusrtclock.hpp"
+#include <glog.hpp>
 
 #include <boost/python.hpp>
-using namespace boost::python;
 
+#include <internalfuncmap.hpp>
+
+using namespace boost::python;
 namespace usrtos {
 using namespace vm;
 
@@ -53,6 +56,10 @@ BOOST_PYTHON_MODULE(usrtos)
 		;
 
 	class_<UUID>("UUID", init<std::string>());
+
+	def("validInternalFunc",validInternalFunc);
+	def("name2internalFunc",name2internalFunc);
+	def("internalFuncName",internalFuncName);
 	
 	class_<UsrtTaskAPI>("UsrtTaskAPI", init<std::string>())
 		.def("HelloWorld", &UsrtTaskAPI::HelloWorld)
@@ -77,6 +84,8 @@ BOOST_PYTHON_MODULE(usrtos)
 		.def("push",&UsrtScript::push)
 		.def("reset",&UsrtScript::reset)
 		.def("test",&UsrtScript::test)
+		.def("nTask",&UsrtScript::newTask)
+		.def("nScript",&UsrtScript::newScript)
 	ENUM_OPERATORS(VISIT_OPCODE) 
 	;
 	#undef VISIT_OPCODE

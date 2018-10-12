@@ -12,6 +12,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->listCaps();
   return 0;
 }
-
+#undef FUNCLASS
 
 

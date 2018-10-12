@@ -1,6 +1,7 @@
 #include <cpblock.hpp>
 #include "usrtheap.hpp"
 #include "usrttask.hpp"
+#include <glog.hpp>
 
 using namespace usrtos;
 #include <sstream>

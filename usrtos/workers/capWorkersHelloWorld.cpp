@@ -1,7 +1,6 @@
 #define FUNCLASS capWorkersHelloWorld
 #include <capabilityAPI.hpp>
 #include <usrtworker.hpp>
-
 using namespace usrtos;
 
 int FUNCLASS::run( void *argv ) {
@@ -10,7 +9,7 @@ int FUNCLASS::run( void *argv ) {
   if( !ctx->workers )
     return -1;
 
-  ctx->workers->SYSLOG("Hello World");
+  ctx->workers->_SYSLOG("Hello World");
   return 0;
 }
-
+#undef FUNCLASS

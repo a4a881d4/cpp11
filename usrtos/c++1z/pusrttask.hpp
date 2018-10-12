@@ -11,7 +11,8 @@ public:
 	UsrtTaskAPI(std::string dir) {
 		m_workers = new UsrtWorkers(dir.c_str());
 	};
-	
+	UsrtTaskAPI(UsrtWorkers& workers) : m_workers(&workers){};
+
 	std::string getKey(std::string capName) {
 		uuid key = WorkerHelper::cap2key(std::string("cap") + capName);
 		std::string ks = UsrtKey::key2string(key);
@@ -22,7 +23,7 @@ public:
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();
 		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
-			-> setID(1)
+			-> setID(TaskType::system)
 			-> setKey(WorkerHelper::cap2key(std::string("capExamplesHelloWorld")))
 			-> setReady(t->now())
 			-> setDeadline(t->after(10))
@@ -38,7 +39,7 @@ public:
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();
 		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
-			-> setID(1)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key))
 			-> setReady(t->now())
 			-> setDeadline(t->after(100))
@@ -92,7 +93,7 @@ public:
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();
 		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
-			-> setID(1)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key))
 			-> setReady(t->now())
 			-> setDeadline(t->after(10))
@@ -108,7 +109,7 @@ public:
 		CPBlock::GP gpTask;
 		auto t = m_workers->tQueue();
 		task *pTask = WorkerHelper::newUserTask(m_workers,gpTask)
-			-> setID(1)
+			-> setID(TaskType::system)
 			-> setKey(UsrtKey::string2key(key))
 			-> setReady(t->now())
 			-> setDeadline(t->after(10))

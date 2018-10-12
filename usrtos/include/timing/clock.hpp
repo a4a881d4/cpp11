@@ -2,6 +2,7 @@
 #include <chrono>
 #include <sstream>
 #include <ratio>
+#include <exceptions.hpp>
 
 namespace usrtos { namespace timing {
 	using namespace std::chrono;
@@ -14,20 +15,20 @@ namespace usrtos { namespace timing {
 	inline std::ostream& operator<<(std::ostream& os,const systime_t& h)
 	{
 		auto d = h - high_resolution_clock::now();
-		micro_type dd = duration_cast<micro_type>(d);
-		os << dd.count();
+		Second dd = duration_cast<Second>(d);
+		os << int(dd.count()*1e9);
 		return os;
-	}
+	};
 	
-	systime_t getSysNow() {
+	inline systime_t getSysNow() {
 		return high_resolution_clock::now();
 	};
 	
-	system_clock::time_point getWallNow() {
+	inline system_clock::time_point getWallNow() {
 		return system_clock::now();
 	};
 
-	time_t getCpuNow() {
+	inline time_t getCpuNow() {
 		typedef struct { unsigned long t[2]; } _timing;
 		#define timing_now(x) asm volatile(".byte 15;.byte 49" : "=a"((x)->t[0]),"=d"((x)->t[1]))
 		_timing now;
@@ -36,10 +37,10 @@ namespace usrtos { namespace timing {
 	};
 
 	struct CPU2SYS {
-		time_t C0,S0,W0;
-		time_t lastC,lastS;
-		time_t nowC,nowS;
-		time_t rC,rS,rW;
+		int64_t W0;
+		int64_t C0,S0;
+		int64_t lastC,lastS;
+		int64_t rC,rS,rW;
 		double v;
 		double err;
 		bool updateV;
@@ -78,7 +79,8 @@ namespace usrtos { namespace timing {
 			S0 = 0;
 			updateV = true;
 		};
-		void update() {
+		bool update() {
+			int64_t nowC,nowS;
 			peek();
 			if(C0 == 0) {
 				C0 = rC;
@@ -86,6 +88,8 @@ namespace usrtos { namespace timing {
 				W0 = rW - S0;
 				lastC = 0;
 				lastS = 0;
+				err = 1.;
+				return true;
 			} else {
 				nowC = rC - C0;
 				nowS = rS - S0;
@@ -97,9 +101,8 @@ namespace usrtos { namespace timing {
 					double dC = nowC - lastC;
 					double est = dC*v + (double)lastS;
 					err = (double)nowS - est;
-					if(fabs(err) > 500) {
-						reset();
-						if(fabs(err) > 5000)
+					if(fabs(err) > 5000) {
+						if(fabs(err) > 50000)
 							init();
 					} else {
 						v += 0.5*err/dC;
@@ -107,34 +110,63 @@ namespace usrtos { namespace timing {
 					}
 				}
 				lastC = nowC;
+				return false;
 			}
 		};
 
 		time_t toSys(time_t cpu) {
 			if(!updateV) {
-				time_t dc = cpu-C0-lastC;
-				double ds = (double)dc * v;
-				return (time_t)ds+S0+lastS+W0;
+				double dc = (double)cpu-(double)(C0+lastC);
+				double ds = dc * v;
+				ds += (double)(S0+lastS+W0);
+				return (time_t)ds;
 			} else {
-				return 0;
+				auto as = getSysNow();
+				time_t b = (*(time_t*)(&as))+W0;
+				return b;
 			}
 		};
 
 		time_t toCpu(time_t sys) {
 			if(!updateV) {
-				time_t ds = sys-S0-lastS-W0;
-				double dc = (double)ds / v;
-				return (time_t)dc+C0+lastC;
+				double ds = (double)sys-(double)(S0+lastS+W0);
+				double dc = ds / v;
+				dc += (double)(C0+lastC);
+				return (time_t)dc;
 			} else {
-				return 0;
+				return getCpuNow();
+			}
+		};
+		time_t toCpuE(time_t sys) {
+			if(!updateV) {
+				double ds = (double)sys-(double)(S0+lastS+W0);
+				double dc = ds / v;
+				dc += (double)(C0+lastC);
+				return (time_t)dc;
+			} else {
+				throw(usrtos_exception("clock invalid"));
+			}
+		};
+		time_t mulCpu(time_t sys) {
+			if(!updateV) {
+				double cpu = (double)sys / v;
+				return (time_t)cpu;
+			} else {
+				return sys;
 			}
 		};
 		void dump(std::stringstream& s) {
 			s << " v: " << v;
 			s << " e: " << err;
-			auto a = getSysNow();
-			time_t b = *(time_t*)(&a)+W0;
-			s << " now: " << getCpuNow() - toCpu(b);
+			auto as = getSysNow();
+			auto ac = getCpuNow();
+			time_t b = (*(time_t*)(&as))+W0;
+			s << " cpu: " << ac;
+			s << " sys: " << b; 
+			s << " from now: " << as;
+			s << " W0: " << W0;
+			s << " cpu clock diff: " << (int64_t)ac - (int64_t)toCpu(b);
+			s << " sys clock diff: " << (int64_t)toSys(ac) - (int64_t)b;
 			s << std::endl;
 		};
 		CPU2SYS() {
@@ -160,7 +192,18 @@ namespace usrtos { namespace timing {
 			} 
 			return getSysNow();
 		};
-
+		time_t wall_time() {
+			time_t n = now();
+			if(c2s) {
+				if(*c2s){
+					time_t s = c2s->toSys(n);
+					return s;
+				}
+			}
+			auto t = getSysNow();
+			time_t b = *(time_t*)(&t);
+			return b;
+		};
 		time_t fromns(time_t ns) {
 			if(c2s) {
 				if(*c2s) {
@@ -206,6 +249,4 @@ namespace usrtos { namespace timing {
 		};
 	};
 
-	CPU2SYS * CPUClock::c2s = nullptr;
-	CPU2SYS * SYSClock::c2s = nullptr;
 }}

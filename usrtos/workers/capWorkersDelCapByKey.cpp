@@ -13,6 +13,6 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->removeBearerByKey( key );
   return 0;
 }
-
+#undef FUNCLASS
 
 

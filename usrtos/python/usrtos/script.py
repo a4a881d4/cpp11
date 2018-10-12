@@ -13,10 +13,10 @@ from time import time
 
 class task(Structure):
 	_fields_ = [  ("argv",  c_char*32)
-				, ("ID",    c_longlong)
+				, ("ID",    c_longlong*2)
 				, ("noE",   c_longlong)
-				, ("noL",   c_longlong)
-				, ("valid", c_longlong)
+				, ("noL",   c_char*4)
+				, ("valid", c_char*4)
 				, ("key",   c_char*16)
 				, ("cbkey", c_char*16)
 				, ("cbarg", c_char*56)
@@ -24,6 +24,7 @@ class task(Structure):
 
 class Task:
 	fields = getStructFieldOffest(task)
+	TaskSize = sizeof(task)
 	def __init__(self):
 		pass
 
@@ -36,6 +37,9 @@ class Script:
 
 	def reset(self):
 		self.s.reset()
+	
+	def nScript():
+		self.s.nScript()
 
 	def newTask(self,reg_task,reg_argv,key,now):
 		self.s.allocm(0,reg_task,AnyType(sizeof(task)))
@@ -46,10 +50,13 @@ class Script:
 		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["key"]))
 		self.s.immevl(0xf0,AnyType(10))
 		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["ID"]))
-		self.s.immevl(0xf0,AnyType(now))
+		self.s.immevl(0xf0,AnyType(now-100))
 		self.s.selfsc(0xf0)
+		self.s.immevl(0xf1,AnyType(100))
+		self.s.selfsm(0xf1)
+		self.s.immetp(0xf1,6)
 		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["noE"]))
-		self.s.savevl(0xf0,reg_task,AnyType(Task.fields["noL"]))
+		self.s.savevl(0xf1,reg_task,AnyType(Task.fields["noL"]))
 		self.s.savegp(reg_argv,reg_task,AnyType(Task.fields["argv"]))
 		self.s.pushof(reg_task)
 
@@ -103,10 +110,8 @@ class Script:
 		if cn in self.api.keys:
 			scriptCap = UUID(self.api.keys[cn]['k'])
 			now = int(time())*int(1e9)+3000000000
-			for i in range(1):
-				self.newTask(0xf,0,scriptCap,now)
-				now += 1000000
-	
+			self.newTask(0xf,0,scriptCap,now)
+			
 	def initKey(self):
 		for cap in self.api.keys:
 			print(cap,":",self.api.keys[cap]['k'])
@@ -143,16 +148,27 @@ def main():
 	                action= "store_true",
 	                default= False,
 	                help= "init workers")
-
+	
+	parse.add_option("-c", "--script",
+	                dest= "script",
+	                action= "store_true",
+	                default= False,
+	                help= "run script mode")
 	(option, arges) = parse.parse_args()
 
 	aScript = Script(option.dir)
-
+	if option.script:
+		aScript.s.nScript()
+	else:
+		aScript.s.nTask()
 	if option.init:
 		print("Initial workers by script")
 		aScript.initKey()
 		aScript.doCap("SetDefaultKeeper")
-		aScript.doCap("Start",1)
+		aScript.doCap("SetWorker",aScript.api.keys["WorkersTaskScript"]['k'])
+		aScript.doCap("Start",2)
+		aScript.doCap("UpdateWorkerKey",0)
+		aScript.doCap("UpdateWorkerKey",1)
 	else:
 		if option.n != None:
 			aScript.doCap(arges[0],int(option.n))

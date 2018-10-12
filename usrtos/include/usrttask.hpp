@@ -1,9 +1,10 @@
+#pragma once
 #include <usrtkey.hpp>
-#include <cpblock.hpp>
-#include <usrtmem.hpp>
+// #include <cpblock.hpp> // in loglevel
+// #include <usrtmem.hpp> // in loglevel
 #include <usrtheap.hpp>
 #include <task.hpp>
-
+#include <loglevel.hpp>
 #include <chrono>
 
 namespace usrtos {
@@ -13,7 +14,7 @@ public:
 	size_t p;
 	OffsetPtr() : p(0) {};
 	OffsetPtr(size_t o) : p(o){};
-	OffsetPtr(OffsetPtr& a) { p = a.p; };
+	//OffsetPtr(OffsetPtr& a) { p = a.p; };
 	
 	static const OffsetPtr Null() { return OffsetPtr(0xffffffffffffffff); };
 	
@@ -24,7 +25,7 @@ public:
 	};
 
 	template<typename T>
-	T* Off2LP(CPBlock *mem) {
+	T* Off2LP(CPBlock *mem) const{
 		return mem->Off2LP<T>(p);
 	};
 
@@ -47,7 +48,7 @@ class TaskHeap {
 		struct less {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			bool operator()(OffsetPtr a, OffsetPtr b) { 
+			bool operator()(const OffsetPtr& a, const OffsetPtr& b) { 
 				return (a.Off2LP<task>(mem)->noE < b.Off2LP<task>(mem)->noE); 
 			};
 		};
@@ -66,14 +67,16 @@ class TaskHeap {
 		struct less {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			bool operator()(OffsetPtr a, OffsetPtr b) { 
-				return (a.Off2LP<task>(mem)->noL < b.Off2LP<task>(mem)->noL); 
+			bool operator()(const OffsetPtr& a, const OffsetPtr& b) {
+				auto pa = a.Off2LP<task>(mem);
+				auto pb = b.Off2LP<task>(mem); 
+				return ((uint64_t)pa->noL+pa->noE < (uint64_t)pb->noL+pb->noE); 
 			};
 		};
 		struct key {
 			CPBlock *mem;
 			void set(CPBlock *m) { mem = m; };
-			utime_t operator()(OffsetPtr a) { 
+			uint32_t operator()(OffsetPtr a) { 
 				return a.Off2LP<task>(mem)->noL; 
 			};
 		};
@@ -132,9 +135,9 @@ public:
 	};
 
 	int update() {
-		if(!checkCard())
-			std::cout << "new card" << std::endl;
-
+		if(!checkCard()) {
+			SYSLOG("new card");
+		}
 		card->noE = now();
 		int r = 0;
 		
@@ -152,6 +155,27 @@ public:
 			}
 		}
 		return r;
+	};
+
+	size_t clear(utime_t start, utime_t end) {
+		task *s = tm->newLP<task>();
+		memset(s,0,sizeof(task));
+		s->noE = start;
+		OffsetPtr card_start;
+		card_start.LP2offset(s,wait->getMem());
+		
+		task *e = tm->newLP<task>();
+		memset(e,0,sizeof(task));
+		e->noE = end;
+		OffsetPtr card_end;
+		card_end.LP2offset(e,wait->getMem());
+		size_t wdel = wait->clear(card_start, card_end);
+		size_t rdel = ready->clear(card_start, card_end);
+		std::stringstream logs;
+		logs << "wait del " << wdel << ", ready del " << rdel <<std::endl;
+		std::string logstr = logs.str();
+		SYSLOG.put(logstr);
+		return  wdel+rdel; 
 	};
 
 	void dumpHeap() {
@@ -184,13 +208,26 @@ public:
 
     bool insert(task *t) {
     	OffsetPtr t_off;
+    	utime_t after4 = after(4000000000);
+    	if(t->noE > after4) {
+    		std::stringstream s;
+    		s << "in insert task: task in future " << t->noE;
+    		throw(usrtos_exception(s));
+    	}
     	if(t_off.LP2offset(t,wait->getMem()) != wait->getMem()->getHead()->dataSize)
     		if(wait->insert(t_off) != OffsetPtr::Null())
     			return true;
-    		else
+    		else {
+    			auto del = clear(now(),after4);
+    			std::stringstream s;
+    			s << "in insert task: wait heap full, del " << del;
+    			throw(usrtos_exception(s));
     			return false;
-    	else 
+    		}
+    	else {
+    		throw(usrtos_exception("in insert task: bad local point"));
     		return false;
+    	}
     };
 };
 }; // namespace usrtos

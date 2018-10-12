@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpblock.hpp>
+#include <cstdint>
 
 namespace usrtos {
 enum CBMode { 
@@ -71,15 +72,21 @@ inline std::ostream& operator<<(std::ostream& os,const CallBackArgv& argv)
 	return os;
 }
 
+enum class TaskType : uint64_t {
+	  internal = 0x01LL
+	, script   = 0x02LL
+	, system   = 0x03LL
+};
+
 struct script {
 	CPBlock::GP argv;
 };
 
 struct timed : script {
-	int64 ID;
+	uint64_t ID[2];
 	utime_t noE;
-	utime_t noL;
-	utime_t valid;
+	uint32_t noL;
+	uint32_t valid;
 };
 
 struct captask : timed {
@@ -90,8 +97,8 @@ struct task : captask {
 	uuid callback;
 	_callback_argv_t callbackargv;
 
-	task *setID(int64 id) {
-		ID = id;
+	task *setID(TaskType id) {
+		ID[0] = (uint64_t)id;
 		return this;
 	};
 
@@ -120,12 +127,12 @@ struct task : captask {
 	};
 
 	task *setDeadline(utime_t nol) {
-		noL = nol;
+		noL = (uint32_t)(nol - noE);
 		return this;
 	};
 
 	task *setValid(utime_t v) {
-		valid = v;
+		valid = (uint32_t)(v - noE);
 		return this;
 	};
 
@@ -147,4 +154,31 @@ inline std::ostream& operator<<(std::ostream& os,const taskdependen& dep)
 	   << "gp.size: " << dep.me.objsize;
 	return os;
 }
+inline string dumpTask(task *pTask) {
+	stringstream s1;
+	s1 << pTask->key 
+	   << " " << pTask->ID[0] 
+	   << "-" << pTask->ID[1] 
+	   << endl
+	   << "noE: " << pTask->noE << " "
+	   << "noL: " << pTask->noL << " "
+	   << "valid: " << pTask->valid
+	   << endl 
+	   << "callback" << endl
+	   << *(pTask->getCallBackArgv()) << " "
+	   << endl
+	   << "Argv GP" << endl
+	   << "id: " << pTask->argv.id  << " "
+	   << "off: " << pTask->argv.offset << " "
+	   << "sz: " << pTask->argv.objsize << " "
+	   << endl;
+
+	return s1.str();  
+};
+
+struct ClearArgv {
+	utime_t start;
+	utime_t end;
+};
+
 };

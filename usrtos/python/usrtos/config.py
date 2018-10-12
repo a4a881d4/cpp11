@@ -14,20 +14,26 @@ class Config(cfg):
 		, "UnlockWait"
 		, "SetDefaultKeeper"
 		, "Exit"
+		, "InitClock"
 		]
 	withInt = [
-		"Start"
+		  "Start"
+		, "UpdateWorkerKey"
 	]
 	withKey = [
 		  "DelCapByKey"
 		, "SetCapByKey"
 		, "SetKeeper"
+		, "SetWorker"
 	]
 	withStr = [
 		"SetCap"
 	]
 	system = [
 		  "capWorkersKeeper"
+		, "capWorkersClearer"
+		, "capWorkersTaskOnly"
+		, "capWorkersTaskScript"
 		, "capCallBackLunchTask"
 		, "capExamplesHelloWorld"
 		, "capWorkersScript"

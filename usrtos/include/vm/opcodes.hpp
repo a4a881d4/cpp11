@@ -11,7 +11,7 @@
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
-
+#include <internalfuncmap.hpp>
 
 
 using namespace boost::uuids;
@@ -92,6 +92,7 @@ enum opcode {
 	visitOp(0x42,immesz,"set_gp.objsize",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x43,immevl,"set_value",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x44,immelp,"set_local_pointer",BINARY(U8,size_t),std::tuple<U8,size_t>) \
+	visitOp(0x45,immetp,"set_type",BINARY(U8,U8),std::tuple<U8>) \
 	\
 	visitOp(0x50,selfrd,"self_read",UNARY(U8),std::tuple<U8>) \
 	visitOp(0x51,selfwr,"self_write",UNARY(U8),std::tuple<U8>) \
@@ -99,6 +100,7 @@ enum opcode {
 	visitOp(0x53,selfgl,"self_gp2lp",UNARY(U8),std::tuple<U8>) \
 	visitOp(0x54,selflg,"self_lp2gp",UNARY(U8),std::tuple<U8>) \
 	visitOp(0x55,selfsc,"self_conv_time_sys2cpu",UNARY(U8),std::tuple<U8>) \
+	visitOp(0x56,selfsm,"self_mul_sys2cpu",UNARY(U8),std::tuple<U8>) \
 	\
 	visitOp(0x58,selfro,"self_read_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	visitOp(0x59,selfwo,"self_write_with_offset",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
@@ -106,16 +108,24 @@ enum opcode {
 	\
 	visitOp(0x60,pushof,"push_offset_tofifo",UNARY(U8),std::tuple<U8>) \
 	\
-	visitOp(0x70,callsy,"call_sys_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	visitOp(0x70,callin,"call_internal_capability",BINARY(U8,ANYTYPE),std::tuple<U8,ANYTYPE>) \
 	\
 	visitOp(0x71,callcp,"call_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
+	\
+	visitOp(0x72,callsy,"call_sys_capability",BINARY(U8,UUID),std::tuple<U8,UUID>) \
 	\
 	visitOp(0x80,movegp,"move_gp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x81,movelp,"move_lp_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x82,movevl,"move_vl_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
 	visitOp(0x83,movesz,"move_sz_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
-	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) 
-
+	visitOp(0x84,moveal,"move_all_fromAtoB",BINARY(U8,U8),std::tuple<U8,U8>) \
+	\
+	visitOp(0x90,numadd,"a+b",TERNARY(U8,U8,U8),std::tuple<U8,U8,U8>) \
+	visitOp(0x91,numsub,"a-b",TERNARY(U8,U8,U8),std::tuple<U8,U8,U8>) \
+	visitOp(0x92,numand,"a&b",TERNARY(U8,U8,U8),std::tuple<U8,U8,U8>) \
+	visitOp(0x93,num_or,"a|b",TERNARY(U8,U8,U8),std::tuple<U8,U8,U8>) \
+	visitOp(0x94,numxor,"a^b",TERNARY(U8,U8,U8),std::tuple<U8,U8,U8>) 
+	
 #define ENUM_CONTROL_OPERATORS(visitOp) \
 	visitOp(0x01,nop,"nop",,) \
 	\
@@ -209,22 +219,22 @@ private:
 };
 
 template<typename T>
-T* OperatorStream::get(T& a) {
+inline T* OperatorStream::get(T& a) {
 	a = *(T*)(advance(sizeof(T)));
 	return &a;
 };
 template<typename T>
-OperatorStream& OperatorStream::put(T& a) {
+inline OperatorStream& OperatorStream::put(T& a) {
 	memcpy(advance(sizeof(T)),&a,sizeof(T));
 	return *this;
 };
 template<>
-ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
+inline ANYTYPE* OperatorStream::get<ANYTYPE>(ANYTYPE& a) {
 	a.get<OperatorStream>(*this);
 	return &a;
 };
 template<> 
-OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
+inline OperatorStream& OperatorStream::put<ANYTYPE>(ANYTYPE& a) {
 	a.put<OperatorStream>(*this);
 	return *this;
 };
@@ -257,7 +267,10 @@ struct VMOffset {
 		return static_cast<void*>(p);
 	};
 };
-
+enum class SelfSetType : U8 {
+	  mutex = 0
+	, clear = 1
+};
 struct JITVisitor {
 	JITVisitor() {};
 	JITVisitor(VMContext& uctx) : ctx(&uctx) {};
@@ -351,6 +364,10 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		R.lp = (void*)(p);
 	};
+	void immetp(U8 r, U8 type) {
+		Reg& R = ctx->rfile.reg[r];
+		R.value.type = (ANYTYPE::ValueType)type;
+	};
 	void selfrd(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
 		auto sz = R.value.size();
@@ -363,9 +380,20 @@ struct JITVisitor {
 	};
 	void selfst(U8 r, U8 t) {
 		Reg& R = ctx->rfile.reg[r];
-		if(t == 0) {
-			auto pm = new(R.lp) umutex;
-			pm->unlock();
+		switch(static_cast<SelfSetType>(t)) {
+			case SelfSetType::mutex: {
+				auto pm = new(R.lp) umutex;
+				pm->unlock();
+				break;
+			}
+			case SelfSetType::clear: {
+				auto ps = ctx->workers->G2L<struct ClearArgv>(R.gp);
+				ctx->workers->tQueue()->clear(ps->start,ps->end);
+				break;
+			}
+			default: {
+				ctx->workers->_SYSLOG("unsupport self set type");
+			}
 		}
 	};
 	void selfgl(U8 r) {
@@ -381,7 +409,13 @@ struct JITVisitor {
 		Reg& R = ctx->rfile.reg[r];
 		// check type U64
 		timing::time_t& t= *(timing::time_t*)R.value.pvalue;
-		t = ctx->workers->m_c2s.toCpu(t);
+		t = ctx->workers->m_c2s.toCpuE(t);
+	};
+	void selfsm(U8 r) {
+		Reg& R = ctx->rfile.reg[r];
+		// check type U64
+		timing::time_t& t= *(timing::time_t*)R.value.pvalue;
+		t = ctx->workers->m_c2s.mulCpu(t);
 	};
 	void selfcs(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
@@ -409,12 +443,26 @@ struct JITVisitor {
 	void pushof(U8 r) {
 		Reg& R = ctx->rfile.reg[r];
 		if(R.gp.id == ctx->rfile.seg[0]) {
-			ctx ->workers
-				->tQueue()
-				->insert(static_cast<task*>(R.lp));
-			// ctx ->workers
-			//     ->tQueue()
-			//     ->dumpTask(*(task*)R.lp);
+			try {
+				ctx ->workers
+					->tQueue()
+					->insert(static_cast<task*>(R.lp));
+			} catch(usrtos_exception& e) {
+				std::cout << "catch exception in opcode pushof" << std::endl;
+				std::cout << e.what() << std::endl; 
+			}
+		}
+	};
+	void callin(U8 r, ANYTYPE& code) {
+		Reg& R = ctx->rfile.reg[r];
+		VMOffset o(code);
+		U64 c = o.offset;
+		if(validInternalFunc(c)) {
+			struct mainWorkerCTX mCtx;
+			mCtx.workers = ctx->workers;
+			mCtx.argv = R.lp;
+			mCtx.len = R.gp.objsize;
+			SystemFuncMap[c](&mCtx);
 		}
 	};
 	void callcp(U8 r, UUID capKey) {
@@ -426,7 +474,7 @@ struct JITVisitor {
 	};
 	void callsy(U8 r, UUID capKey) {
 		Reg& R = ctx->rfile.reg[r];
-		auto bearer = ctx->workers->getBearerByKey(capKey);
+		auto bearer = ctx->workers->_getBearerByKey(capKey);
 		if(bearer == nullptr) {
 			if(ctx->workers->setCap(capKey))
 				bearer = ctx->workers->getBearerByKey(capKey);
@@ -435,6 +483,7 @@ struct JITVisitor {
 			struct mainWorkerCTX mCtx;
 			mCtx.workers = ctx->workers;
 			mCtx.argv = R.lp;
+			mCtx.len = R.gp.objsize;
 			bearer->runLP(&mCtx);
 		}
 	};
@@ -466,6 +515,46 @@ struct JITVisitor {
 		Rb.lp = Ra.lp;
 		Rb.value();
 		Rb.value(Ra.value);
+	};
+	void numadd(U8 c, U8 a, U8 b) {
+		size_t va = ctx->rfile.reg[a].value.toOffset();
+		size_t vb = ctx->rfile.reg[b].value.toOffset();
+		Reg& Rc = ctx->rfile.reg[c];
+		Rc.value();
+		Rc.value(ctx->rfile.reg[a].value);
+		*(size_t*)Rc.value.pvalue = va+vb;
+	};
+	void numsub(U8 c, U8 a, U8 b) {
+		size_t va = ctx->rfile.reg[a].value.toOffset();
+		size_t vb = ctx->rfile.reg[b].value.toOffset();
+		Reg& Rc = ctx->rfile.reg[c];
+		Rc.value();
+		Rc.value(ctx->rfile.reg[a].value);
+		*(size_t*)Rc.value.pvalue = va-vb;
+	};
+	void numand(U8 c, U8 a, U8 b) {
+		size_t va = ctx->rfile.reg[a].value.toOffset();
+		size_t vb = ctx->rfile.reg[b].value.toOffset();
+		Reg& Rc = ctx->rfile.reg[c];
+		Rc.value();
+		Rc.value(ctx->rfile.reg[a].value);
+		*(size_t*)Rc.value.pvalue = va&vb;
+	};
+	void num_or(U8 c, U8 a, U8 b) {
+		size_t va = ctx->rfile.reg[a].value.toOffset();
+		size_t vb = ctx->rfile.reg[b].value.toOffset();
+		Reg& Rc = ctx->rfile.reg[c];
+		Rc.value();
+		Rc.value(ctx->rfile.reg[a].value);
+		*(size_t*)Rc.value.pvalue = va|vb;
+	};
+	void numxor(U8 c, U8 a, U8 b) {
+		size_t va = ctx->rfile.reg[a].value.toOffset();
+		size_t vb = ctx->rfile.reg[b].value.toOffset();
+		Reg& Rc = ctx->rfile.reg[c];
+		Rc.value();
+		Rc.value(ctx->rfile.reg[a].value);
+		*(size_t*)Rc.value.pvalue = va^vb;
 	};
 private:
 	VMContext* ctx;

@@ -13,6 +13,6 @@ int FUNCLASS::run( void *argv ) {
   return 0;
 
 }
-
+#undef FUNCLASS
 
 

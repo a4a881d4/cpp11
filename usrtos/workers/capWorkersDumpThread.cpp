@@ -12,6 +12,5 @@ int FUNCLASS::run( void *argv ) {
   ctx->workers->dumpThread();
   return 0;
 }
-
-
+#undef FUNCLASS
 

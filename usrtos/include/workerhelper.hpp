@@ -59,7 +59,7 @@ struct WorkerHelper {
 	static task *newConfig(UsrtWorkers *w, std::string capName) {
 		CPBlock::GP mem;
 		task *pTask = newConfigTask(w,mem)
-			->setID(0)
+			->setID(TaskType::system)
 			->setKey(cap2key(std::string("capWorkers")+capName))
 			;
 		return pTask;

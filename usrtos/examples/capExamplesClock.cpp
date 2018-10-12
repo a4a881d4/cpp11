@@ -54,23 +54,32 @@ int FUNCLASS::run( void *argv ) {
 		ddd -= (long long int)ddd;
 		ddd *= 1e9;
 		long long int id = (long long int)ddd;
+		long long int my_wall_time = timing::CPUClock().wall_time();
 		long long int *tab = (long long int *)argv;
 		int iid = id%100000;
 		if(iid > 90000) {
 			iid = 65532;
-		} else if(iid > 65500)
+		} else if(iid > 65500) {
 			iid = 65500;
+		}
 		tab[iid]++;
 		if(tab[iid] > tab[65535]) {
 			tab[65535] = tab[iid];
 			tab[65534] = iid;
 		}
 		tab[65533]++;
-		if((tab[65533]%10000) == 0) {
-			std::cout << " wall clock now[" << tab[65533] << "]: " << id << " " << tab[iid] << std::endl;
+		if((tab[65533]%100000) == 0) {
+			std::cout 
+				<< " wall clock now[" << tab[65533] 
+				<< "]: " << id 
+				<< " my_wall: " << my_wall_time 
+				<< " " << tab[iid] 
+				<< std::endl;
 			std::cout << " max:" << tab[65535] << "@"<< tab[65534] << std::endl;
+			std::cout << " out 65500:" << tab[65500] << std::endl;
+			std::cout << " small:" << tab[65532] << std::endl;
 		}
-		if((tab[65533]%60000) == 0) {
+		if((tab[65533]%600000) == 0) {
 			an(argv);
 		}
 	}

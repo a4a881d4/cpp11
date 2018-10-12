@@ -1,0 +1,7 @@
+#include<stdio.h>#include<sys/syscall.h>
+#include <sys/types.h>#include <sys/stat.h>#include <fcntl.h>#include "testHelper.h"char buf[4096];
+typedef struct { unsigned long t[2]; } timing;#define timing_now(x) asm volatile(".byte 15;.byte 49" : "=a"((x)->t[0]),"=d"((x)->t[1]))#define timing_diff(x,y) (((x)->t[0] - (double) (y)->t[0]) + 4294967296.0 * ((x)->t[1] - (double) (y)->t[1]))timing before, after;void zsleep( long sleep );int main (int argc, char *argv[]) {
+  	int handle = open ("/dev/sr0", O_RDWR);
+  	long i;	FILE *fp;	long flen;	if( argc>=2 )	{		fp = fopen(argv[1],"rb");		fseek(fp,0,SEEK_END);		flen = ftell(fp);		fseek(fp,0,SEEK_SET);		printf(" file length %ld\n",flen );		if( (flen%512) != 0 )			printf("Bad file length\n");		int speed =64;		int sleep = 100;		if( argc==3 )			sscanf(argv[2],"%d",&speed);		if( argc==4 ) {			sscanf(argv[2],"%d",&speed);			sscanf(argv[3],"%d",&sleep);		}		while(1)		{			int c=0;			long wait=(long)sleep;			timing_now(&before);			for( i=0;i<flen;i+=512 )			{				fread( buf,1,512,fp );				c++;				if( c==speed )				{					c=0;					zsleep(wait);					wait+=(long)sleep;									}				write (handle, (void *) buf, 512);				}			fseek(fp,0,SEEK_SET);			}	}	else	{		while(1)		{			int *pData=(int *)buf;			for( i=0;i<128;i++ )			{				pData[i]=buildint();			}			usleep(1);			write (handle, (void *) buf, 512);			}		}	close (handle);
+}
+void zsleep( long sleep ){	timing_now(&after);	while(	timing_diff(&after,&before)<(double)sleep*2.4e3 )		timing_now(&after);}
