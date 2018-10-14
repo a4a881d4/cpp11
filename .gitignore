@@ -38,3 +38,4 @@ usrtos/include/_version.hpp
 
 *.pyc
 core*
+target
