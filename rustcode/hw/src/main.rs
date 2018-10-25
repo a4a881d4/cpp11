@@ -881,43 +881,7 @@ fn test02() {
     println!("functional style: {}", sum_of_squared_odd_numbers);
 }
 
-mod my {
-    // 在模块中的项默认带有私有可见性。
-    fn private_function() {
-        println!("called `my::private_function()`");
-    }
-
-    // 使用 `pub` 修饰语来改变默认可见性。
-    pub fn function() {
-        println!("called `my::function()`");
-    }
-    
-    // 在同一模块中，项可以访问其它项，即使是私有属性。
-    pub fn indirect_access() {
-        print!("called `my::indirect_access()`, that\n> ");
-        private_function();
-    }
-
-    // 项也可以嵌套。
-    pub mod nested {
-        pub fn function() {
-            println!("called `my::nested::function()`");
-        }
-
-        #[allow(dead_code)]
-        fn private_function() {
-            println!("called `my::nested::private_function()`");
-        }
-    }
-    
-    // 嵌套项的可见性遵循相同的规则。
-    mod private_nested {
-        #[allow(dead_code)]
-        pub fn function() {
-            println!("called `my::private_nested::function()`");
-        }
-    }
-}
+mod my;
 
 fn function() {
     println!("called `function()`");
@@ -948,43 +912,22 @@ fn test03() {
 
 }
 
-mod my_0 {
-    // 一个公有的结构体，带有一个公有的泛型类型 `T` 的字段
-    pub struct WhiteBox<T> {
-        pub contents: T,
-    }
-
-    // 一个公开的结构体，带有一个私有的泛型类型 `T` 的字段    
-    #[allow(dead_code)]
-    pub struct BlackBox<T> {
-        contents: T,
-    }
-
-    impl<T> BlackBox<T> {
-        // 一个公有的构造器方法
-        pub fn new(contents: T) -> BlackBox<T> {
-            BlackBox {
-                contents: contents,
-            }
-        }
-    }
-}
 
 fn test04() {
     // 带有公有字段的公有的结构体，可以像平常一样构造
-    let white_box = my_0::WhiteBox { contents: "public information" };
+    let white_box = my::my_0::WhiteBox { contents: "public information" };
 
     // 并且它们的字段可以正常访问到。
     println!("The white box contains: {}", white_box.contents);
 
     // 带有私有字段的公有结构体不能使用字段名来构造。
     // 报错！`BlackBox` 含有私有字段。
-    //let black_box = my_0::BlackBox { contents: "classified information" };
+    //let black_box = my::my_0::BlackBox { contents: "classified information" };
     // 试一试 ^ 将此行注释去掉
 
 
     // 不过带有私有字段的结构体可以使用公有的构造器来创建。
-    let _black_box = my_0::BlackBox::new("classified information");
+    let _black_box = my::my_0::BlackBox::new("classified information");
 
     // 并且一个结构体中的私有字段不能访问到。
     // 报错！`content` 字段是私有的。
@@ -1052,45 +995,10 @@ mod cool {
     }
 }
 
-mod my_1 {
-    fn function() {
-        println!("called `my::function()`");
-    }
-    
-    mod cool {
-        pub fn function() {
-            println!("called `my::cool::function()`");
-        }
-    }
-    
-    pub fn indirect_call() {
-        // 让我们从这个作用域中访问所有名为 `function` 的函数！
-        print!("called `my::indirect_call()`, that\n> ");
-        
-        // `self` 关键字表示当前的模块作用域——在这个例子是 `my`。
-        // 调用 `self::function()` 和直接访问 `function()` 两者都得到相同的结果，
-        // 因为他们表示相同的函数。
-        self::function();
-        function();
-        
-        // 我们也可以使用 `self` 来访问 `my` 内部的另一个模块：
-        self::cool::function();
-        
-        // `super` 关键字表示父级作用域（在 `my` 模块外面）。
-        print!("super ");
-        super::function();
-        
-        // 这将在 *crate* 作用域内绑定 `cool::function` 。
-        // 在这个例子中，crate 作用域是最外面的作用域。
-        {
-            use cool::function as root_function;
-            root_function();
-        }
-    }
-}
+
 
 fn test06() {
-    my_1::indirect_call();
+    my::my_1::indirect_call();
 }
 
 #[cfg(target_os = "linux")]
@@ -2546,52 +2454,9 @@ fn test2e() {
     eat(cooked_potato);
 }
 
-mod mod_1{
-#[derive(Debug)] pub enum Food { CordonBleu, Steak, Sushi }
-#[derive(Debug)] pub enum Day { Monday, Tuesday, Wednesday }
 
-// 我们没有原材料（ingredient）来制作寿司。
-fn have_ingredients(food: Food) -> Option<Food> {
-    match food {
-        Food::Sushi => None,
-        _           => Some(food),
-    }
-}
-
-// 我们拥有全部食物的食谱，除了欠缺高超的烹饪手艺。
-fn have_recipe(food: Food) -> Option<Food> {
-    match food {
-        Food::CordonBleu => None,
-        _                => Some(food),
-    }
-}
-
-// 做一份好菜，我们需要原材料和食谱这两者。
-// 我们可以借助一系列 `match` 来表达相应的逻辑：
-// （原文：We can represent the logic with a chain of `match`es:）
-fn cookable_v1(food: Food) -> Option<Food> {
-    match have_ingredients(food) {
-        None       => None,
-        Some(food) => match have_recipe(food) {
-            None       => None,
-            Some(food) => Some(food),
-        },
-    }
-}
-
-// 这可以使用 `and_then()` 方便重写出更紧凑的代码：
-fn cookable_v2(food: Food) -> Option<Food> {
-    have_ingredients(food).and_then(have_recipe)
-}
-
-pub fn eat(food: Food, day: Day) {
-    match cookable_v2(food) {
-        Some(food) => println!("Yay! On {:?} we get to eat {:?}.", day, food),
-        None       => println!("Oh no. We don't get to eat on {:?}?", day),
-    }
-}
-}
 fn test2f() {
+    use my::mod_1;
     let (cordon_bleu, steak, sushi) = (mod_1::Food::CordonBleu, mod_1::Food::Steak, mod_1::Food::Sushi);
 
     mod_1::eat(cordon_bleu, mod_1::Day::Monday);
@@ -2805,73 +2670,9 @@ fn print(result: Result<i32>) {
     print(double_first(empty));
     print(double_first(strings));
 }
-mod mod_2{
-use std::num::ParseIntError;
-use std::fmt;
-use std::result;
-type Result<T> = result::Result<T, DoubleError>;
 
-#[derive(Debug)]
-// 定义我们的错误类型。不管对我们的错误处理情况有多重要，这些都可能自定义。
-// 现在我们能够按照底层工具的错误实现，写下我们的错误，或者两者之间的内容。
-// （原文：Define our error types. These may be customized however is useful for our error
-// handling cases. Now we will be able to defer to the underlying tools error
-// implementation, write our own errors, or something in between.）
-pub enum DoubleError {
-    // 我们不需要任何额外的信息来描述这个错误。
-    EmptyVec,
-    // 我们将推迟对于这些错误的解析错误的实现。（原文：We will defer to the parse
-    // error implementation for their error.）提供额外信息将要增加更多针对类型的数据。
-    Parse(ParseIntError),
-}
-impl From<ParseIntError> for DoubleError {
-    fn from(err: ParseIntError) -> DoubleError {
-        DoubleError::Parse(err)
-    }
-}
-// 类型的展示方式的和类型的产生方式是完全独立的。我们无需担心显示样式会搞乱我们
-// 工具集所需的复杂逻辑。它们是独立的，就是说它们处理起来是相互独立的。
-//
-// 我们没有存储关于错误的额外信息。若确实想要，比如，要指出哪个字符串无法解析，
-// 那么我们不得不修改我们类型来携带相应的信息。
-impl fmt::Display for DoubleError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            DoubleError::EmptyVec =>
-                write!(f, "please use a vector with at least one element"),
-            // 这是一个 wrapper，所以按照底层类型来给出我们的 `fmt` 实现。
-            // （原上：This is a wrapper so defer to the underlying types' own implementation
-            // of `fmt`.）
-            DoubleError::Parse(ref e) => e.fmt(f),
-        }
-    }
-}
-
-pub fn double_first(vec: &Vec<&str>) -> Result<i32> {
-    vec.first()
-       // 将错误改成我们新的类型。
-       .ok_or(DoubleError::EmptyVec)
-       .and_then(|s| s.parse::<i32>()
-             // 在这里也更新成新的错误类型。    
-            .map_err(DoubleError::Parse)
-            .map(|i| 2 * i))
-}
-pub fn double_first_try(vec: Vec<&str>) -> Result<i32> {
-    // 仍然转为 `Result`，通过规定怎样转为 `None`。
-    // （原上：// Still convert to `Result` by stating how to convert `None`.）
-    let first = try!(vec.first().ok_or(DoubleError::EmptyVec));
-    let parsed = try!(first.parse::<i32>());
-
-    Ok(2 * parsed)
-}
-pub fn print(result: Result<i32>) {
-    match result {
-        Ok(n)  => println!("The first doubled is {}", n),
-        Err(e) => println!("Error: {}", e),
-    }
-}
-}
 fn test36() {
+    use my::mod_2;
     let numbers = vec!["93", "18"];
     let empty = vec![];
     let strings = vec!["tofu", "93", "18"];
@@ -3133,71 +2934,9 @@ fn try_division(dividend: i32, divisor: i32) {
     // 解包 `None` 变量将会引发 `panic!`。
     println!("{:?} unwraps to {:?}", none, _equivalent_none);
 }
-mod checked {
-    // 我们想要捕获的数学“错误”
-    #[derive(Debug)]
-    pub enum MathError {
-        DivisionByZero,
-        NegativeLogarithm,
-        NegativeSquareRoot,
-    }
-
-    pub type MathResult = Result<f64, MathError>;
-
-    pub fn div(x: f64, y: f64) -> MathResult {
-        if y == 0.0 {
-            // 此操作将会失败，反而让我们返回失败的理由，并装包成 `Err`
-            Err(MathError::DivisionByZero)
-        } else {
-            // 此操作是有效的，返回装包成 `Ok` 的结果
-            Ok(x / y)
-        }
-    }
-
-    pub fn sqrt(x: f64) -> MathResult {
-        if x < 0.0 {
-            Err(MathError::NegativeSquareRoot)
-        } else {
-            Ok(x.sqrt())
-        }
-    }
-
-    pub fn ln(x: f64) -> MathResult {
-        if x < 0.0 {
-            Err(MathError::NegativeLogarithm)
-        } else {
-            Ok(x.ln())
-        }
-    }
-        // 中间函数
-    fn op_(x: f64, y: f64) -> MathResult {
-        // 如果 `div` “失败”了，那么 `DivisionByZero` 将被返回
-        let ratio = div(x, y)?;
-
-        // 如果 `ln` “失败”了，那么 `NegativeLogarithm` 将被返回
-        let ln = ln(ratio)?;
-
-        sqrt(ln)
-    }
-
-    pub fn op(x: f64, y: f64) {
-        match op_(x, y) {
-            Err(why) => println!("{}",match why {
-                            MathError::NegativeLogarithm
-                                => "logarithm of negative number",
-                            MathError::DivisionByZero
-                                => "division by zero",
-                            MathError::NegativeSquareRoot
-                                => "square root of negative number",
-                        }),
-            Ok(value) => println!("{}", value),
-        }
-    }
-
-}
-
 
 fn test3c() {
+    use my::checked;
 // `op(x, y)` === `sqrt(ln(x / y))`
 fn op(x: f64, y: f64) -> f64 {
     // 这是一个三层的匹配金字塔！
@@ -3603,37 +3342,9 @@ use std::env;
     //   $ ./args arg1 arg2
     println!("I got {:?} arguments: {:?}.", args.len() - 1, &args[1..]);
 }
-mod mod_3 {
-use std::fmt;
 
-// 此外部代码块链接到 libm 库
-#[link(name = "m")]
-extern {
-    // 这是外部语言函数
-    // 这计算了一个单精度复数的平方根
-    pub fn csqrtf(z: Complex) -> Complex;
-}
-
-
-// 最小化实现单精度复数
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct Complex {
-    pub re: f32,
-    pub im: f32,
-}
-
-impl fmt::Debug for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.im < 0. {
-            write!(f, "{}-{}i", self.re, -self.im)
-        } else {
-            write!(f, "{}+{}i", self.re, self.im)
-        }
-    }
-}
-}
 fn test49() {
+    use my::mod_3;
     // z = -1 + 0i
     let z = mod_3::Complex { re: -1., im: 0. };
 
