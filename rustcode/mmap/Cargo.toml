@@ -1,0 +1,7 @@
+[package]
+name = "tmmap"
+version = "0.1.0"
+authors = ["a4a881d4 <a4a881d4@163.com>"]
+
+[dependencies]
+mmap = "*"
