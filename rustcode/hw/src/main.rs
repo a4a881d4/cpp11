@@ -1238,6 +1238,9 @@ fn test0b() {
     //null;
     // ^ 试一试：去掉这两行的注释。
 }
+
+
+fn test0c() {
 // 这个 trait 实现了打印标记：`{:?}`。
 use std::fmt::Debug;
 
@@ -1262,8 +1265,6 @@ fn print_debug<T: Debug>(t: &T) {
 // `T` 必须实现 `HasArea`。任意符合限定的函数都可以访问
 // `HasArea` 的 `area` 函数。
 fn area<T: HasArea>(t: &T) -> f64 { t.area() }
-
-fn test0c() {
     let rectangle = RectangleA { length: 3.0, height: 4.0 };
     let _triangle = Triangle  { length: 3.0, height: 4.0 };
 
@@ -1303,7 +1304,9 @@ fn test0d() {
     // ^ 试一试：将此行注释去掉。
 }
 
-use std::fmt::Display;
+
+fn test0e() {
+use std::fmt::{Display,Debug};
 
 fn compare_prints<T: Debug + Display>(t: &T) {
     println!("Debug: `{:?}`", t);
@@ -1315,7 +1318,6 @@ fn compare_types<T: Debug, U: Debug>(t: &T, u: &U) {
     println!("u: `{:?}", u);
 }
 
-fn test0e() {
     let string = "words";
     let array = [1, 2, 3];
     let vec = vec![1, 2, 3];
@@ -1327,6 +1329,9 @@ fn test0e() {
     compare_types(&array, &vec);
 }
 
+
+fn test0f() {
+use std::fmt::Debug;
 trait PrintInOption {
     fn print_in_option(self);
 }
@@ -1341,8 +1346,6 @@ impl<T> PrintInOption for T where
         println!("{:?}", Some(self));
     }
 }
-
-fn test0f() {
     let vec = vec![1, 2, 3];
 
     vec.print_in_option();
@@ -1392,6 +1395,7 @@ fn test10_1f() {
     test1d();	
     test1e();
     test1f();
+    test20_2f();
 }
 fn test10() {
     let number_1 = 3;
@@ -1597,14 +1601,1434 @@ fn test15() {
 
     println!("mutable_box now contains {}", mutable_box);
 }
+// 此函数拥有 box 的所有权并销毁它
+fn eat_box_i32(boxed_i32: Box<i32>) {
+    println!("Destroying box that contains {}", boxed_i32);
+}
 
-fn test16() {}
-fn test17() {}
-fn test18() {}
-fn test19() {}
-fn test1a() {}
-fn test1b() {}
-fn test1c() {}
-fn test1d() {}
-fn test1e() {}
-fn test1f() {}
+// 此函数借用了一个 i32 类型
+fn borrow_i32(borrowed_i32: &i32) {
+    println!("This int is: {}", borrowed_i32);
+}
+
+fn test16() {
+    // 创建一个装箱的 i32 类型，以及一个存在栈中的 i32 类型。
+    let boxed_i32 = Box::new(5_i32);
+    let stacked_i32 = 6_i32;
+
+    // 借用了  box 的内容，但没有取得所有权，所以 box 的内容可以
+    // 再次借用。
+    borrow_i32(&boxed_i32);
+    borrow_i32(&stacked_i32);
+
+    {
+        // 给出一个指向 box 里面所包含数据的引用
+        let _ref_to_i32: &i32 = &boxed_i32;
+
+        // 报错！
+        // 当 `boxed_i32` 里面的值被借用时，不能销毁 `boxed_int`。
+        // eat_box_i32(boxed_i32);
+        // 改正 ^ 注释掉此行
+
+        // `_ref_to_i32` 离开作用域且不再被借用。
+    }
+
+    // box 现在可以放弃 `eat_i32` 的所有权且可以销毁
+    eat_box_i32(boxed_i32);
+}
+#[allow(dead_code)]
+#[derive(Clone, Copy)]
+struct Book {
+    // `&'static str` 是一个指向分配在只读内存区的字符串的引用
+    author: &'static str,
+    title: &'static str,
+    year: u32,
+}
+
+// 此函数接受一个指向图书 Book 的引用
+fn borrow_book(book: &Book) {
+    println!("I immutably borrowed {} - {} edition", book.title, book.year);
+}
+
+// 此函数接受一个指向可变的图书 Book 的引用，同时把年份 `year` 改为 2004 年
+fn new_edition(book: &mut Book) {
+    book.year = 2014;
+    println!("I mutably borrowed {} - {} edition", book.title, book.year);
+}
+
+fn test17() {
+    // 创建一个名为 `immutabook` 的不可变的图书 Book
+    let immutabook = Book {
+        // 字符串字面量拥有 `&'static str` 类型
+        author: "Douglas Hofstadter",
+        title: "Gödel, Escher, Bach",
+        year: 1979,
+    };
+
+    // 创建一个 `immutabook` 的可变拷贝，命名为 `mutabook`
+    let mut mutabook = immutabook;
+    
+    // 不可变地借用一个不可变对象
+    borrow_book(&immutabook);
+
+    // 不可变地借用一个可变对象
+    borrow_book(&mutabook);
+    
+    // 借用一个可变对象作为可变类型
+    new_edition(&mut mutabook);
+    
+    // 报错！不能借用一个不可变对象来充当可变类型
+    // new_edition(&mut immutabook);
+    // 改正 ^ 注释掉此行
+}
+fn test18() {
+    let mut _mutable_integer = 7i32;
+
+    {
+        // 借用 `_mutable_integer`
+        let _large_integer = &_mutable_integer;
+
+        // 报错！`_mutable_integer` 在本作用域被冻结
+        // _mutable_integer = 50;
+        // 改正 ^ 注释掉此行
+
+        // `_large_integer` 离开作用域
+    }
+
+    // 正常运行！`_mutable_integer` 在这作用域没有冻结
+    _mutable_integer = 3;
+}
+
+fn test19() {
+
+    struct Point { x: i32, y: i32, z: i32 }
+
+    let mut point = Point { x: 0, y: 0, z: 0 };
+
+    {
+        let borrowed_point = &point;
+        let another_borrow = &point;
+
+        // 通过引用和原始所有者来访问数据
+        println!("Point has coordinates: ({}, {}, {})",
+                 borrowed_point.x, another_borrow.y, point.z);
+
+        // 报错！不能借用 `point` 作为可变内容，因为目前已被借用成为
+        // 不可变内容。
+        // let mutable_borrow = &mut point;
+        // 动手试一试 ^ 将此行注释去掉。
+
+        // 不可变引用离开作用域
+    }
+
+    {
+        let mutable_borrow = &mut point;
+
+        // 通过可变引用来改变数据
+        mutable_borrow.x = 5;
+        mutable_borrow.y = 2;
+        mutable_borrow.z = 1;
+
+        // 报错！不能借用 `point` 作为不可变内容，因为目前它已被借用成为
+        // 可变内容。
+        // let y = &mutable_borrow.y;
+        // 动手试一试 ^ 将此行注释去掉。
+
+        // 报错！不能打印，因为 `println!` 接受了一个不可变引用。
+        // println!("Point Z coordinate is {}", point.z);
+        // 动手试一试 ^ 将此行注释去掉。
+
+        // 好！可变引用可以作为不可变的传给 `println!`。
+        println!("Point has coordinates: ({}, {}, {})",
+                 mutable_borrow.x, mutable_borrow.y, mutable_borrow.z);
+
+        // 可变引用离开作用域
+    }
+
+    // `point` 的不可变引用再次可用。
+    let borrowed_point = &point;
+    println!("Point now has coordinates: ({}, {}, {})",
+             borrowed_point.x, borrowed_point.y, borrowed_point.z);
+}
+
+fn test1a() {
+#[derive(Clone, Copy)]
+struct Point { x: i32, y: i32 }
+
+    let c = 'Q';
+
+    // 赋值语句中左边的 `ref` 关键字等价右边的 `&` 符号。
+    let ref ref_c1 = c;
+    let ref_c2 = &c;
+
+    println!("ref_c1 equals ref_c2: {}", *ref_c1 == *ref_c2);
+
+    let point = Point { x: 0, y: 0 };
+
+    // 在解构一个结构体时 `ref` 同样有效。
+    let _copy_of_x = {
+        // `ref_to_x` 是一个指向 `point` 的 `x` 字段的引用。
+        let Point { x: ref ref_to_x, y: _ } = point;
+
+        // 返回一个 `point` 的 `x` 字段的拷贝。
+        *ref_to_x
+    };
+
+    // `point` 的可变拷贝
+    let mut mutable_point = point;
+
+    {
+        // `ref` 可以结合 `mut` 来接受可变引用。
+        let Point { x: _, y: ref mut mut_ref_to_y } = mutable_point;
+
+        // 通过可变引用来改变 `mutable_point` 的字段 `y`。
+        *mut_ref_to_y = 1;
+    }
+
+    println!("point is ({}, {})", point.x, point.y);
+    println!("mutable_point is ({}, {})", mutable_point.x, mutable_point.y);
+
+    // 包含一个指针的可变元组
+    let mut mutable_tuple = (Box::new(5u32), 3u32);
+    
+    {
+        // 解构 `mutable_tuple` 来改变 `last` 的值。
+        let (_, ref mut last) = mutable_tuple;
+        *last = 2u32;
+    }
+    
+    println!("tuple is {:?}", mutable_tuple);
+}
+// 生命周期 `'a` 和 `'b`。这两个生命周期都必须至少要和 `print_refs`
+// 函数的一样长。
+fn print_refs<'a, 'b>(x: &'a i32, y: &'b i32) {
+    println!("x is {} and y is {}", x, y);
+}
+
+// 不带参量的函数，不过有一个生命周期参量 `'a`。
+fn failed_borrow<'a>() {
+    let _x = 12;
+
+    // 报错：`_x` 存活时间长度不够（`_x` does not live long enough）
+    //let y: &'a i32 = &_x;
+    // 尝试使用生命周期 `'a` 作为函数内部的显式类型标注将导致失败，因为
+    // `&_x` 的生命周期比 `y` 的短。短生命周期不能强制转换成长生命周期。
+}
+
+fn test1b() {
+    // 创建变量，给下面代码借用。
+    let (four, nine) = (4, 9);
+    
+    // 两个变量的借用（`&`）都传进函数。
+    print_refs(&four, &nine);
+    // 任何借用得来的输入量都必须比借入者“活”得更长。
+    // 也就是说，`four` 和 `nine` 的生命周期都必须比 `print_refs`
+    // 的长。
+    
+    failed_borrow();
+    // `failed_borrow` 未包含引用来迫使 `'a` 长于函数的生命周期，
+    // 但 `'a` 寿命更长。因为该生命周期从未被约束，所以默认为 `'static`。
+}
+
+fn test1c() {
+// 一个拥有生命周期 `'a` 的输入引用，其中 `'a` 的存活时间
+// 至少与函数的一样长。
+fn print_one<'a>(x: &'a i32) {
+    println!("`print_one`: x is {}", x);
+}
+
+// 可变引用同样也可能拥有生命周期。
+fn add_one<'a>(x: &'a mut i32) {
+    *x += 1;
+}
+
+// 拥有不同生命周期的多个元素。对下面这种情形，两者即使拥有
+// 相同的生命周期 `'a` 也没问题，但对一些更复杂的情形，可能
+// 就需要不同的生命周期了。
+fn print_multi<'a, 'b>(x: &'a i32, y: &'b i32) {
+    println!("`print_multi`: x is {}, y is {}", x, y);
+}
+
+// 返回传递进来的引用也是可行的。
+// 但必须返回正确的生命周期。
+fn pass_x<'a, 'b>(x: &'a i32, _: &'b i32) -> &'a i32 { x }
+
+//fn invalid_output<'a>() -> &'a i32 { &7 }
+// 上面代码是无效的：`'a` 存活的时间必须比函数的长。
+// 这里的 `&7` 将会创建一个 `i32` 类型，跟在引用后面。
+// 然后数据在离开作用域时删掉，留下一个指向无效数据的引用，
+// 此引用将被返回。
+    let x = 7;
+    let y = 9;
+    
+    print_one(&x);
+    print_multi(&x, &y);
+    
+    let z = pass_x(&x, &y);
+    print_one(z);
+
+    let mut t = 3;
+    add_one(&mut t);
+    print_one(&t);
+}
+struct Owner(i32);
+
+impl Owner {
+    // 标注生命周期，就像独立的函数一样。
+    fn add_one<'a>(&'a mut self) { self.0 += 1; }
+    fn print<'a>(&'a self) {
+        println!("`print`: {}", self.0);
+    }
+}
+
+fn test1d() {
+    let mut owner  = Owner(18);
+
+    owner.add_one();
+    owner.print();
+}
+// 一个 `Borrowed` 类型，含有一个指向 `i32` 类型的引用。
+// 指向 `i32` 的引用必须比 `Borrowed` 寿命更长。
+// （原望：A type `Borrowed` which houses a reference to an
+// `i32`. The reference to `i32` must outlive `Borrowed`.）
+#[derive(Debug)]
+struct Borrowed<'a>(&'a i32);
+
+// 和前面类似，这里的两个引用都必须比这个结构体长寿。
+#[derive(Debug)]
+struct NamedBorrowed<'a> {
+    x: &'a i32,
+    y: &'a i32,
+}
+
+// 一个枚举类型，不是 `i32` 类型就是一个指向某个量的引用。
+//（原文： An enum which is either an `i32` or a reference to one.）
+#[derive(Debug)]
+enum Either<'a> {
+    Num(i32),
+    Ref(&'a i32),
+}
+
+fn test1e() {
+    let x = 18;
+    let y = 15;
+
+    let single = Borrowed(&x);
+    let double = NamedBorrowed { x: &x, y: &y };
+    let reference = Either::Ref(&x);
+    let number    = Either::Num(y);
+
+    println!("x is borrowed in {:?}", single);
+    println!("x and y are borrowed in {:?}", double);
+    println!("x is borrowed in {:?}", reference);
+    println!("y is *not* borrowed in {:?}", number);
+}
+
+fn test1f() {
+use std::fmt::Debug;
+
+#[derive(Debug)]
+struct Ref<'a, T: 'a>(&'a T);
+// `Ref` 包含一个指向指向泛型类型 `T` 的引用，其中 `T` 拥有
+// 一个未知的生命周期 `'a`。`T` 是被限定的，从而在 `T` 中的
+// 任何**引用**都必须比 `'a` 活得更长。另外 `Ref` 的生命周期
+// 也不能超出 `'a`。
+
+// 一个泛型函数，使用 `Debug` trait 来打印内容。
+fn print<T>(t: T) where
+    T: Debug {
+    println!("`print`: t is {:?}", t);
+}
+
+// 这里接受一个指向 `T` 的引用，其中 `T` 实现了 `Debug` trait，
+// 并且在 `T` 中的所有引用都必须比函数存活时间更长。
+fn print_ref<'a, T>(t: &'a T) where
+    T: Debug + 'a {
+    println!("`print_ref`: t is {:?}", t);
+}
+    let x = 7;
+    let ref_x = Ref(&x);
+
+    print_ref(&ref_x);
+    print(ref_x);
+}
+
+fn test20_2f() {
+    test20();
+    test21();
+    test22();
+    test23();
+    test24();
+    test25();   
+    test26();
+    test27();
+    test28();
+    test29();
+    test2a();
+    test2b();   
+    test2c();   
+    test2d();   
+    test2e();
+    test2f();
+    test30_3f();
+}
+
+// 在这里，Rust 推导了一个尽可能短的生命周期。
+// 然后这两个引用都被强制转成这个生命周期。
+fn multiply<'a>(first: &'a i32, second: &'a i32) -> i32 {
+    first * second
+}
+
+// `<'a: 'b, 'b>` 理解为生命周期 `'a` 至少和 `'b` 一样长。
+// 在这里我们我们接受了一个 `&'a i32` 类型并返回一个 `&'b i32` 类型，这是
+// 强制转换得到的结果。
+fn choose_first<'a: 'b, 'b>(first: &'a i32, _: &'b i32) -> &'a i32 {
+    first
+}
+
+fn test20() {
+    let first = 2; // 较长的生命周期
+    
+    {
+        let second = 3; // 较短的生命周期
+        
+        println!("The product is {}", multiply(&first, &second));
+        println!("{} is the first", choose_first(&first, &second));
+    };
+}
+// 产生一个拥有 `'static` 生命周期的常量。
+static NUM: i32 = 18;
+
+// 返回一个指向 `NUM` 的引用，其中`NUM` 的 `'static`
+// 生命周期被强制转换成和输入参数的一样。
+fn coerce_static<'a>(_: &'a i32) -> &'a i32 {
+    &NUM
+}
+
+fn test21() {
+    {
+        // 产生一个 `string` 字面量并打印它：
+        let static_string = "I'm in read-only memory";
+        println!("static_string: {}", static_string);
+
+        // 当 `static_string` 离开作用域时，该引用不能再使用，不过
+        // 数据会保留在二进制文件里面。
+    }
+    
+    {
+        // 产生一个整型给 `coerce_static` 使用：
+        let lifetime_num = 9;
+
+        // 将 `NUM` 强制转换成 `lifetime_num` 的生命周期：
+        let coerced_static = coerce_static(&lifetime_num);
+
+        println!("coerced_static: {}", coerced_static);
+    }
+    
+    println!("NUM: {} stays accessible!", NUM);
+}
+
+// `elided_input` 和 `annotated_input` 本质上拥有相同的识别标志，是因为
+// `elided_input` 的生命周期被编译器省略掉了：
+fn elided_input(x: &i32) {
+    println!("`elided_input`: {}", x)
+}
+
+fn annotated_input<'a>(x: &'a i32) {
+    println!("`annotated_input`: {}", x)
+}
+
+// 类似地，`elided_pass` 和 `annotated_pass` 也拥有相同的识别标志，
+// 是因为生命周期被隐式地添加进 `elided_pass`：
+fn elided_pass(x: &i32) -> &i32 { x }
+
+fn annotated_pass<'a>(x: &'a i32) -> &'a i32 { x }
+
+fn test22() {
+    let x = 3;
+    
+    elided_input(&x);
+    annotated_input(&x);
+
+    println!("`elided_pass`: {}", elided_pass(&x));
+    println!("`annotated_pass`: {}", annotated_pass(&x));
+}
+struct Sheep { naked: bool, name: &'static str }
+
+trait Animal {
+    // 静态方法标记；`Self` 表示实现者类型（implementor type）。
+    fn new(name: &'static str) -> Self;
+
+    // 实例方法（instance method）标记；这些方法将返回一个字符串。
+    fn name(&self) -> &'static str;
+    fn noise(&self) -> &'static str;
+
+    // trait 可以提供默认方法定义（method definition）。
+    fn talk(&self) {
+        println!("{} says {}", self.name(), self.noise());
+    }
+}
+
+impl Sheep {
+    fn is_naked(&self) -> bool {
+        self.naked
+    }
+
+    fn shear(&mut self) {
+        if self.is_naked() {
+            // 实现者（implementor）可以使用实现者的 trait 方法。
+            println!("{} is already naked...", self.name());
+        } else {
+            println!("{} gets a haircut!", self.name);
+
+            self.naked = true;
+        }
+    }
+}
+
+// 对 `Sheep` 实现 `Animal` trait。
+impl Animal for Sheep {
+    // `Self` 是该实现者类型：`Sheep`。
+    fn new(name: &'static str) -> Sheep {
+        Sheep { name: name, naked: false }
+    }
+
+    fn name(&self) -> &'static str {
+        self.name
+    }
+
+    fn noise(&self) -> &'static str {
+        if self.is_naked() {
+            "baaaaah?"
+        } else {
+            "baaaaah!"
+        }
+    }
+    
+    // 默认 trait 方法可以重载。
+    fn talk(&self) {
+        // 例如完们可以增加一些安静的沉思（quiet contemplation）。
+        println!("{} pauses briefly... {}", self.name, self.noise());
+    }
+}
+
+fn test23() {
+    // 这种情况需要类型标注。
+    let mut dolly: Sheep = Animal::new("Dolly");
+    // 试一试 ^ 移除类型标注。
+
+    dolly.talk();
+    dolly.shear();
+    dolly.talk();
+}
+// `Centimeters`，可以比较的元组结构体
+#[derive(PartialEq, PartialOrd)]
+struct Centimeters(f64);
+
+// `Inches`，可以打印的元组结构体
+#[derive(Debug)]
+struct Inches(i32);
+
+impl Inches {
+    fn to_centimeters(&self) -> Centimeters {
+        let &Inches(inches) = self;
+
+        Centimeters(inches as f64 * 2.54)
+    }
+}
+
+
+fn test24() {
+// `Seconds`，不带附加属性的元组结构体
+struct Seconds(i32);
+    let _one_second = Seconds(1);
+
+    // 报错：`Seconds` 不能打印；它没有实现 `Debug` trait
+    //println!("One second looks like: {:?}", _one_second);
+    // 试一试 ^ 将此行注释去掉
+
+    // 报错：`Seconds`不能比较；它没有实现 `PartialEq` trait
+    //let _this_is_true = (_one_second == _one_second);
+    // 试一试 ^ 将此行注释去掉
+
+    let foot = Inches(12);
+
+    println!("One foot equals {:?}", foot);
+
+    let meter = Centimeters(100.0);
+
+    let cmp =
+        if foot.to_centimeters() < meter {
+            "smaller"
+        } else {
+            "bigger"
+        };
+
+    println!("One foot is {} than one meter.", cmp);
+}
+use std::ops;
+
+struct Foo;
+struct Bar;
+
+#[derive(Debug)]
+struct FooBar;
+
+#[derive(Debug)]
+struct BarFoo;
+
+// `std::ops::Add` trait 在这里用来指明 `+` 的功能，我们给出 `Add<Bar>`——关于
+// 加法的 trait，带有一个 `Bar` 类型的右操作数（RHS）。下面代码块实现了这样的
+// 运算： Foo + Bar = FooBar。
+impl ops::Add<Bar> for Foo {
+    type Output = FooBar;
+
+    fn add(self, _rhs: Bar) -> FooBar {
+        println!("> Foo.add(Bar) was called");
+
+        FooBar
+    }
+}
+
+// 通过反转类型，我们以实现非交换的加法作为结束。
+// 这里我们给出 `Add<Foo>`——关于加法的 trait，带有一个 `Foo` 类型的右操作数。
+// 这个代码块实现了这样的操作：Bar + Foo = BarFoo。
+impl ops::Add<Foo> for Bar {
+    type Output = BarFoo;
+
+    fn add(self, _rhs: Foo) -> BarFoo {
+        println!("> Bar.add(Foo) was called");
+
+        BarFoo
+    }
+}
+
+fn test25() {
+    println!("Foo + Bar = {:?}", Foo + Bar);
+    println!("Bar + Foo = {:?}", Bar + Foo);
+}
+struct Droppable {
+    name: &'static str,
+}
+
+// 这个简单的 `drop` 实现添加了打印到控制台的功能。
+impl Drop for Droppable {
+    fn drop(&mut self) {
+        println!("> Dropping {}", self.name);
+    }
+}
+
+fn test26() {
+    let _a = Droppable { name: "a" };
+
+    // 代码块 A
+    {
+        let _b = Droppable { name: "b" };
+
+        // 代码块 B
+        {
+            let _c = Droppable { name: "c" };
+            let _d = Droppable { name: "d" };
+
+            println!("Exiting block B");
+        }
+        println!("Just exited block B");
+
+        println!("Exiting block A");
+    }
+    println!("Just exited block A");
+
+    // 变量可以手动使用 `drop` 函数来销毁。
+    // drop(_a);
+    // 试一试 ^ 将此行注释掉。
+
+    println!("end of the main function");
+
+    // `_a` **不会**在这里再次销毁，因为它已经被（手动）销毁。
+}
+struct Fibonacci {
+    curr: u32,
+    next: u32,
+}
+
+// 实现关于 `Fibonacci` （斐波那契）的 `Iterator`。
+// `Iterator` trait 只需定义一个指向 `next`（下一个）元素的方法。
+impl Iterator for Fibonacci {
+    type Item = u32;
+    
+    // 我们在这里使用 `.curr` 和 `.next` 来定义数列（sequence）。
+    // 返回类型为 `Option<T>`：
+    //     * 当 `Iterator` 结束时，返回 `None`。
+    //     * 其他情况，返回被 `Some` 包裹（wrapped）的下一个值。
+    fn next(&mut self) -> Option<u32> {
+        let new_next = self.curr + self.next;
+
+        self.curr = self.next;
+        self.next = new_next;
+
+        // 既然斐波那契数列不存在终点，那么 `Iterator` 将不可能
+        // 返回 `None`，而总是返回 `Some`。
+        Some(self.curr)
+    }
+}
+
+// 返回一个斐波那契数列生成器（generator）
+fn fibonacci() -> Fibonacci {
+    Fibonacci { curr: 1, next: 1 }
+}
+
+fn test27() {
+    // `0..3` 是一个 `Iterator`，会产生：0，1 和 2。
+    let mut sequence = 0..3;
+
+    println!("Four consecutive `next` calls on 0..3");
+    println!("> {:?}", sequence.next());
+    println!("> {:?}", sequence.next());
+    println!("> {:?}", sequence.next());
+    println!("> {:?}", sequence.next());
+
+    // `for` 通过 `Iterator` 进行工作，直到 `Iterator` 为 `None`。
+    // 每个 `Some` 值都被解包（unwrap）且限定为一个变量（这里是 `i`）。
+    println!("Iterate through 0..3 using `for`");
+    for i in 0..3 {
+        println!("> {}", i);
+    }
+
+    // `take(n)` 方法提取 `Iterator` 的前 `n` 项。
+    println!("The first four terms of the Fibonacci sequence are: ");
+    for i in fibonacci().take(4) {
+        println!("> {}", i);
+    }
+
+    // `skip(n)` 方法通过跳过前 `n` 项缩短了 `Iterator` 。
+    println!("The next four terms of the Fibonacci sequence are: ");
+    for i in fibonacci().skip(4).take(4) {
+        println!("> {}", i);
+    }
+
+    let array = [1u32, 3, 3, 7];
+
+    // `iter` 方法对数组/slice 产生一个 `Iterator`。
+    println!("Iterate the following array {:?}", &array);
+    for i in array.iter() {
+        println!("> {}", i);
+    }
+}
+
+fn test28() {
+// 不含资源的单元结构体
+#[derive(Debug, Clone, Copy)]
+struct Nil;
+
+// 包含实现 `Clone` trait 的资源的元组结构体
+#[derive(Clone, Debug)]
+struct Pair(Box<i32>, Box<i32>);
+    // 实例化 `Nil`
+    let nil = Nil;
+    // 复制 `Nil`，没有资源用于移动（move）
+    let copied_nil = nil;
+
+    // 两个 `Nil` 都可以独立使用
+    println!("original: {:?}", nil);
+    println!("copy: {:?}", copied_nil);
+
+    // 实例化 `Pair`
+    let pair = Pair(Box::new(1), Box::new(2));
+    println!("original: {:?}", pair);
+
+    // 将 `pair` 复制到 `moved_pair`，移动（move）了资源
+    let moved_pair = pair;
+    println!("copy: {:?}", moved_pair);
+
+    // 报错！`pair` 已失去了它的资源。
+    //println!("original: {:?}", pair);
+    // 试一试 ^ 将此行注释去掉。
+
+    // 将 `moved_pair` 克隆到 `cloned_pair`（包含资源）
+    let cloned_pair = moved_pair.clone();
+    // 使用 std::mem::drop 来销毁原始的 pair。
+    drop(moved_pair);
+
+    // 报错！`moved_pair` 已被销毁。
+    //println!("copy: {:?}", moved_pair);
+    // 试一试 ^ 将此行注释掉。
+
+    // 由 .clone() 得来的结果仍然可用！
+    println!("clone: {:?}", cloned_pair);
+}
+// 这是一个简单简单的宏，名为 `say_hello`。
+macro_rules! say_hello {
+    // `()` 表示此宏不接受任何参数。
+    () => (
+        // 此宏将会展开成这个代码块里面的内容。
+        println!("Hello!");
+    )
+}
+
+fn test29() {
+    // 这个调用将会展开成 `println("Hello");`!
+    say_hello!()
+}
+macro_rules! create_function {
+    // 此宏接受一个 `ident` 指示符参数，并创建一个名为 `$func_name`
+    // 的函数。
+    // `ident` 指示符用于变量名或函数名
+    ($func_name:ident) => (
+        fn $func_name() {
+            // `stringify!` 宏把 `ident` 转换成字符串。
+            println!("You called {:?}()",
+                     stringify!($func_name))
+        }
+    )
+}
+
+// 借助上述宏来创建名为 `foo` 和 `bar` 的函数。
+create_function!(foo);
+create_function!(bar);
+
+macro_rules! print_result {
+    // 此宏接受一个 `expr` 类型的表达式，将它转换成一个字符串，
+    // 并伴随着表达式的结果。
+    // `expr` 指示符用于表达式。
+    ($expression:expr) => (
+        // `stringify!` 把表达式转换成一个字符串，正如 stringify
+        // （意思为“字符串化”） 所表达的意思那样。
+        println!("{:?} = {:?}",
+                 stringify!($expression),
+                 $expression)
+    )
+}
+
+fn test2a() {
+    foo();
+    bar();
+
+    print_result!(1u32 + 1);
+
+    // 回想一下，代码块也是表达式！
+    print_result!({
+        let x = 1u32;
+
+        x * x + 2 * x - 1
+    });
+}
+macro_rules! test {
+    // 参数不需要使用逗号隔开。
+    // 可以使用任意模板（原文：Any template can be used!）！
+    ($left:expr; and $right:expr) => (
+        println!("{:?} and {:?} is {:?}",
+                 stringify!($left),
+                 stringify!($right),
+                 $left && $right)
+    );
+    // ^ 每个分支都必须以分号结束。
+    ($left:expr; or $right:expr) => (
+        println!("{:?} or {:?} is {:?}",
+                 stringify!($left),
+                 stringify!($right),
+                 $left || $right)
+    );
+}
+
+fn test2b() {
+    test!(1i32 + 1 == 2i32; and 2i32 * 2 == 4i32);
+    test!(true; or false);
+}
+// `min!` 将求出任意数量的参数的最小值。
+macro_rules! find_min {
+    // 基本情形：
+    ($x:expr) => ($x);
+    // `$x` 后面跟着至少一个 `$y,`
+    ($x:expr, $($y:expr),+) => (
+        // 对尾部的 `$y` 调用 `find_min!` 
+        std::cmp::min($x, find_min!($($y),+))
+    )
+}
+
+fn test2c() {
+    println!("{}", find_min!(1u32));
+    println!("{}", find_min!(1u32 + 2 , 2u32));
+    println!("{}", find_min!(5u32, 2u32 * 3, 4u32));
+}
+// 平民（commoner）已经见过所有东西，并能妥善处理好各种情况。
+// 所有礼物都通过手动使用 `match` 来处理。
+fn give_commoner(gift: Option<&str>) {
+    // 指出每种情况下的做法。
+    match gift {
+        Some("snake") => println!("Yuck! I'm throwing that snake in a fire."),
+        Some(inner)   => println!("{}? How nice.", inner),
+        None          => println!("No gift? Oh well."),
+    }
+}
+
+// 我们受保护的公主见到蛇将会 `panic`（恐慌）。
+fn give_princess(gift: Option<&str>) {
+    // 使用 `unwrap`，当接收到 `None` 时返回一个 `panic`。
+    let inside = gift.unwrap();
+    if inside == "snake" { panic!("AAAaaaaa!!!!"); }
+
+    println!("I love {}s!!!!!", inside);
+}
+
+fn test2d() {
+    let food  = Some("chicken");
+    let snake = Some("snake");
+    let void  = None;
+
+    give_commoner(food);
+    give_commoner(snake);
+    give_commoner(void);
+
+    let bird = Some("robin");
+    // let nothing = None;
+
+    give_princess(bird);
+    give_princess(food);
+}
+
+#[derive(Debug)] enum Food { Apple, Carrot, Potato }
+
+#[derive(Debug)] struct Peeled(Food);
+#[derive(Debug)] struct Chopped(Food);
+#[derive(Debug)] struct Cooked(Food);
+
+// 削水果皮。如果没有水果，就返回 `None`。
+// 否则返回削好皮的水果。
+fn peel(food: Option<Food>) -> Option<Peeled> {
+    match food {
+        Some(food) => Some(Peeled(food)),
+        None       => None,
+    }
+}
+
+// 和上面一样，我们要在切水果之前确认水果是否已经削皮。
+fn chop(peeled: Option<Peeled>) -> Option<Chopped> {
+    match peeled {
+        Some(Peeled(food)) => Some(Chopped(food)),
+        None               => None,
+    }
+}
+
+// 和前面的检查类似，但是使用 `map()` 来替代 `match`。
+fn cook(chopped: Option<Chopped>) -> Option<Cooked> {
+    chopped.map(|Chopped(food)| Cooked(food))
+}
+
+// 另外一种实现，我们可以链式调用 `map()` 来简化上述的流程。
+fn process(food: Option<Food>) -> Option<Cooked> {
+    food.map(|f| Peeled(f))
+        .map(|Peeled(f)| Chopped(f))
+        .map(|Chopped(f)| Cooked(f))
+}
+
+// 在尝试吃水果之前确认水果是否存在是非常重要的！
+fn eat(food: Option<Cooked>) {
+    match food {
+        Some(food) => println!("Mmm. I love {:?}", food),
+        None       => println!("Oh no! It wasn't edible."),
+    }
+}
+
+fn test2e() {
+    let apple = Some(Food::Apple);
+    let carrot = Some(Food::Carrot);
+    let potato = None;
+
+    let cooked_apple = cook(chop(peel(apple)));
+    let cooked_carrot = cook(chop(peel(carrot)));
+    // 现在让我们试试更简便的方式 `process()`。
+    // （原文：Let's try the simpler looking `process()` now.）
+    // （翻译疑问：looking 是什么意思呢？望指教。）
+    let cooked_potato = process(potato);
+
+    eat(cooked_apple);
+    eat(cooked_carrot);
+    eat(cooked_potato);
+}
+
+mod mod_1{
+#[derive(Debug)] pub enum Food { CordonBleu, Steak, Sushi }
+#[derive(Debug)] pub enum Day { Monday, Tuesday, Wednesday }
+
+// 我们没有原材料（ingredient）来制作寿司。
+fn have_ingredients(food: Food) -> Option<Food> {
+    match food {
+        Food::Sushi => None,
+        _           => Some(food),
+    }
+}
+
+// 我们拥有全部食物的食谱，除了欠缺高超的烹饪手艺。
+fn have_recipe(food: Food) -> Option<Food> {
+    match food {
+        Food::CordonBleu => None,
+        _                => Some(food),
+    }
+}
+
+// 做一份好菜，我们需要原材料和食谱这两者。
+// 我们可以借助一系列 `match` 来表达相应的逻辑：
+// （原文：We can represent the logic with a chain of `match`es:）
+fn cookable_v1(food: Food) -> Option<Food> {
+    match have_ingredients(food) {
+        None       => None,
+        Some(food) => match have_recipe(food) {
+            None       => None,
+            Some(food) => Some(food),
+        },
+    }
+}
+
+// 这可以使用 `and_then()` 方便重写出更紧凑的代码：
+fn cookable_v2(food: Food) -> Option<Food> {
+    have_ingredients(food).and_then(have_recipe)
+}
+
+pub fn eat(food: Food, day: Day) {
+    match cookable_v2(food) {
+        Some(food) => println!("Yay! On {:?} we get to eat {:?}.", day, food),
+        None       => println!("Oh no. We don't get to eat on {:?}?", day),
+    }
+}
+}
+fn test2f() {
+    let (cordon_bleu, steak, sushi) = (mod_1::Food::CordonBleu, mod_1::Food::Steak, mod_1::Food::Sushi);
+
+    mod_1::eat(cordon_bleu, mod_1::Day::Monday);
+    mod_1::eat(steak, mod_1::Day::Tuesday);
+    mod_1::eat(sushi, mod_1::Day::Wednesday);
+}
+
+
+// fn test20() {}
+// fn test21() {}
+// fn test22() {}
+// fn test23() {}
+// fn test24() {}
+// fn test25() {}
+// fn test26() {}
+// fn test27() {}
+// fn test28() {}
+// fn test29() {}
+// fn test2a() {}
+// fn test2b() {}
+// fn test2c() {}
+// fn test2d() {}
+// fn test2e() {}
+// fn test2f() {}
+
+fn test30_3f() {
+    test30();
+    test31();
+    test32();
+    test33();
+    test34();
+    test35();   
+    test36();
+    test37();
+    test38();
+    test39();
+    test3a();
+    test3b();   
+    test3c();   
+    test3d();   
+    test3e();
+    test3f();
+    test40_4f();    
+}
+
+
+fn test30() {
+fn double_number(number_str: &str) -> i32 {
+    // 让我们尝试使用 `unwrap()` 把数字取出来。它会咬我们吗？
+    2 * number_str.parse::<i32>().unwrap()
+}
+    let twenty = double_number("10");
+    println!("double is {}", twenty);
+
+    let tt = double_number("0");
+    println!("double is {}", tt);
+}
+
+fn test31() {
+
+use std::num::ParseIntError;
+
+// 返回类型重写之后，我们使用模式匹配，而不使用 `unwrap()`。
+fn double_number(number_str: &str) -> Result<i32, ParseIntError> {
+    match number_str.parse::<i32>() {
+        Ok(n)  => Ok(2 * n),
+        Err(e) => Err(e),
+    }
+}
+
+// 就像 `Option`，我们可以使用组合算子，如 `map()`。
+// 此函数在其他方面和上述的示例一样，并表示：
+// 若值有效则修改 n，否则传递错误。
+fn double_number_map(number_str: &str) -> Result<i32, ParseIntError> {
+    number_str.parse::<i32>().map(|n| 2 * n)
+}
+
+fn print(result: Result<i32, ParseIntError>) {
+    match result {
+        Ok(n)  => println!("n is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    // 这里仍然给出一个合理的答案。
+    let twenty = double_number("10");
+    print(twenty);
+
+    // 下面提供了更加有用的错误消息。
+    let tt = double_number_map("t");
+    print(tt);
+}
+fn test32() {
+use std::num::ParseIntError;
+
+// 为带有错误类型 `ParseIntError` 的 `Result` 定义一个泛型别名。
+type AliasedResult<T> = Result<T, ParseIntError>;
+
+// 使用上面定义过的别名来表示我们特指的 `Result` 类型。
+fn double_number(number_str: &str) -> AliasedResult<i32> {
+    number_str.parse::<i32>().map(|n| 2 * n)
+}
+
+// 这里的别名又让我们节省了一些空间（save some space）。
+fn print(result: AliasedResult<i32>) {
+    match result {
+        Ok(n)  => println!("n is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    print(double_number("10"));
+    print(double_number("t"));
+}
+
+fn test33() {
+
+// 使用 `String` 作为错误类型
+type Result<T> = std::result::Result<T, String>;
+
+fn double_first(vec: Vec<&str>) -> Result<i32> {
+    vec.first()
+       // 若值存在则将 `Option` 转换成 `Result`。
+       // 否则提供一个包含该字符串（`String`） 的 `Err`。
+       .ok_or("Please use a vector with at least one element.".to_owned())
+       // 回想一下，`parse` 返回一个 `Result<T, ParseIntError>`。
+       .and_then(|s| s.parse::<i32>()
+                      // 映射任意错误 `parse` 产生得到 `String`。
+                      // （原文：Map any errors `parse` yields to `String`.）
+                      .map_err(|e| e.to_string())
+                      // `Result<T, String>` 成为新的返回类型，
+                      // 我们可以给里面的数字扩大两倍。
+                      .map(|i| 2 * i))
+}
+
+fn print(result: Result<i32>) {
+    match result {
+        Ok(n)  => println!("The first doubled is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+
+    print(double_first(empty));
+    print(double_first(strings));
+}
+
+
+fn test34() {
+// 使用 `String` 作为错误类型
+type Result<T> = std::result::Result<T, String>;
+
+fn double_first(vec: Vec<&str>) -> Result<i32> {
+    // 若存在值时，则将 `Option` 转换成 `Result`。
+    // 否则提供一个包含此 `String` 的 `Err`。
+    let first = match vec.first() {
+        Some(first) => first,
+        None => return Err("Please use a vector with at least one element.".to_owned())
+    };
+
+    // 若 `parse` 操作正常的话，则将内部的数字扩大 2 倍。
+    // 否则映射任意错误，来自 `parse` 产生的 `String`。
+    // （原文：Double the number inside if `parse` works fine.
+    // Otherwise, map any errors that `parse` yields to `String`.）
+    match first.parse::<i32>() {
+        Ok(i) => Ok(2 * i),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+fn print(result: Result<i32>) {
+    match result {
+        Ok(n)  => println!("The first doubled is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+
+    print(double_first(empty));
+    print(double_first(strings));
+}
+
+fn test35() {
+// 使用 `String` 作为错误类型
+type Result<T> = std::result::Result<T, String>;
+
+fn double_first(vec: Vec<&str>) -> Result<i32> {
+    let first = try!(vec.first()
+        .ok_or("Please use a vector with at least one element.".to_owned()));
+    
+    let value = try!(first.parse::<i32>()
+        .map_err(|e| e.to_string()));
+    
+    Ok(2 * value)
+}
+
+fn print(result: Result<i32>) {
+    match result {
+        Ok(n)  => println!("The first doubled is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+
+    print(double_first(empty));
+    print(double_first(strings));
+}
+mod mod_2{
+use std::num::ParseIntError;
+use std::fmt;
+use std::result;
+type Result<T> = result::Result<T, DoubleError>;
+
+#[derive(Debug)]
+// 定义我们的错误类型。不管对我们的错误处理情况有多重要，这些都可能自定义。
+// 现在我们能够按照底层工具的错误实现，写下我们的错误，或者两者之间的内容。
+// （原文：Define our error types. These may be customized however is useful for our error
+// handling cases. Now we will be able to defer to the underlying tools error
+// implementation, write our own errors, or something in between.）
+pub enum DoubleError {
+    // 我们不需要任何额外的信息来描述这个错误。
+    EmptyVec,
+    // 我们将推迟对于这些错误的解析错误的实现。（原文：We will defer to the parse
+    // error implementation for their error.）提供额外信息将要增加更多针对类型的数据。
+    Parse(ParseIntError),
+}
+impl From<ParseIntError> for DoubleError {
+    fn from(err: ParseIntError) -> DoubleError {
+        DoubleError::Parse(err)
+    }
+}
+// 类型的展示方式的和类型的产生方式是完全独立的。我们无需担心显示样式会搞乱我们
+// 工具集所需的复杂逻辑。它们是独立的，就是说它们处理起来是相互独立的。
+//
+// 我们没有存储关于错误的额外信息。若确实想要，比如，要指出哪个字符串无法解析，
+// 那么我们不得不修改我们类型来携带相应的信息。
+impl fmt::Display for DoubleError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DoubleError::EmptyVec =>
+                write!(f, "please use a vector with at least one element"),
+            // 这是一个 wrapper，所以按照底层类型来给出我们的 `fmt` 实现。
+            // （原上：This is a wrapper so defer to the underlying types' own implementation
+            // of `fmt`.）
+            DoubleError::Parse(ref e) => e.fmt(f),
+        }
+    }
+}
+
+pub fn double_first(vec: &Vec<&str>) -> Result<i32> {
+    vec.first()
+       // 将错误改成我们新的类型。
+       .ok_or(DoubleError::EmptyVec)
+       .and_then(|s| s.parse::<i32>()
+             // 在这里也更新成新的错误类型。    
+            .map_err(DoubleError::Parse)
+            .map(|i| 2 * i))
+}
+pub fn double_first_try(vec: Vec<&str>) -> Result<i32> {
+    // 仍然转为 `Result`，通过规定怎样转为 `None`。
+    // （原上：// Still convert to `Result` by stating how to convert `None`.）
+    let first = try!(vec.first().ok_or(DoubleError::EmptyVec));
+    let parsed = try!(first.parse::<i32>());
+
+    Ok(2 * parsed)
+}
+pub fn print(result: Result<i32>) {
+    match result {
+        Ok(n)  => println!("The first doubled is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+}
+fn test36() {
+    let numbers = vec!["93", "18"];
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+
+    mod_2::print(mod_2::double_first(&numbers));
+    mod_2::print(mod_2::double_first(&empty));
+    mod_2::print(mod_2::double_first(&strings));
+
+    mod_2::print(mod_2::double_first_try(numbers));
+    mod_2::print(mod_2::double_first_try(empty));
+    mod_2::print(mod_2::double_first_try(strings));
+}
+
+fn test37() {
+
+use std::error;
+use std::fmt;
+use std::num::ParseIntError;
+
+// 将别名更改为 `Box<error::Error>`。
+type Result<T> = std::result::Result<T, Box<error::Error>>;
+
+#[derive(Debug)]
+enum DoubleError {
+    EmptyVec,
+    Parse(ParseIntError),
+}
+
+impl From<ParseIntError> for DoubleError {
+    fn from(err: ParseIntError) -> DoubleError {
+        DoubleError::Parse(err)
+    }
+}
+
+impl fmt::Display for DoubleError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DoubleError::EmptyVec =>
+                write!(f, "please use a vector with at least one element"),
+            DoubleError::Parse(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl error::Error for DoubleError {
+    fn description(&self) -> &str {
+        match *self {
+            // 错误的简短说明。不需要和 `Display` 一样。
+            DoubleError::EmptyVec => "empty vectors not allowed",
+            // 这已经实现了 `Error`，所以遵循它自己的实现。
+            DoubleError::Parse(ref e) => e.description(),
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            // 没有潜在的差错，所以返回 `None`。
+            DoubleError::EmptyVec => None,
+            // 差错为底层实现的错误类型。被隐式地转换成 trait 对象 `&error::Error`。
+            // 这会正常工作，因为底层的类型已经实现了 `Error` trait。
+            DoubleError::Parse(ref e) => Some(e),
+        }
+    }
+}
+
+fn double_first(vec: Vec<&str>) -> Result<i32> {
+    let first = try!(vec.first().ok_or(DoubleError::EmptyVec));
+    let parsed = try!(first.parse::<i32>());
+
+    Ok(2 * parsed)
+}
+
+fn print(result: Result<i32>) {
+    match result {
+        Ok(n)  => println!("The first doubled is {}", n),
+        Err(e) => println!("Error: {}", e),
+    }
+}
+
+    let numbers = vec!["93", "18"];
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+
+    print(double_first(numbers));
+    print(double_first(empty));
+    print(double_first(strings));
+}
+
+fn test38() {
+use std::mem;
+
+#[derive(Clone, Copy)]
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+#[allow(dead_code)]
+struct Rectangle {
+    p1: Point,
+    p2: Point,
+}
+
+fn origin() -> Point {
+    Point { x: 0.0, y: 0.0 }
+}
+
+fn boxed_origin() -> Box<Point> {
+    // 在堆上分配这个点（point），并返回一个指向它的指针
+    Box::new(Point { x: 0.0, y: 0.0 })
+}
+
+    // （所有的类型标注都是可要可不要的）
+    // 栈分配的变量
+    let point: Point = origin();
+    let rectangle: Rectangle = Rectangle {
+        p1: origin(),
+        p2: Point { x: 3.0, y: 4.0 }
+    };
+
+    // 堆分配的 rectangle（矩形）
+    let boxed_rectangle: Box<Rectangle> = Box::new(Rectangle {
+        p1: origin(),
+        p2: origin()
+    });
+
+    // 函数的输出可以装箱（boxed）
+    let boxed_point: Box<Point> = Box::new(origin());
+
+    // 双重间接装箱（Double indirection）
+    let box_in_a_box: Box<Box<Point>> = Box::new(boxed_origin());
+
+    println!("Point occupies {} bytes in the stack",
+             mem::size_of_val(&point));
+    println!("Rectangle occupies {} bytes in the stack",
+             mem::size_of_val(&rectangle));
+
+    // box 的大小 = 指针 大小（box size = pointer size）
+    println!("Boxed point occupies {} bytes in the stack",
+             mem::size_of_val(&boxed_point));
+    println!("Boxed rectangle occupies {} bytes in the stack",
+             mem::size_of_val(&boxed_rectangle));
+    println!("Boxed box occupies {} bytes in the stack",
+             mem::size_of_val(&box_in_a_box));
+
+    // 将包含在 `boxed_point` 的数据复制到 `unboxed_point`
+    let unboxed_point: Point = *boxed_point;
+    println!("Unboxed point occupies {} bytes in the stack",
+             mem::size_of_val(&unboxed_point));
+
+}
+fn test39() {}
+fn test3a() {}
+fn test3b() {}
+fn test3c() {}
+fn test3d() {}
+fn test3e() {}
+fn test3f() {}
+
+fn test40_4f() {}
