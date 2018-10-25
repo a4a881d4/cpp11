@@ -3023,12 +3023,666 @@ fn boxed_origin() -> Box<Point> {
              mem::size_of_val(&unboxed_point));
 
 }
-fn test39() {}
-fn test3a() {}
-fn test3b() {}
-fn test3c() {}
-fn test3d() {}
-fn test3e() {}
-fn test3f() {}
+fn test39() {
+    // 迭代器可以收集到 vector
+    let mut collected_iterator: Vec<i32> = (0..10).collect();
+    println!("Collected (0..10) into: {:?}", collected_iterator);
 
-fn test40_4f() {}
+    // `vec!` 宏可用来初始化一个 vector
+    let mut xs = vec![1i32, 2, 3];
+    println!("Initial vector: {:?}", xs);
+
+    // 在 vector 的尾部插入一个新的元素
+    println!("Push 4 into the vector");
+    xs.push(4);
+    println!("Vector: {:?}", xs);
+
+    // 报错！不可变 vector 不可增长
+    collected_iterator.push(0);
+    // 改正 ^ 将此行注释掉
+
+    // `len` 方法获得一个 vector 的当前大小
+    println!("Vector size: {}", xs.len());
+
+    // 在中括号上加索引（索引从 0 开始）
+    println!("Second element: {}", xs[1]);
+
+    
+    // 超出索引范围将抛出一个 panic
+    println!("Fourth element: {}", xs[3]);
+    // `pop` 移除 vector 的最后一个元素并将它返回
+    println!("Pop last element: {:?}", xs.pop());
+
+}
+fn test3a() {
+    // （所有的类型标注都是都是多余）
+    // 一个指向在只读内存中堆分配字符串的引用
+    let pangram: &'static str = "the quick brown fox jumps over the lazy dog";
+    println!("Pangram: {}", pangram);
+
+    // 逆序迭代单词，不用分配新的字符串
+    // （原文：Iterate over words in reverse, no new string is allocated）    
+    println!("Words in reverse");
+    for word in pangram.split_whitespace().rev() {
+        println!("> {}", word);
+    }
+
+    // 复制字符到一个 vector，排序并移除重复值
+    let mut chars: Vec<char> = pangram.chars().collect();
+    chars.sort();
+    chars.dedup();
+
+    // 创建一个空的且可增长的 `String`
+    let mut string = String::new();
+    for c in chars {
+        // 在字符串的尾部插入一个字符
+        string.push(c);
+        // 在字符串尾部插入一个字符串
+        string.push_str(", ");
+    }
+
+    // 此切割的字符串是原字符串的一个切片，所以没有执行新分配操作
+    let chars_to_trim: &[char] = &[' ', ','];
+    let trimmed_str: &str = string.trim_matches(chars_to_trim);
+    println!("Used characters: {}", trimmed_str);
+
+    // 堆分配一个字符串
+    let alice = String::from("I like dogs");
+    // 分配新内存并存储修改过的字符串
+    let bob: String = alice.replace("dog", "cat");
+
+    println!("Alice says: {}", alice);
+    println!("Bob says: {}", bob);
+}
+fn test3b() {
+// 不会 `panic!` 的整数除法。
+fn checked_division(dividend: i32, divisor: i32) -> Option<i32> {
+    if divisor == 0 {
+        // 失败表示成 `None` 变量
+        None
+    } else {
+        // 结果 Result 被装包成 `Some` 变量
+        Some(dividend / divisor)
+    }
+}
+
+// 此函数处理可能失败的除法
+fn try_division(dividend: i32, divisor: i32) {
+    // `Option` 值可以进行模式匹配，就和其他枚举一样
+    match checked_division(dividend, divisor) {
+        None => println!("{} / {} failed!", dividend, divisor),
+        Some(quotient) => {
+            println!("{} / {} = {}", dividend, divisor, quotient)
+        },
+    }
+}
+
+    try_division(4, 2);
+    try_division(1, 0);
+
+    // 绑定 `None` 到一个变量需要类型标注
+    let none: Option<i32> = None;
+    let _equivalent_none = None::<i32>;
+
+    let optional_float = Some(0f32);
+
+    // 解包 `Some` 变量将展开解包后的值。
+    // （原文：Unwrapping a `Some` variant will extract the value wrapped.）
+    println!("{:?} unwraps to {:?}", optional_float, optional_float.unwrap());
+
+    // 解包 `None` 变量将会引发 `panic!`。
+    println!("{:?} unwraps to {:?}", none, _equivalent_none);
+}
+mod checked {
+    // 我们想要捕获的数学“错误”
+    #[derive(Debug)]
+    pub enum MathError {
+        DivisionByZero,
+        NegativeLogarithm,
+        NegativeSquareRoot,
+    }
+
+    pub type MathResult = Result<f64, MathError>;
+
+    pub fn div(x: f64, y: f64) -> MathResult {
+        if y == 0.0 {
+            // 此操作将会失败，反而让我们返回失败的理由，并装包成 `Err`
+            Err(MathError::DivisionByZero)
+        } else {
+            // 此操作是有效的，返回装包成 `Ok` 的结果
+            Ok(x / y)
+        }
+    }
+
+    pub fn sqrt(x: f64) -> MathResult {
+        if x < 0.0 {
+            Err(MathError::NegativeSquareRoot)
+        } else {
+            Ok(x.sqrt())
+        }
+    }
+
+    pub fn ln(x: f64) -> MathResult {
+        if x < 0.0 {
+            Err(MathError::NegativeLogarithm)
+        } else {
+            Ok(x.ln())
+        }
+    }
+        // 中间函数
+    fn op_(x: f64, y: f64) -> MathResult {
+        // 如果 `div` “失败”了，那么 `DivisionByZero` 将被返回
+        let ratio = div(x, y)?;
+
+        // 如果 `ln` “失败”了，那么 `NegativeLogarithm` 将被返回
+        let ln = ln(ratio)?;
+
+        sqrt(ln)
+    }
+
+    pub fn op(x: f64, y: f64) {
+        match op_(x, y) {
+            Err(why) => println!("{}",match why {
+                            MathError::NegativeLogarithm
+                                => "logarithm of negative number",
+                            MathError::DivisionByZero
+                                => "division by zero",
+                            MathError::NegativeSquareRoot
+                                => "square root of negative number",
+                        }),
+            Ok(value) => println!("{}", value),
+        }
+    }
+
+}
+
+
+fn test3c() {
+// `op(x, y)` === `sqrt(ln(x / y))`
+fn op(x: f64, y: f64) -> f64 {
+    // 这是一个三层的匹配金字塔！
+    // （原文：This is a three level match pyramid!）
+    match checked::div(x, y) {
+        Err(why) => {println!("-{:?}", why); 0f64},
+        Ok(ratio) => match checked::ln(ratio) {
+            Err(why) => {println!("--{:?}", why); 0f64},
+            Ok(ln) => match checked::sqrt(ln) {
+                Err(why) => {println!("---{:?}", why); 0f64},
+                Ok(sqrt) => sqrt,
+            },
+        },
+    }
+}
+
+    // 这会失败吗？
+    println!("{}", op(1.0, 10.0));
+    checked::op(1.0, 10.0);
+}
+fn test3d() {
+use std::collections::HashMap;
+
+fn call(number: &str) -> &str {
+    match number {
+        "798-1364" => "We're sorry, the call cannot be completed as dialed. 
+            Please hang up and try again.",
+        "645-7689" => "Hello, this is Mr. Awesome's Pizza. My name is Fred.
+            What can I get for you today?",
+        _ => "Hi! Who is this again?"
+    }
+}
+
+    let mut contacts = HashMap::new();
+
+    contacts.insert("Daniel", "798-1364");
+    contacts.insert("Ashley", "645-7689");
+    contacts.insert("Katie", "435-8291");
+    contacts.insert("Robert", "956-1745");
+
+    // 接受一个引用并返回 Option<&V>
+    match contacts.get(&"Daniel") {
+        Some(&number) => println!("Calling Daniel: {}", call(number)),
+        _ => println!("Don't have Daniel's number."),
+    }
+
+    // 如果被插入的值为新内容，那么 `HashMap::insert()` 返回 `None`，
+    // 否则返回 `Some(value)`
+    contacts.insert("Daniel", "164-6743");
+
+    match contacts.get(&"Ashley") {
+        Some(&number) => println!("Calling Ashley: {}", call(number)),
+        _ => println!("Don't have Ashley's number."),
+    }
+
+    contacts.remove(&("Ashley")); 
+
+    // `HashMap::iter()` 返回一个迭代器，该迭代器获得
+    // 任意顺序的 (&'a key, &'a value) 对。
+    // （原文：`HashMap::iter()` returns an iterator that yields 
+    // (&'a key, &'a value) pairs in arbitrary order.）
+    for (contact, &number) in contacts.iter() {
+        println!("Calling {}: {}", contact, call(number)); 
+    }
+
+}
+fn test3e() {
+use std::collections::HashMap;
+
+// Eq 要求你对此类型派生了 PartiaEq。
+#[derive(PartialEq, Eq, Hash)]
+struct Account<'a>{
+    username: &'a str,
+    password: &'a str,
+}
+
+struct AccountInfo<'a>{
+    name: &'a str,
+    email: &'a str,
+}
+
+type Accounts<'a> = HashMap<Account<'a>, AccountInfo<'a>>;
+
+fn try_logon<'a>(accounts: &Accounts<'a>,
+        username: &'a str, password: &'a str){
+    println!("Username: {}", username);
+    println!("Password: {}", password);
+    println!("Attempting logon...");
+
+    let logon = Account {
+        username: username,
+        password: password,
+    };
+
+    match accounts.get(&logon) {
+        Some(account_info) => {
+            println!("Successful logon!");
+            println!("Name: {}", account_info.name);
+            println!("Email: {}", account_info.email);
+        },
+        _ => println!("Login failed!"),
+    }
+}
+
+    let mut accounts: Accounts = HashMap::new();
+
+    let account = Account {
+        username: "j.everyman",
+        password: "password123",
+    };
+
+    let account_info = AccountInfo {
+        name: "John Everyman",
+        email: "j.everyman@email.com",
+    };
+
+    accounts.insert(account, account_info);
+
+    try_logon(&accounts, "j.everyman", "psasword123");
+
+    try_logon(&accounts, "j.everyman", "password123");
+}
+fn test3f() {
+    use std::collections::HashSet;
+
+    let mut a: HashSet<i32> = vec!(1i32, 2, 3).into_iter().collect();
+    let mut b: HashSet<i32> = vec!(2i32, 3, 4).into_iter().collect();
+
+    assert!(a.insert(4));
+    assert!(a.contains(&4));
+
+    // 如果值已经存在，那么 `HashSet::insert()` 返回 false。
+    // assert!(b.insert(4), "Value 4 is already in set B!");
+    // 改正 ^ 将此行注释掉。
+
+    b.insert(5);
+
+    // 若一个组合的元素类型实现了 `Debug`，那么该组合也就实现了 `Debug`。
+    // 这通常将元素打印成这样的格式 `[dlem1, elem2, ...]
+    println!("A: {:?}", a);
+    println!("B: {:?}", b);
+
+    // 乱序打印 [1, 2, 3, 4, 5]。
+    println!("Union: {:?}", a.union(&b).collect::<Vec<&i32>>());
+
+    // 这将会打印出 [1]
+    println!("Difference: {:?}", a.difference(&b).collect::<Vec<&i32>>());
+
+    // 乱序打印 [2, 3, 4]。
+    println!("Intersection: {:?}", a.intersection(&b).collect::<Vec<&i32>>());
+
+    // 打印 [1, 5]
+    println!("Symmetric Difference: {:?}",
+             a.symmetric_difference(&b).collect::<Vec<&i32>>());
+}
+
+fn test40_4f() {
+    test40();
+    test41();
+    test42();
+    test43();
+    test44();
+    test45();   
+    test46();
+    test47();
+    test48();
+    test49();
+    test4a();
+    test4b();   
+    test4c();   
+    test4d();   
+    test4e();
+    test4f();
+    test50_5f();    
+}
+
+fn test40() {
+use std::thread;
+
+static NTHREADS: i32 = 10;
+
+// 这是主（`main`）线程
+    // 提供一个 vector 来存放所创建的子线程（children）。
+    let mut children = vec![];
+
+    for i in 0..NTHREADS {
+        // 启动（spin up）另一个线程
+        children.push(thread::spawn(move || {
+            println!("this is thread number {}", i)
+        }));
+    }
+
+    for child in children {
+        // 等待线程到结束。返回一个结果。
+        let _ = child.join();
+    }
+}
+fn test41() {
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
+
+static NTHREADS: i32 = 3;
+
+    // 通道有两个端点：`Sender<T>` 和 `Receiver<T>`，其中 `T` 是要发送
+    // 消息的类型（类型标注是可有可无的）
+    let (tx, rx): (Sender<i32>, Receiver<i32>) = mpsc::channel();
+
+    for id in 0..NTHREADS {
+        // sender 发送端可被复制
+        let thread_tx = tx.clone();
+
+        // 每个线程都将通过通道来发送它的 id
+        thread::spawn(move || {
+            // 此线程取得 `thread_tx` 所有权
+            // 每个线程都在通道中排队列出消息
+            // （原文：The thread takes ownership over `thread_tx`
+            // Each thread queues a message in the channel）
+            thread_tx.send(id).unwrap();
+
+            // 发送是一个非阻塞操作，线程将在发送完消息后继续进行
+            println!("thread {} finished", id);
+        });
+    }
+
+    // 所有消息都在此处被收集
+    let mut ids = Vec::with_capacity(NTHREADS as usize);
+    for _ in 0..NTHREADS {
+        // `recv` 方法从通道中拿到一个消息
+        // 若无可用消息的话，`recv` 将阻止当前线程
+        ids.push(rx.recv());
+    }
+
+    // 显示已发送消息的次序
+    println!("{:?}", ids);
+}
+
+fn test42() {
+use std::path::Path;
+
+    // 从 `&'static str` 创建一个 `Path`
+    let path = Path::new(".");
+
+    // `display` 方法返回一个可显示（showable）的结构体
+    let display = path.display();
+
+    // `join` 使用操作系统的特定分隔符来合并路径，并返回新的路径
+    let new_path = path.join("a").join("b");
+
+    // 将路径转换成一个字符串 slice
+    match new_path.to_str() {
+        None => panic!("new path is not a valid UTF-8 sequence"),
+        Some(s) => println!("new path is {}", s),
+    }
+
+}
+fn test44() {
+use std::error::Error;
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::Path;
+
+    // 给所需的文件创建一个路径
+    let path = Path::new("/tmp/lorem_ipsum.txt");
+    let display = path.display();
+
+    // 以只读方式打开路径，返回 `io::Result<File>`
+    let mut file = match File::open(&path) {
+        // `io::Error` 的 `description` 方法返回一个描述错误的字符串。
+        Err(why) => panic!("couldn't open {}: {}", display,
+                                                   why.description()),
+        Ok(file) => file,
+    };
+
+    // 读取文件内容到一个字符串，返回 `io::Result<usize>`
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Err(why) => panic!("couldn't read {}: {}", display,
+                                                   why.description()),
+        Ok(_) => print!("{} contains:\n{}", display, s),
+    }
+
+    // `file` 离开作用域，并且 `hello.txt` 文件将被关闭。
+
+}
+fn test43() {
+static LOREM_IPSUM: &'static str =
+"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
+cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+";
+
+use std::error::Error;
+use std::io::prelude::*;
+use std::fs::File;
+use std::path::Path;
+
+    let path = Path::new("/tmp/lorem_ipsum.txt");
+    let display = path.display();
+
+    // 以只写模式打开文件，返回 `io::Result<File>`
+    let mut file = match File::create(&path) {
+        Err(why) => panic!("couldn't create {}: {}",
+                           display,
+                           why.description()),
+        Ok(file) => file,
+    };
+
+    // 将 `LOREM_IPSUM` 字符串写进 `file`，返回 `io::Result<()>`
+    match file.write_all(LOREM_IPSUM.as_bytes()) {
+        Err(why) => {
+            panic!("couldn't write to {}: {}", display,
+                                               why.description())
+        },
+        Ok(_) => println!("successfully wrote to {}", display),
+    }
+
+}
+fn test45() {
+use std::process::Command;
+
+    let output = Command::new("rustc")
+        .arg("--version")
+        .output().unwrap_or_else(|e| {
+            panic!("failed to execute process: {}", e)
+    });
+
+    if output.status.success() {
+        let s = String::from_utf8_lossy(&output.stdout);
+
+        print!("rustc succeeded and stdout was:\n{}", s);
+    } else {
+        let s = String::from_utf8_lossy(&output.stderr);
+
+        print!("rustc failed and stderr was:\n{}", s);
+    }
+
+}
+fn test46() {
+use std::error::Error;
+use std::io::prelude::*;
+use std::process::{Command, Stdio};
+
+static PANGRAM: &'static str =
+"the quick brown fox jumped over the lazy dog\n";
+
+    // 触发 `wc` 命令（原文：Spawn the `wc` command）
+    let process = match Command::new("wc")
+                                .stdin(Stdio::piped())
+                                .stdout(Stdio::piped())
+                                .spawn() {
+        Err(why) => panic!("couldn't spawn wc: {}", why.description()),
+        Ok(process) => process,
+    };
+
+    // 将字符串写入 `wc` 的 `stdin`。
+    //
+    // `stdin` 拥有 `Option<ChildStdin>` 类型，不过既然我们已经知道这个实例
+    // 只能拥有一个，那么我们可以直接解包（`unwrap`）它。
+    // （原文：`stdin` has type `Option<ChildStdin>`, but since we know this instance
+    // must have one, we can directly `unwrap` it.）
+    match process.stdin.unwrap().write_all(PANGRAM.as_bytes()) {
+        Err(why) => panic!("couldn't write to wc stdin: {}",
+                           why.description()),
+        Ok(_) => println!("sent pangram to wc"),
+    }
+
+    // 因为 `stdin` 在上面调用后就不再存活，所以它被销毁了，且管道被关闭。
+    //
+    // 这点非常重要，否则 `wc` 不会开始处理我们刚刚发送的输入。
+
+    // `stdout` 域也拥有 `Option<ChildStdout>` 类型，所以必需解包。
+    let mut s = String::new();
+    match process.stdout.unwrap().read_to_string(&mut s) {
+        Err(why) => panic!("couldn't read wc stdout: {}",
+                           why.description()),
+        Ok(_) => print!("wc responded with:\n{}", s),
+    }
+
+}
+fn test47() {
+use std::process::Command;
+
+    let mut child = Command::new("sleep").arg("1").spawn().unwrap();
+    let _result = child.wait().unwrap();
+
+    println!("reached end of main");
+
+}
+fn test48() {
+use std::env;
+
+    let args: Vec<String> = env::args().collect();
+
+    // 第一个参数是调用本程序的路径
+    println!("My path is {}.", args[0]);
+
+    // 其余的参数充当一般的命令行参量。
+    // 调用程序方式如下：
+    //   $ ./args arg1 arg2
+    println!("I got {:?} arguments: {:?}.", args.len() - 1, &args[1..]);
+}
+mod mod_3 {
+use std::fmt;
+
+// 此外部代码块链接到 libm 库
+#[link(name = "m")]
+extern {
+    // 这是外部语言函数
+    // 这计算了一个单精度复数的平方根
+    pub fn csqrtf(z: Complex) -> Complex;
+}
+
+
+// 最小化实现单精度复数
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Complex {
+    pub re: f32,
+    pub im: f32,
+}
+
+impl fmt::Debug for Complex {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.im < 0. {
+            write!(f, "{}-{}i", self.re, -self.im)
+        } else {
+            write!(f, "{}+{}i", self.re, self.im)
+        }
+    }
+}
+}
+fn test49() {
+    // z = -1 + 0i
+    let z = mod_3::Complex { re: -1., im: 0. };
+
+    // 调用一个外部语言函数是一种不安全的操作
+    let z_sqrt = unsafe {
+        mod_3::csqrtf(z)
+    };
+
+    println!("the square root of {:?} is {:?}", z, z_sqrt);
+}
+
+fn test4a() {
+    let raw_p: *const u32 = &10;
+
+    unsafe {
+        assert!(*raw_p == 10);
+    }
+    let u: &[u8] = &[49, 50, 51];
+
+    unsafe {
+        assert!(u == std::mem::transmute::<&str, &[u8]>("123"));
+    }    
+}
+fn test4b() {}
+fn test4c() {}
+fn test4d() {}
+fn test4e() {}
+fn test4f() {}
+
+fn test50_5f() {
+}
+#[cfg(test)]
+mod test {
+    // 需要一个辅助函数 `distance_test`。
+    fn distance(a: (f32, f32), b: (f32, f32)) -> f32 {
+        (
+            (b.0 - a.0).powi(2) +
+            (b.1 - a.1).powi(2)
+        ).sqrt()
+    }
+
+    #[test]
+    fn distance_test() {
+        assert!(distance((0f32, 0f32), (1f32, 1f32)) == (2f32).sqrt());
+    }
+    
+    #[test]
+    #[should_panic]
+    fn failing_test() {
+        assert!(1i32 == 2i32);
+    }
+}
