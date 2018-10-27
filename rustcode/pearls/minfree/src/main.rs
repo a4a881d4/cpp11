@@ -10,7 +10,7 @@ notElem' a n = notElem n a
 */
 
 mod normal{
-	pub fn minfree(xs : &Vec<usize>) -> usize {
+	pub fn minfree(xs : &[usize]) -> usize {
 		let n = xs.len();
 		let mut t : Vec<bool> = vec![false; n+1];
 		for x in xs {
@@ -57,16 +57,19 @@ minfrom a (n, xs)   | n == 0        = a
 
 */
 mod speed {
-	pub fn minfree(xs : Vec<usize>) -> usize {
-		minfrom(0,xs.len(),xs)
+	pub fn minfree(xs : &[usize]) -> usize {
+		let ixs = xs.iter().collect::<Vec<_>>();
+		minfrom(0,xs.len(),&ixs)
 	}
 
-	fn minfrom(a : usize, n : usize, ixs :Vec<usize>) -> usize {
-		if n == 0 { a } 
+	fn minfrom(a : usize, n : usize, ixs :&Vec<&usize>) -> usize {
+		if n == 0 || ixs.len()==0 { a } 
 		else {
-			let b = (a+1+n)/2;
-			let us = ixs.iter().filter(|&x| *x<b).collect::<Vec<usize>>();
-			let vs = ixs.iter().filter(|&x| *x>=b).collect::<Vec<usize>>();
+			let b = a+1+n/2;
+			let us : Vec<&usize> = ixs.iter().filter(|x| ***x<b).map(|x| *x).collect();
+			println!("us({},{},{}) = {:?}",a,b,n,us);
+			let vs : Vec<&usize> = ixs.iter().filter(|x| ***x>=b).map(|x| *x).collect();
+			println!("vs = {:?}",vs);
 			let m = us.len();
 			if m == b-a { minfrom(b,n-m,&vs) }
 			else { minfrom(a,m,&us) }
@@ -75,7 +78,10 @@ mod speed {
 }
 
 fn main() {
-    let a = vec![08, 23, 09, 00, 12, 11, 01, 10, 13, 07, 41, 04, 14, 21, 05, 17, 03, 19, 02, 06];
-    println!("{:?}",normal::minfree(a));
-    println!("{:?}",speed::minfree(a));
+    let a = [08, 23, 09, 00, 12, 11, 01, 10, 13, 07, 41, 04, 14, 21, 05, 17, 03, 19, 02, 06];
+    let ref ra = &a;
+    println!("{:?}",ra);
+    println!("{:?}",ra.iter().filter(|x| **x<10).collect::<Vec<_>>());
+    println!("{:?}",normal::minfree(&a));
+    println!("{:?}",speed::minfree(&a));
 }
