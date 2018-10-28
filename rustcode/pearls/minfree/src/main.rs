@@ -63,16 +63,14 @@ mod speed {
 	}
 
 	fn minfrom(a : usize, n : usize, ixs :&Vec<&usize>) -> usize {
-		if n == 0 || ixs.len()==0 { a } 
-		else {
-			let b = a+1+n/2;
-			let us : Vec<&usize> = ixs.iter().filter(|x| ***x<b).map(|x| *x).collect();
-			println!("us({},{},{}) = {:?}",a,b,n,us);
-			let vs : Vec<&usize> = ixs.iter().filter(|x| ***x>=b).map(|x| *x).collect();
-			println!("vs = {:?}",vs);
-			let m = us.len();
-			if m == b-a { minfrom(b,n-m,&vs) }
-			else { minfrom(a,m,&us) }
+		let b = a+1+n/2;
+		let us : Vec<&usize> = ixs.iter().filter(|x| ***x<b).map(|x| *x).collect();
+		let vs : Vec<&usize> = ixs.iter().filter(|x| ***x>=b).map(|x| *x).collect();
+		let m = us.len();
+		match (n,m) {
+			(0,_) 	=> a,
+			(_,m) if m==b-a => minfrom(b,n-m,&vs),
+			(_,_)	=> minfrom(a,m,&us),
 		}
 	}
 }
@@ -81,7 +79,6 @@ fn main() {
     let a = [08, 23, 09, 00, 12, 11, 01, 10, 13, 07, 41, 04, 14, 21, 05, 17, 03, 19, 02, 06];
     let ref ra = &a;
     println!("{:?}",ra);
-    println!("{:?}",ra.iter().filter(|x| **x<10).collect::<Vec<_>>());
     println!("{:?}",normal::minfree(&a));
     println!("{:?}",speed::minfree(&a));
 }
