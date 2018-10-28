@@ -1,6 +1,6 @@
 mod normal {
 	pub fn msc(t:&String) -> usize {
-		&*t.to_vec().len()
+		t.len()
 	}
 }
 fn main() {
