@@ -40,7 +40,27 @@ impl Shape for Round {
 impl Round for Circle {
 	fn get_radius(&self) -> f64 { self.radius }
 }
-
+mod dir {
+	pub enum Direction {
+		East,West,South,North
+	}
+	pub fn print(x : &Direction) {
+		match x {
+			Direction::East => {
+				println!(">");
+			}
+			Direction::North => {
+				println!("^");
+			}
+			Direction::West => {
+				println!("<");
+			}
+			Direction::South => {
+				println!("_");
+			}
+		}
+	}
+}
 fn main() {
 	let c = Circle { radius : 2f64 };
     println!("Area of Circle ( radius = {} ) : {}",c.radius,c.area());
@@ -48,4 +68,25 @@ fn main() {
     let b = Box::new(Circle { radius: 4f64 }) as Box<Round>;
     println!("Area of Circle ( radius = {} ) : {}",b.get_radius(),b.area());
     println!("Circumference of Circle ( radius = {} ) : {}",b.get_radius(),b.circumference());
+    let v = [[0_i32;5];5];
+    println!("vector of vector {:?}",v);
+    for (i,x) in v.iter().enumerate() {
+    	println!("vecor[{}] = {:?}",i,x);
+    }
+    // let v = [0_i32;9];
+    for i in 0_i32..=10 {
+    	println!("v[{}] = {:?}",i,v.get(i as usize));
+    }
+    use dir::Direction as Dir;
+
+    let v :[Dir;5] = [
+	      Dir::West
+	    , Dir::South
+	    , Dir::North
+	    , Dir::East
+	    , Dir::South
+	    ];
+	for i in v.iter() {
+		dir::print(i);
+	}
 }
