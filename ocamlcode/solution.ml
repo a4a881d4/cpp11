@@ -110,3 +110,109 @@ let slice list m n =
 	rtake (n-m+1) [] (rtake n [] list);;
 
 rotate ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"] 3;;
+
+let rotate list n =
+	let (x,y) = if n>=0 then split list n else split list ((List.length list)+n)
+in List.append y x;;
+remove_at 1 ["a";"b";"c";"d"];;
+
+let rec remove_at n = function
+| [] -> []
+| x::t -> if n=0 then t else x :: remove_at (n-1) t;;
+
+insert_at "alfa" 1 ["a";"b";"c";"d"];;
+
+let rec insert_at s n = function
+| [] -> []
+| x::t -> if n=0 then s::(x::t) else x::insert_at s (n-1) t;;
+
+range 4 9;;
+
+let rec range m n =
+	if m=n then [m] else if m>n then m :: range (m-1) n else m :: range (m+1) n;;
+
+let rec lotto_select n m =
+	if n=0 then [] else ((Random.int m)+1) :: lotto_select (n-1) m;;
+
+extract 2 ["a";"b";"c";"d"];;
+
+let rec extract n = function
+	| [] -> []
+	| x :: t -> if n=1 then List.map (fun a->[a]) (x::t) 
+	else (extract n t) @ List.map (fun a -> x::a) (extract (n-1) t);;
+
+group ["a";"b";"c";"d"] [2;1];;
+let select_one list =
+	let rec aux acc = function
+	| [] -> []
+	| t::x -> ([t],acc@x)::aux (t::acc) x 
+in aux [] list;;
+select_one ["a";"b";"c";"d"];;
+
+let select_two list =
+	let e1 = select_one list in
+	List.flatten (List.map (fun (x,y) -> (List.map (fun ([a],b)-> (a::x,b)) (select_one y))) e1);;
+
+let select_three list =
+	let e1 = select_two list in
+	List.flatten (List.map (fun (x,y) -> (List.map (fun ([a],b)-> (a::x,b)) (select_one y))) e1);;
+
+select_two ["a";"b";"c";"d"];;
+
+select_three ["a";"b";"c";"d"];;
+
+let rec select_N n list =
+	if n=1 then
+		select_one list
+	else
+	let en = select_N (n-1) list in
+	List.flatten (List.map (fun (x,y) -> (List.map (fun ([a],b)-> (a::x,b)) (select_one y))) en);;
+select_N 3 ["a";"b";"c";"d"];;
+
+
+
+let length_sort list = 
+	List.sort (fun x y -> (length y)-(length x)) list;;
+
+length_sort [ ["a";"b";"c"]; ["d";"e"]; ["f";"g";"h"]; ["d";"e"];
+                ["i";"j";"k";"l"]; ["m";"n"]; ["o"] ];;
+
+let is_prime n =
+	if n<3 then true else 
+	List.for_all (fun x -> not ((n mod x)=0) ) (range 2 (n-1));;
+
+let rec gcd m n = 
+	let p = m mod n in
+	match p with
+	| 0 -> n
+	| 1 -> 1
+	| _ -> gcd n p;;
+
+let coprime m n =
+	(gcd m n) = 1;;
+
+let phi m = 
+	List.fold_left (fun sum x-> if coprime m x then sum+1 else sum) 0 (range 1 m);;
+
+let factors m =
+	let rec aux d n =
+		if d > n then [] else if (n mod d)=0 then d :: aux d (n/d) else aux (d+1) n
+	in encode (aux 2 m);;
+
+let phi_improved m =
+	let rec pow x = function
+	| 0 -> 1
+	| n -> x*(pow x (n-1)) in
+	let lm = factors m in
+	List.fold_left (fun mm (n,p) -> mm*(p-1)*(pow p (n-1))) 1 lm;;
+let timeit f a =
+    let t0 = Unix.gettimeofday() in
+    ignore(f a);
+    let t1 = Unix.gettimeofday() in
+    t1 -. t0;;
+
+let all_prime m =
+ 	let rec aux = function
+ 	| [] -> []
+ 	| x::t -> x::aux (List.filter (fun y -> (y mod x)<>0) t)
+ 	in aux (range 2 m);;
