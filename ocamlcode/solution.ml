@@ -23,8 +23,7 @@ let rec length x =
 	| _ :: t -> (length t) + 1;;
 
 let rev x = 
-	let rec aux m n = 
-		match n with
+	let rec aux m = function
 		| [] -> m
 		| a :: t -> aux (a::m) t in
 	aux [] x;;
@@ -216,3 +215,128 @@ let all_prime m =
  	| [] -> []
  	| x::t -> x::aux (List.filter (fun y -> (y mod x)<>0) t)
  	in aux (range 2 m);;
+
+type bool_expr =
+| Var of string
+| Not of bool_expr
+| And of bool_expr * bool_expr
+| Or of bool_expr * bool_expr;;
+
+let rec eval2 a val_a b val_b = function
+| Var x -> if a=x then val_a 
+	else if x=b then val_b 
+	else failwith "The expression contains an invalid variable"
+| Not e -> not(eval2 a val_a b val_b e)
+| And(e1,e2) -> eval2 a val_a b val_b e1 && eval2 a val_a b val_b e2
+| Or(e1,e2) -> eval2 a val_a b val_b e1 || eval2 a val_a b val_b e2;;
+
+let cartesian a b = 
+	List.flatten (List.map (fun x -> List.map (fun y->(x,y)) b) a);;
+
+let tab0 = cartesian [true;false] [true;false];;
+
+let table2 a b e = 
+	let tab0 = cartesian [true;false] [true;false] in
+	List.map (fun (x,y) -> (x,y,eval2 a x b y e)) tab0;;
+
+let rec eval val_list = function
+| Var x -> List.assoc x val_list
+| Not e -> not(eval val_list e)
+| And(e1,e2) -> eval val_list e1 && eval val_list e2
+| Or(e1,e2) -> eval val_list e1 || eval val_list e2;;
+
+
+let table vals exprs = 
+	let rec make_table val_list expr = function
+	| [] -> [(rev val_list, eval val_list expr)]
+	| x :: t -> make_table ((x,true)::val_list) expr t 
+		@ make_table ((x,false)::val_list) expr t
+	in make_table [] exprs vals;;
+
+table ["a"; "b"] (And(Var "a", Or(Var "a", Var "b")));;
+
+let a = Var "a" and b = Var "b" and c = Var "c" in
+  table ["a"; "b"; "c"] (Or(And(a, Or(b,c)), Or(And(a,b), And(a,c))));;
+
+let rec make_val_list = function
+| [] -> [[]]
+| x::t -> let ll = make_val_list t in 
+	List.flatten (List.map (fun y -> [(x,true)::y;(x,false)::y]) ll );;
+
+make_val_list ["a";"b";"c"];;
+
+let table3 vals exprs =
+	List.map (fun x -> (x,eval x exprs)) (make_val_list vals);;
+let a = Var "a" and b = Var "b" and c = Var "c" in
+  table3 ["a"; "b"; "c"] (Or(And(a, Or(b,c)), Or(And(a,b), And(a,c))));;
+
+
+let gray n = 
+	let rec aux = function
+	| 0 -> [[]]
+	| 1 -> [[true];[false]]
+	| k -> let ll = aux (k-1) in 
+			List.map (fun a -> true::a) ll 
+			@ List.map (fun (x::t) -> false::(not x)::t) ll
+	in List.map (fun x -> String.concat "" (List.map (fun y -> if y then "0" else "1") x)) (aux n);;
+
+gray 3;;
+
+type htree = 
+| Empty
+| Node of string * int * htree * htree;;
+
+let hinit list = 
+	List.map (fun (a,i) -> Node(a,i,Empty,Empty)) list;;
+
+let fs = [ ("a", 45); ("b", 13); ("c", 12); ("d", 16);
+             ("e", 9); ("f", 5) ];;
+
+let nodecmp a = function
+| Empty -> -1
+| Node(_,x,_,_) -> match a with 
+	| Empty -> 1
+	| Node(_,y,_,_) -> y-x;;
+
+let inittree = List.sort nodecmp (hinit fs);;
+
+let rec build_tree = function
+| [] -> Empty
+| [x] -> x
+| (Node(ax,ai,_,_) as a)::((Node(bx,bi,_,_) as b)::t) -> 
+	let n = if (nodecmp a b)<0 then Node(ax^bx,ai+bi,a,b) else Node(bx^ax,ai+bi,b,a) in
+	build_tree (List.sort nodecmp (n::t))
+| _ -> Empty;;
+
+let rec encode_tree = function
+| Empty -> []
+| Node(a,_,Empty,_) -> [(a,"")]
+| Node(a,_,_,Empty) -> [(a,"")]
+| Node(_,_,a,b) -> List.map (fun (a,x) -> (a,"0"^x)) (encode_tree a) 
+	@ List.map (fun (a,x)-> (a,"1"^x)) (encode_tree b);;
+
+encode_tree (build_tree inittree);;
+
+
+let huffman fs = 
+	let hinit list = List.map (fun (a,i) -> Node(a,i,Empty,Empty)) list in
+	let nodecmp a = function
+		| Empty -> -1
+		| Node(_,x,_,_) -> match a with 
+		| Empty -> 1
+		| Node(_,y,_,_) -> y-x in
+	let rec build_tree = function
+		| [] -> Empty
+		| [x] -> x
+		| (Node(ax,ai,_,_) as a)::((Node(bx,bi,_,_) as b)::t) -> 
+			let n = if (nodecmp a b)<0 then Node(ax^bx,ai+bi,a,b) else Node(bx^ax,ai+bi,b,a) in
+			build_tree (List.sort nodecmp (n::t))
+		| _ -> Empty in
+	let rec encode_tree = function
+		| Empty -> []
+		| Node(a,_,Empty,_) -> [(a,"")]
+		| Node(a,_,_,Empty) -> [(a,"")]
+		| Node(_,_,a,b) -> List.map (fun (a,x) -> (a,"0"^x)) (encode_tree a) 
+			@ List.map (fun (a,x)-> (a,"1"^x)) (encode_tree b) in
+	encode_tree (build_tree (List.sort nodecmp (hinit fs)));;	
+
