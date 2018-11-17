@@ -39,3 +39,8 @@ usrtos/include/_version.hpp
 *.pyc
 core*
 target
+
+*.cmi
+*.cmo
+*.byte
+

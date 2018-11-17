@@ -10,7 +10,7 @@ let rec last_two x =
 	| [] -> None
 	| [a] -> None
 	| [a;b] -> Some(a,b)
-	| _ :: t -> last_two t
+	| _ :: t -> last_two t;;
 
 let rec at k x =
 	match x with 
@@ -52,7 +52,7 @@ let rec compress = function
     | a :: (b :: _ as t) -> if a = b then compress t else a :: compress t
     | smaller -> smaller;;
 
-compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+(* compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];; *)
 
 let pack list =
 	let rec aux current acc = function
@@ -61,20 +61,20 @@ let pack list =
 	| a::(b::_ as t) -> if a = b then aux (a::current) acc t else aux [] ((a::current)::acc) t
 	in rev(aux [] [] list);;
 
-pack ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+(* pack ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];; *)
 
 let encode list =
 	let pl = pack list in
 	let ll a = (length a, List.hd a) in
 	List.map ll pl;;
-encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+(* encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];; *)
 
 type 'a rle =
     | One of 'a
     | Many of int * 'a;;
 let rencode list =
 	List.map (fun (k,a) -> if k=1 then One a else Many (k,a)) (encode list);;
-rencode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+(* rencode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];; *)
 
 let duplicate list =
 	List.flatten (List.map (fun x -> [x;x]) list);;
@@ -86,7 +86,7 @@ let rec replicate list n =
 	| x :: t -> List.append (rep x n) (replicate t n);;
 
 
-drop ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 3;;
+(* drop ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 3;; *)
 let drop list n = 
 	let rec aux acc k = function
 	| [] -> acc
@@ -99,7 +99,7 @@ let split list n =
 	| x :: t as y -> if k=0 then (rev (acc),y) else aux (k-1) (x::acc) t
 in aux n [] list;;
 
-slice ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 2 6;;
+(* slice ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 2 6;; *)
 
 let rec rtake n acc = function
 	| [] -> acc
@@ -108,24 +108,24 @@ let rec rtake n acc = function
 let slice list m n =
 	rtake (n-m+1) [] (rtake n [] list);;
 
-rotate ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"] 3;;
+(* rotate ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"] 3;; *)
 
 let rotate list n =
 	let (x,y) = if n>=0 then split list n else split list ((List.length list)+n)
 in List.append y x;;
-remove_at 1 ["a";"b";"c";"d"];;
+(* remove_at 1 ["a";"b";"c";"d"];; *)
 
 let rec remove_at n = function
 | [] -> []
 | x::t -> if n=0 then t else x :: remove_at (n-1) t;;
 
-insert_at "alfa" 1 ["a";"b";"c";"d"];;
+(* insert_at "alfa" 1 ["a";"b";"c";"d"];; *)
 
 let rec insert_at s n = function
 | [] -> []
 | x::t -> if n=0 then s::(x::t) else x::insert_at s (n-1) t;;
 
-range 4 9;;
+(* range 4 9;; *)
 
 let rec range m n =
 	if m=n then [m] else if m>n then m :: range (m-1) n else m :: range (m+1) n;;
@@ -133,21 +133,21 @@ let rec range m n =
 let rec lotto_select n m =
 	if n=0 then [] else ((Random.int m)+1) :: lotto_select (n-1) m;;
 
-extract 2 ["a";"b";"c";"d"];;
+(* extract 2 ["a";"b";"c";"d"];; *)
 
 let rec extract n = function
 	| [] -> []
 	| x :: t -> if n=1 then List.map (fun a->[a]) (x::t) 
 	else (extract n t) @ List.map (fun a -> x::a) (extract (n-1) t);;
 
-group ["a";"b";"c";"d"] [2;1];;
+(* group ["a";"b";"c";"d"] [2;1];; *)
 let select_one list =
 	let rec aux acc = function
 	| [] -> []
 	| t::x -> ([t],acc@x)::aux (t::acc) x 
 in aux [] list;;
-select_one ["a";"b";"c";"d"];;
-
+(* select_one ["a";"b";"c";"d"];;
+ *)
 let select_two list =
 	let e1 = select_one list in
 	List.flatten (List.map (fun (x,y) -> (List.map (fun ([a],b)-> (a::x,b)) (select_one y))) e1);;
@@ -155,11 +155,11 @@ let select_two list =
 let select_three list =
 	let e1 = select_two list in
 	List.flatten (List.map (fun (x,y) -> (List.map (fun ([a],b)-> (a::x,b)) (select_one y))) e1);;
-
+(* 
 select_two ["a";"b";"c";"d"];;
 
 select_three ["a";"b";"c";"d"];;
-
+ *)
 let rec select_N n list =
 	if n=1 then
 		select_one list
@@ -172,10 +172,10 @@ select_N 3 ["a";"b";"c";"d"];;
 
 let length_sort list = 
 	List.sort (fun x y -> (length y)-(length x)) list;;
-
+(* 
 length_sort [ ["a";"b";"c"]; ["d";"e"]; ["f";"g";"h"]; ["d";"e"];
                 ["i";"j";"k";"l"]; ["m";"n"]; ["o"] ];;
-
+ *)
 let is_prime n =
 	if n<3 then true else 
 	List.for_all (fun x -> not ((n mod x)=0) ) (range 2 (n-1));;
@@ -204,11 +204,11 @@ let phi_improved m =
 	| n -> x*(pow x (n-1)) in
 	let lm = factors m in
 	List.fold_left (fun mm (n,p) -> mm*(p-1)*(pow p (n-1))) 1 lm;;
-let timeit f a =
+(* let timeit f a =
     let t0 = Unix.gettimeofday() in
     ignore(f a);
     let t1 = Unix.gettimeofday() in
-    t1 -. t0;;
+    t1 -. t0;; *)
 
 let all_prime m =
  	let rec aux = function
@@ -253,7 +253,7 @@ let table vals exprs =
 		@ make_table ((x,false)::val_list) expr t
 	in make_table [] exprs vals;;
 
-table ["a"; "b"] (And(Var "a", Or(Var "a", Var "b")));;
+(* table ["a"; "b"] (And(Var "a", Or(Var "a", Var "b")));; *)
 
 let a = Var "a" and b = Var "b" and c = Var "c" in
   table ["a"; "b"; "c"] (Or(And(a, Or(b,c)), Or(And(a,b), And(a,c))));;
@@ -263,8 +263,8 @@ let rec make_val_list = function
 | x::t -> let ll = make_val_list t in 
 	List.flatten (List.map (fun y -> [(x,true)::y;(x,false)::y]) ll );;
 
-make_val_list ["a";"b";"c"];;
-
+(* make_val_list ["a";"b";"c"];;
+ *)
 let table3 vals exprs =
 	List.map (fun x -> (x,eval x exprs)) (make_val_list vals);;
 let a = Var "a" and b = Var "b" and c = Var "c" in
@@ -280,7 +280,7 @@ let gray n =
 			@ List.map (fun (x::t) -> false::(not x)::t) ll
 	in List.map (fun x -> String.concat "" (List.map (fun y -> if y then "0" else "1") x)) (aux n);;
 
-gray 3;;
+(* gray 3;; *)
 
 type htree = 
 | Empty
@@ -315,7 +315,7 @@ let rec encode_tree = function
 | Node(_,_,a,b) -> List.map (fun (a,x) -> (a,"0"^x)) (encode_tree a) 
 	@ List.map (fun (a,x)-> (a,"1"^x)) (encode_tree b);;
 
-encode_tree (build_tree inittree);;
+(* encode_tree (build_tree inittree);; *)
 
 
 let huffman fs = 
@@ -339,4 +339,5 @@ let huffman fs =
 		| Node(_,_,a,b) -> List.map (fun (a,x) -> (a,"0"^x)) (encode_tree a) 
 			@ List.map (fun (a,x)-> (a,"1"^x)) (encode_tree b) in
 	encode_tree (build_tree (List.sort nodecmp (hinit fs)));;	
+
 
