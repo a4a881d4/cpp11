@@ -267,8 +267,6 @@ let rec make_val_list = function
  *)
 let table3 vals exprs =
 	List.map (fun x -> (x,eval x exprs)) (make_val_list vals);;
-let a = Var "a" and b = Var "b" and c = Var "c" in
-  table3 ["a"; "b"; "c"] (Or(And(a, Or(b,c)), Or(And(a,b), And(a,c))));;
 
 
 let gray n = 
@@ -341,3 +339,32 @@ let huffman fs =
 	encode_tree (build_tree (List.sort nodecmp (hinit fs)));;	
 
 
+
+let () = 
+	let hlist =
+	let fs = [ ("a", 45); ("b", 13); ("c", 12); ("d", 16);
+             ("e", 9); ("f", 5) ] in
+    huffman fs in
+    let rec print_list = function
+		| [] -> print_string "\n"
+		| (x,i)::t -> 
+			print_string "("; 
+			print_string x; 
+			print_string ","; 
+			print_string i;
+			print_string ") "; 
+			print_list t in
+	print_list hlist;
+
+	let rec print_list = function
+		| [] -> print_string "\n"
+		| x::t -> 
+			print_string x; 
+			print_string " "; 
+			print_list t in
+	print_list (gray 4);
+	
+	let tgray =
+	let a = Var "a" and b = Var "b" and c = Var "c" in
+  		table3 ["a"; "b"; "c"] (Or(And(a, Or(b,c)), Or(And(a,b), And(a,c)))) in
+  	print_int (length tgray); print_string "\n";
